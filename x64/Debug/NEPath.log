@@ -1,2 +1,3 @@
-﻿  main.cpp
+﻿  demos.cpp
+E:\Projects\NEPath\NEPath-master\ContourParallel.h(27,34): warning C4244: “初始化”: 从“double”转换到“const int”，可能丢失数据
   NEPath.vcxproj -> E:\Projects\NEPath\x64\Debug\NEPath.exe

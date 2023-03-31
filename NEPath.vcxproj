@@ -142,7 +142,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="demos.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NEPath-master\Basic.cpp" />
+    <ClCompile Include="NEPath-master\clipper.cpp" />
+    <ClCompile Include="NEPath-master\ContourParallel.cpp" />
+    <ClCompile Include="NEPath-master\Curve.cpp" />
+    <ClCompile Include="NEPath-master\DirectionParallel.cpp" />
+    <ClCompile Include="NEPath-master\FileAgent.cpp" />
+    <ClCompile Include="NEPath-master\path.cpp" />
+    <ClCompile Include="NEPath-master\NEPathPlanner.cpp" />
+    <ClCompile Include="NEPath-master\PlanningOptions.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="demos.h" />
+    <ClInclude Include="NEPath-master\Basic.h" />
+    <ClInclude Include="NEPath-master\clipper.hpp" />
+    <ClInclude Include="NEPath-master\ContourParallel.h" />
+    <ClInclude Include="NEPath-master\Curve.h" />
+    <ClInclude Include="NEPath-master\DirectionParallel.h" />
+    <ClInclude Include="NEPath-master\FileAgent.h" />
+    <ClInclude Include="NEPath-master\path.h" />
+    <ClInclude Include="NEPath-master\NEPathPlanner.h" />
+    <ClInclude Include="NEPath-master\PlanningOptions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,8 @@
 #include <iostream>
+#include "demos.h"
 using namespace std;
+
 int main() {
-	cout << "Hello World!" << endl;
+	demo_Zigzag();
 	return 0;
 }

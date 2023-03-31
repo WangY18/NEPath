@@ -18,5 +18,67 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="NEPath-master\Basic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\clipper.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\ContourParallel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\Curve.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\DirectionParallel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\path.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\NEPathPlanner.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\PlanningOptions.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="demos.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NEPath-master\FileAgent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NEPath-master\Basic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\clipper.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\ContourParallel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\Curve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\DirectionParallel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\path.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\NEPathPlanner.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\PlanningOptions.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="demos.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\FileAgent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -12,7 +12,12 @@ The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D print
 + Classical toolpath:
 	+ **Contour-Parallel Toolpath (CP)**.
 	+ **Zigzag Toolpath**.
+	+ **Raster Toolpath**.
 + Toolpath connection. (Temporarily unavailable)
++ Other functions:
+	+ Tool Compensating.
+	+ Calculating underfill rate. (Temporarily unavailable)
+	+ Determining sharp corners. (Temporarily unavailable)
 
 Among them, the IQOP is proposed by Wang et al., with an article under review, i.e., 
 
@@ -66,9 +71,60 @@ The API and examples of IQOP would be provided after the article is published.
 
 #### Zigzag
 
+##### Package
+
+```c++
+#include "NEPath-master/NEPathPlanner.h"
+#include "NEPath-master/PlanningOptions.h"
+#include "NEPath-master/FileAgent.h"
+```
+
+##### API
+
++ The contour of slices can be set by calling `NEPathPlanner::set_contour()`, while the holes (optional) can be set by calling `NEPathPlanner::addhole()` or `NEPathPlanner::addholes()` .
++ The zigzag toolpaths can be planned by calling `NEPathPlanner::Zigzag()`.
++ The toolpath parameters of zigzag toolpath can be set in `DirectParallelOptions`.
+
+##### Example
+
+```c++
+NEPathPlanner planner;
+
+// Set the contour
+path contour;
+contour.length = 1000; // the number of waypoints
+contour.x = new double[contour.length](); // x-coordinate of waypoints
+contour.y = new double[contour.length](); // y-coordinate of waypoints
+const double pi = acos(-1.0); // pi == 3.1415926...
+for (int i = 0; i < contour.length; ++i) {
+    double theta = 2.0 * pi * i / contour.length;
+    double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
+    contour.x[i] = r * cos(theta);
+    contour.y[i] = r * sin(theta);
+}
+planner.set_contour(contour);
+// or `planner.set_contour(contour.x, contour.y, contour.length)`
+
+// Set the toolpath parameters
+DirectParallelOptions opts;
+opts.delta = 1.0; // the line width of toolpaths
+opts.angle = pi / 3.0; // the angle of Zigzag toolpaths, unit: rad
+
+paths zigzag_paths = planner.Zigzag(opts); // all zigzag paths
+cout << "There are " << zigzag_paths.size() << " continuous toolpaths in total." << endl;
+for (int i = 0; i < zigzag_paths.size(); ++i) {
+    // zigzag_paths[i] is the i-th continuous toolpath
+    cout << "Toopath " << i << " has " << zigzag_paths[i].length << " waypoints." << endl;
+}
+```
+
+
+
+<img src="ReadMe.assets/zigzag.png" alt="zigzag" style="zoom: 33%;" />
+
 ### Toolpath Connection
 
-The API and examples of toolpath connection 
+The API and examples of toolpath connection would be available soon.
 
 
 
