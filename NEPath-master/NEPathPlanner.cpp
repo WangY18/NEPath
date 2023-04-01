@@ -55,18 +55,18 @@ paths NEPathPlanner::Zigzag(const DirectParallelOptions& opts) {
 	return DirectionParalle::Zigzag(contour, holes, opts.delta, opts.angle);
 }
 
-paths NEPathPlanner::Contour_Paralle() {
-	return ContourParalle::Contour_Paralle(contour, holes, delta, wash, washdis, num_least);
+paths NEPathPlanner::CP() {
+	return ContourParallel::Contour_Parallel(contour, holes, delta, wash, washdis, num_least);
 }
 
-paths NEPathPlanner::Contour_Paralle(const ContourParallelOptions& opts) {
-	return ContourParalle::Contour_Paralle(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
+paths NEPathPlanner::CP(const ContourParallelOptions& opts) {
+	return ContourParallel::Contour_Parallel(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
 }
 
 paths NEPathPlanner::tool_compensate(double dis) {
-	return ContourParalle::tool_compensate(contour, holes, dis, wash, washdis, num_least);
+	return ContourParallel::tool_compensate(contour, holes, dis, wash, washdis, num_least);
 }
 
 paths NEPathPlanner::tool_compensate(const ContourParallelOptions& opts) {
-	return ContourParalle::tool_compensate(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
+	return ContourParallel::tool_compensate(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
 }

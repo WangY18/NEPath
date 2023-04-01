@@ -1,7 +1,7 @@
 #include "ContourParallel.h"
 
 // 使用Clipper进行偏置。向内为正。无法实现偏置前后点点对应。
-paths ContourParalle::OffsetClipper(const double* x, const double* y, double dis, int length, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::OffsetClipper(const double* x, const double* y, double dis, int length, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	double xmax = x[0];
 	double xmin = x[0];
 	double ymax = y[0];
@@ -42,11 +42,11 @@ paths ContourParalle::OffsetClipper(const double* x, const double* y, double dis
 	return ps;
 }
 
-paths ContourParalle::OffsetClipper(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::OffsetClipper(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	paths ps_offset = OffsetClipper(contour.x, contour.y, dis, contour.length, wash, washdis);
 	paths solution;
 	for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset) {
-		paths ps_clip = ContourParalle::cut_holes(ps_offset[i_offset], holes, wash, washdis);
+		paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
 		for (int i = 0; i < ps_clip.size(); ++i) {
 			/*
 			if (Curve::AreaCal(ps_clip[i].x, ps_clip[i].y, ps_clip[i].length) <= 0) {
@@ -59,15 +59,15 @@ paths ContourParalle::OffsetClipper(const path& contour, const paths& holes, dou
 	return solution;
 }
 
-inline cInt ContourParalle::double2cInt(const double& d, double scale, double delta_pos/*=0.0*/) {
+inline cInt ContourParallel::double2cInt(const double& d, double scale, double delta_pos/*=0.0*/) {
 	return (d - delta_pos) * scale;
 }
 
-inline double ContourParalle::cInt2double(const cInt& c, double scale, double delta_pos/*=0.0*/) {
+inline double ContourParallel::cInt2double(const cInt& c, double scale, double delta_pos/*=0.0*/) {
 	return c / scale + delta_pos;
 }
 
-paths ContourParalle::Paths2paths(const Paths& Ps, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
+paths ContourParallel::Paths2paths(const Paths& Ps, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	paths ps;
 	for (int i = 0; i < Ps.size(); ++i) {
 		ps.push_back(Path2path(Ps[i], scale, delta_x, delta_y));
@@ -75,7 +75,7 @@ paths ContourParalle::Paths2paths(const Paths& Ps, double scale, double delta_x/
 	return ps;
 }
 
-path ContourParalle::Path2path(const Path& P, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
+path ContourParallel::Path2path(const Path& P, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	path p;
 	p.length = P.size();
 	p.x = new double[p.length];
@@ -87,7 +87,7 @@ path ContourParalle::Path2path(const Path& P, double scale, double delta_x/*=0.0
 	return p;
 }
 
-pathnode* ContourParalle::root_offset(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+pathnode* ContourParallel::root_offset(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	pathnode* root = new pathnode(contour);
 	root->parent = NULL;
 	std::stack<pathnode*> S;
@@ -108,7 +108,7 @@ pathnode* ContourParalle::root_offset(const path& contour, const paths& holes, d
 		*/
 		paths ps_offset = OffsetClipper(pn_parent->data.x, pn_parent->data.y, dis, pn_parent->data.length, wash, washdis);
 		for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset) {
-			paths ps_clip = ContourParalle::cut_holes(ps_offset[i_offset], holes, wash, washdis);
+			paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
 			//FileAgent::write_csv(ps_clip, R"(C:\Users\52302\Desktop\新建文件夹\out)", ".csv");
 			for (int i_clip = 0; i_clip < ps_clip.size(); ++i_clip) {
 				pathnode* pn_child = new pathnode(ps_clip[i_clip]);
@@ -121,7 +121,7 @@ pathnode* ContourParalle::root_offset(const path& contour, const paths& holes, d
 	return root;
 }
 
-paths ContourParalle::Contour_Paralle(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::Contour_Parallel(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	pathnode* root = root_offset(contour, holes, dis, wash, washdis);
 	vector<pathnode*>* dfs = pathnode::DFS_root(root);
 	paths solution;
@@ -140,7 +140,7 @@ paths ContourParalle::Contour_Paralle(const path& contour, const paths& holes, d
 	return solution;
 }
 
-paths ContourParalle::cut_holes(const path& contour, const paths& holes, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	if (!holes.size()) {
 		paths ps;
 		ps.push_back(contour);
@@ -235,7 +235,7 @@ paths ContourParalle::cut_holes(const path& contour, const paths& holes, bool wa
 	return solution;
 }
 
-paths ContourParalle::set_minus(const path& contour, const paths& holes, bool onlyouter/*=false*/, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::set_minus(const path& contour, const paths& holes, bool onlyouter/*=false*/, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	if (!holes.size()) {
 		paths ps;
 		ps.push_back(contour);
@@ -338,7 +338,7 @@ paths ContourParalle::set_minus(const path& contour, const paths& holes, bool on
 
 // TODO 可以用顺逆时针（面积正负），但尚未实现
 // 刀补，实际上可以用于复现正常的轮廓平行方法
-paths ContourParalle::tool_compensate(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+paths ContourParallel::tool_compensate(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	double xmax = contour.x[0];
 	double xmin = contour.x[0];
 	double ymax = contour.y[0];
@@ -372,7 +372,7 @@ paths ContourParalle::tool_compensate(const path& contour, const paths& holes, d
 	Paths ContourOffset;
 	ClipperOffset co;
 	co.AddPath(Contour, jtRound, etClosedPolygon);
-	co.Execute(ContourOffset, dis * scale);
+	co.Execute(ContourOffset, - dis * scale);
 	co.Clear();
 
 	Paths HolesOffset;
@@ -384,7 +384,7 @@ paths ContourParalle::tool_compensate(const path& contour, const paths& holes, d
 		}
 		Hole << Hole[0];
 		co.AddPath(Hole, jtRound, etClosedPolygon);
-		co.Execute(HoleOffset, -dis * scale);
+		co.Execute(HoleOffset, dis * scale);
 		co.Clear();
 		for (int i = 0; i < HoleOffset.size(); ++i) {
 			HolesOffset.push_back(HoleOffset[i]);
@@ -415,7 +415,7 @@ paths ContourParalle::tool_compensate(const path& contour, const paths& holes, d
 }
 
 // p1 \subset p2, i.e., p1-p2!=\varnothing
-bool ContourParalle::path_subset(const Path& p1, const Path& p2) {
+bool ContourParallel::path_subset(const Path& p1, const Path& p2) {
 	Paths Solution;
 	Clipper cl;
 	cl.AddPath(p1, ptSubject, true);
@@ -424,7 +424,7 @@ bool ContourParalle::path_subset(const Path& p1, const Path& p2) {
 	return !Solution.size();
 }
 
-Path ContourParalle::path2Path(const path& p, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
+Path ContourParallel::path2Path(const path& p, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	Path P;
 	for (register int i = 0; i < p.length; ++i) {
 		P << IntPoint(double2cInt(p.x[i], scale, delta_x), double2cInt(p.y[i], scale, delta_y));
@@ -433,7 +433,7 @@ Path ContourParalle::path2Path(const path& p, double scale, double delta_x/*=0.0
 	return P;
 }
 
-void ContourParalle::clearvoid(pathnode* root, const paths& holes, double delta, double area_err, double delta_errscale/*=0.02*/) {
+void ContourParallel::clearvoid(pathnode* root, const paths& holes, double delta, double area_err, double delta_errscale/*=0.02*/) {
 	paths ps_real_holes = paths();
 	for (int i = 0; i < holes.size(); ++i) {
 		// paths ps = OffsetClipper(holes[i].x, holes[i].y, -delta * 0.5, holes[i].length, true, 0.1, 50);

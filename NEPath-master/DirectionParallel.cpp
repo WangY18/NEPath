@@ -23,25 +23,25 @@ paths DirectionParalle::Raster(const path& contour, const paths& holes, double d
 	}
 	double delta_x = (xmax + xmin) * 0.5;
 	double delta_y = (ymax + ymin) * 0.5;
-	double scale = ContourParalle::ClipperBound / std::max(xmax - xmin, ymax - ymin);
+	double scale = ContourParallel::ClipperBound / std::max(xmax - xmin, ymax - ymin);
 
 	Path Contour;
 	Paths Holes;
 	for (register int i = 0; i < contour_rotate->length; ++i) {
-		Contour << IntPoint(ContourParalle::double2cInt(contour_rotate->x[i], scale, delta_x), ContourParalle::double2cInt(contour_rotate->y[i], scale, delta_y));
+		Contour << IntPoint(ContourParallel::double2cInt(contour_rotate->x[i], scale, delta_x), ContourParallel::double2cInt(contour_rotate->y[i], scale, delta_y));
 	}
 	Contour << Contour[0];
 
 	for (int i_hole = 0; i_hole < holes_rotate->size(); ++i_hole) {
 		Holes.push_back(Path());
 		for (register int i = 0; i < (*holes_rotate)[i_hole].length; ++i) {
-			Holes[Holes.size() - 1] << IntPoint(ContourParalle::double2cInt((*holes_rotate)[i_hole].x[i], scale, delta_x), ContourParalle::double2cInt((*holes_rotate)[i_hole].y[i], scale, delta_y));
+			Holes[Holes.size() - 1] << IntPoint(ContourParallel::double2cInt((*holes_rotate)[i_hole].x[i], scale, delta_x), ContourParallel::double2cInt((*holes_rotate)[i_hole].y[i], scale, delta_y));
 		}
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
 	}
 
 	Paths Solution = Raster(Contour, Holes, dis, scale);
-	paths solution = ContourParalle::Paths2paths(Solution, scale, delta_x, delta_y);
+	paths solution = ContourParallel::Paths2paths(Solution, scale, delta_x, delta_y);
 
 	delete contour_rotate;
 	delete holes_rotate;
@@ -213,25 +213,25 @@ paths DirectionParalle::Zigzag(const path& contour, const paths& holes, double d
 	}
 	double delta_x = (xmax + xmin) * 0.5;
 	double delta_y = (ymax + ymin) * 0.5;
-	double scale = ContourParalle::ClipperBound / std::max(xmax - xmin, ymax - ymin);
+	double scale = ContourParallel::ClipperBound / std::max(xmax - xmin, ymax - ymin);
 
 	Path Contour;
 	Paths Holes;
 	for (register int i = 0; i < contour_rotate->length; ++i) {
-		Contour << IntPoint(ContourParalle::double2cInt(contour_rotate->x[i], scale, delta_x), ContourParalle::double2cInt(contour_rotate->y[i], scale, delta_y));
+		Contour << IntPoint(ContourParallel::double2cInt(contour_rotate->x[i], scale, delta_x), ContourParallel::double2cInt(contour_rotate->y[i], scale, delta_y));
 	}
 	Contour << Contour[0];
 
 	for (int i_hole = 0; i_hole < holes_rotate->size(); ++i_hole) {
 		Holes.push_back(Path());
 		for (register int i = 0; i < (*holes_rotate)[i_hole].length; ++i) {
-			Holes[Holes.size() - 1] << IntPoint(ContourParalle::double2cInt((*holes_rotate)[i_hole].x[i], scale, delta_x), ContourParalle::double2cInt((*holes_rotate)[i_hole].y[i], scale, delta_y));
+			Holes[Holes.size() - 1] << IntPoint(ContourParallel::double2cInt((*holes_rotate)[i_hole].x[i], scale, delta_x), ContourParallel::double2cInt((*holes_rotate)[i_hole].y[i], scale, delta_y));
 		}
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
 	}
 
 	Paths Solution = Zigzag(Contour, Holes, dis, scale);
-	paths solution = ContourParalle::Paths2paths(Solution, scale, delta_x, delta_y);
+	paths solution = ContourParallel::Paths2paths(Solution, scale, delta_x, delta_y);
 
 	delete contour_rotate;
 	delete holes_rotate;

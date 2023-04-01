@@ -7,7 +7,7 @@ struct DirectParallelOptions {
 
 struct ContourParallelOptions {
 	double delta = 1.5;
-	bool wash = false;
+	bool wash = true;
 	double washdis = 0.2;
 	int num_least = 50;
 };

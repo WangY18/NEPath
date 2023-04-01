@@ -20,8 +20,8 @@ public:
 	paths Raster(const DirectParallelOptions& opts); // 纯光栅算法；未复现轮廓平行混合的算法
 	paths Zigzag(double angle = 0); // 纯Zigzag算法；未复现轮廓平行混合的算法
 	paths Zigzag(const DirectParallelOptions& opts); // 纯Zigzag算法；未复现轮廓平行混合的算法
-	paths Contour_Paralle(); // 轮廓平行算法
-	paths Contour_Paralle(const ContourParallelOptions& opts); // 轮廓平行算法
+	paths CP(); // 轮廓平行算法
+	paths CP(const ContourParallelOptions& opts); // 轮廓平行算法
 public:
 	path contour;
 	paths holes;

@@ -3,6 +3,6 @@
 using namespace std;
 
 int main() {
-	demo_Zigzag();
+	demo_CP();
 	return 0;
 }

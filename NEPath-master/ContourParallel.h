@@ -4,9 +4,9 @@
 using namespace ClipperLib;
 
 
-class ContourParalle {
+class ContourParallel {
 public:
-	static paths Contour_Paralle(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50);
+	static paths Contour_Parallel(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50);
 	static paths OffsetClipper(const double* x, const double* y, double dis, int length, bool wash = true, double washdis = 0.5, int num_least = 50); // 使用Clipper进行偏置，正的向内，负的向外
 	static paths OffsetClipper(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50); // 使用Clipper进行偏置并剪去holes，正的向内，负的向外
 	static paths cut_holes(const path& contour, const paths& holes, bool wash = true, double washdis = 0.5, int num_least = 50);// 不相交的不被考虑
