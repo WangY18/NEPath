@@ -3,6 +3,13 @@
 #include <string>
 #include <direct.h>
 
+// read a path from a .csv file
+// filename is the absolute path with filename of the input file
+// The .csv file has the following form:
+// x,y,
+// data_x1,data_y1,
+// data_x2,data_y2,
+// ...
 path FileAgent::read_csv(char const* filename) {
 	if (!is_csv(filename)) {
 		printf("%s is not csv file.", filename);
@@ -26,6 +33,13 @@ path FileAgent::read_csv(char const* filename) {
 	return path(x.data(), y.data(), x.size());
 }
 
+// write a path into a .csv file
+// filename is the absolute path with filename of the output file
+// The .csv file has the following form:
+// x,y,
+// data_x1,data_y1,
+// data_x2,data_y2,
+// ...
 void FileAgent::write_csv(const path& p, char const* filename) {
 	if (!is_csv(filename)) {
 		printf("%s is not csv file.", filename);
@@ -39,6 +53,7 @@ void FileAgent::write_csv(const path& p, char const* filename) {
 	outFile.close();
 }
 
+// determine whether a file is a .csv file
 bool FileAgent::is_csv(char const* filename) {
 	return filename[strlen(filename) - 1] == 'v'
 		&& filename[strlen(filename) - 2] == 's'
@@ -46,6 +61,13 @@ bool FileAgent::is_csv(char const* filename) {
 		&& filename[strlen(filename) - 4] == '.';
 }
 
+// write paths into .csv files with the same perfix and suffix of filenames
+// filename is the absolute path with filename of the output file
+// The .csv files ha the following form:
+// x,y,
+// data_x1,data_y1,
+// data_x2,data_y2,
+// ...
 void FileAgent::write_csv(const paths& ps, char const* filename_pre, char const* filename_post/*=NULL*/) {
 	if (!ps.size()) {
 		return;
@@ -80,6 +102,7 @@ void FileAgent::write_csv(const paths& ps, char const* filename_pre, char const*
 	}
 }
 
+// get all filenames in the folder
 vector<string> FileAgent::get_AllFiles(char const* path, bool folder/*=false*/, char const* filename_pre/*=NULL*/, char const* filename_post/*=NULL*/) {
 	vector<string> files;
 	string append_filename = "\\";
@@ -111,50 +134,31 @@ vector<string> FileAgent::get_AllFiles(char const* path, bool folder/*=false*/, 
 	return files;
 }
 
+// delete all files in the folder
 void FileAgent::delete_AllFiles(const char* path) {
-	//在目录后面加上"\\*.*"进行第一次搜索
 	string dir(path);
 	string newDir = dir + "\\*.*";
-	//用于查找的句柄
 	intptr_t handle;
 	struct _finddata_t fileinfo;
-	//第一次查找
 	handle = _findfirst(newDir.c_str(), &fileinfo);
 
-	if (handle == -1) { // 空文件夹
+	if (handle == -1) { // empty folder
 		return;
 	}
 
 	do
 	{
-		if (fileinfo.attrib & _A_SUBDIR) {//如果为文件夹，加上文件夹路径，再次遍历
+		if (fileinfo.attrib & _A_SUBDIR) {
 			if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
 				continue;
 
-			// 在目录后面加上"\\"和搜索到的目录名进行下一次搜索
 			newDir = dir + "\\" + fileinfo.name;
-			delete_AllFiles(newDir.c_str()); // 先遍历删除文件夹下的文件，再删除空的文件夹
+			delete_AllFiles(newDir.c_str());
 			_rmdir(newDir.c_str());
-			/*
-			cout << newDir.c_str() << endl;
-			if (_rmdir(newDir.c_str()) == 0) {//删除空文件夹
-				cout << "delete empty dir success" << endl;
-			}
-			else {
-				cout << "delete empty dir error" << endl;
-			}*/
 		}
 		else {
 			string file_path = dir + "\\" + fileinfo.name;
 			remove(file_path.c_str());
-			/*
-			cout << file_path.c_str() << endl;
-			if (remove(file_path.c_str()) == 0) {//删除文件
-				cout << "delete file success" << endl;
-			}
-			else {
-				cout << "delete file error" << endl;
-			}*/
 		}
 	} while (!_findnext(handle, &fileinfo));
 
@@ -162,6 +166,7 @@ void FileAgent::delete_AllFiles(const char* path) {
 	return;
 }
 
+// create a directory
 void FileAgent::mkdir(const char* path, bool clear/*=false*/) {
 	if (clear) {
 		delete_AllFiles(path);

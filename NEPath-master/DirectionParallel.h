@@ -2,14 +2,14 @@
 #include "Curve.h"
 #include "clipper.hpp"
 using namespace ClipperLib;
+// DirectionParalle is a class to plan Raster and Zigzag toolpaths.
 
-// 方向平行路径，包括Raster和Zigzag
-class DirectionParalle { // TODO
+class DirectionParalle {
 public:
-	static paths Raster(const path& contour, const paths& holes, double dis, double angle = 0); // 纯光栅算法
-	static paths Zigzag(const path& contour, const paths& holes, double dis, double angle = 0); // 纯Zigzag算法
+	static paths Raster(const path& contour, const paths& holes, double dis, double angle = 0); // Generate Raster toolpaths
+	static paths Zigzag(const path& contour, const paths& holes, double dis, double angle = 0); // Generate Zigzag toolpaths
 private:
-	static Paths Raster(const Path& contour, const Paths& holes, double dis, double scale); // 光栅算法
-	static bool cmp_Raster(const IntPoint& a, const IntPoint& b);
-	static Paths Zigzag(const Path& contour, const Paths& holes, double dis, double scale); // 经典zigzag算法
+	static Paths Raster(const Path& contour, const Paths& holes, double dis, double scale); // Generate Raster toolpaths in Path form
+	static bool cmp_Raster(const IntPoint& a, const IntPoint& b); // comparasion between points in Raster
+	static Paths Zigzag(const Path& contour, const Paths& holes, double dis, double scale); // Generate Zigzag toolpaths in Path form
 };

@@ -1,8 +1,8 @@
 #include "NEPathPlanner.h"
 
-NEPathPlanner::NEPathPlanner() : delta(1.5), wash(true), washdis(0.5), debug(false), num_least(50) {}
-
-void NEPathPlanner::set_contour(const double* x, const double* y, int length) {
+// Set the contour (outer boundary) of the slice.
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+void NEPathPlanner::set_contour(const double* x, const double* y, int length, bool wash/*=true*/, double washdis/*=0.2*/, int num_least/*=50*/) {
 	contour.clear_with_delete();
 	if (wash) {
 		path p = Curve::wash_dis(x, y, length, washdis);
@@ -13,12 +13,22 @@ void NEPathPlanner::set_contour(const double* x, const double* y, int length) {
 	}
 }
 
-void NEPathPlanner::set_contour(const path& contour_new) {
-	contour.copy_with_new(contour_new);
+// Set the contour (outer boundary) of the slice.
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+void NEPathPlanner::set_contour(const path& contour_new, bool wash/*=true*/, double washdis/*=0.2*/, int num_least/*=50*/) {
+	contour.clear_with_delete();
+	if (wash) {
+		path p = Curve::wash_dis(contour_new, washdis);
+		contour.steal(p);
+	}
+	else {
+		contour.copy_with_new(contour_new);
+	}
 }
 
-
-void NEPathPlanner::addhole(const double* x, const double* y, int length) {
+// Add a new hole (inner boundary) onto the slice.
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+void NEPathPlanner::addhole(const double* x, const double* y, int length, bool wash/*=true*/, double washdis/*=0.2*/, int num_least/*=50*/) {
 	holes.push_back(path());
 	if (wash) {
 		path p = Curve::wash_dis(x, y, length, washdis);
@@ -29,44 +39,52 @@ void NEPathPlanner::addhole(const double* x, const double* y, int length) {
 	}
 }
 
-void NEPathPlanner::addhole(const path& hole) {
-	holes.push_back(hole);
-}
-
-void NEPathPlanner::addholes(const paths& holes_new) {
-	for (int i = 0; i < holes_new.size(); ++i) {
-		holes.push_back(holes_new[i]);
+// Add a new hole (inner boundary) onto the slice.
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+void NEPathPlanner::addhole(const path& hole_new, bool wash/*=true*/, double washdis/*=0.2*/, int num_least/*=50*/) {
+	holes.push_back(path());
+	if (wash) {
+		path p = Curve::wash_dis(hole_new, washdis);
+		holes[holes.size() - 1].steal(p);
+	}
+	else {
+		holes[holes.size() - 1].copy_with_new(hole_new);
 	}
 }
 
-paths NEPathPlanner::Raster(double angle/*=0*/) {
-	return DirectionParalle::Raster(contour, holes, delta, angle);
+// Add some new holes (inner boundaries) onto the slice.
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+void NEPathPlanner::addholes(const paths& holes_new, bool wash/*=true*/, double washdis/*=0.2*/, int num_least/*=50*/) {
+	for (int i = 0; i < holes_new.size(); ++i) {
+		holes.push_back(path());
+		if (wash) {
+			path p = Curve::wash_dis(holes_new[i], washdis);
+			holes[holes.size() - 1].steal(p);
+		}
+		else {
+			holes[holes.size() - 1].copy_with_new(holes_new[i]);
+		}
+	}
 }
 
+// Generate Raster toolpath
 paths NEPathPlanner::Raster(const DirectParallelOptions& opts) {
 	return DirectionParalle::Raster(contour, holes, opts.delta, opts.angle);
 }
 
-paths NEPathPlanner::Zigzag(double angle/*=0*/) {
-	return DirectionParalle::Zigzag(contour, holes, delta, angle);
-}
-
+// Generate Zigzag toolpath
 paths NEPathPlanner::Zigzag(const DirectParallelOptions& opts) {
 	return DirectionParalle::Zigzag(contour, holes, opts.delta, opts.angle);
 }
 
-paths NEPathPlanner::CP() {
-	return ContourParallel::Contour_Parallel(contour, holes, delta, wash, washdis, num_least);
-}
-
+// Generate CP toolpath
 paths NEPathPlanner::CP(const ContourParallelOptions& opts) {
 	return ContourParallel::Contour_Parallel(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
 }
 
-paths NEPathPlanner::tool_compensate(double dis) {
-	return ContourParallel::tool_compensate(contour, holes, dis, wash, washdis, num_least);
-}
-
+// Offset the contour and holes of the slice with a distance
+// opts.delta>0 means offsetting the path inside; dis<0 means offsetting the path outside.
+// If opts.wash==true, the output paths would be resampled with a uniformly-distributed distance no more than opts.wash_dis, and the number of waypoints are no less than opts.num_least.
 paths NEPathPlanner::tool_compensate(const ContourParallelOptions& opts) {
 	return ContourParallel::tool_compensate(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
 }

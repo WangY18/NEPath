@@ -32,5 +32,5 @@
 *.app
 
 # visual studio
-.vs*
-x64*
+.vs/
+x64/

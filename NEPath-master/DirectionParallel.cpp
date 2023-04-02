@@ -2,15 +2,18 @@
 #include "Basic.h"
 #include "ContourParallel.h"
 
-// 光栅算法
+// Generate Raster toolpaths
+// dis is the distance between toolpaths; angle (rad) is the angle between toolpaths and the x-axis.
 paths DirectionParalle::Raster(const path& contour, const paths& holes, double dis, double angle/*=0*/) {
 	if (!contour.length) {
 		return paths();
 	}
 
+	// Rotate the boundaries
 	path* contour_rotate = Curve::rotate(contour, -angle);
 	paths* holes_rotate = Curve::rotate(holes, -angle);
 
+	// Transform the rotated boundaries into Path form
 	double xmax = contour_rotate->x[0];
 	double xmin = contour_rotate->x[0];
 	double ymax = contour_rotate->y[0];
@@ -40,7 +43,10 @@ paths DirectionParalle::Raster(const path& contour, const paths& holes, double d
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
 	}
 
+	// Generate Raster toolpaths
 	Paths Solution = Raster(Contour, Holes, dis, scale);
+
+	// Transform the Raster toolpaths into path form
 	paths solution = ContourParallel::Paths2paths(Solution, scale, delta_x, delta_y);
 
 	delete contour_rotate;
@@ -49,16 +55,18 @@ paths DirectionParalle::Raster(const path& contour, const paths& holes, double d
 	return *(Curve::rotate(solution, angle));
 }
 
+// Generate Raster toolpaths
+// dis is the distance between toolpaths; angle (rad) is the angle between toolpaths and the x-axis.
 Paths DirectionParalle::Raster(const Path& contour, const Paths& holes, double dis, double scale) {
 	Paths ps;
-	Paths contour_now; // 实际用于计算的轮廓
+	Paths contour_now; // Contours for calculation in Path form, including contour and holes
 
 	contour_now.push_back(contour);
 	for (register int i = 0; i < holes.size(); ++i) {
 		contour_now.push_back(holes[i]);
 	}
 
-	// 接下来用水平线切割
+	// Cut with horizontal lines
 	cInt ymax = contour_now[0][0].Y, ymin = contour_now[0][0].Y;
 	for (register int i = 0; i < contour_now.size(); ++i) {
 		for (register int j = 0; j < contour_now[i].size(); ++j) {
@@ -70,7 +78,7 @@ Paths DirectionParalle::Raster(const Path& contour, const Paths& holes, double d
 	cInt Dis = (ymax - ymin) / (num + 1);
 	cInt y0 = ymin + Dis / 2;
 
-	vector<IntPoint> intersection; // 交点集
+	vector<IntPoint> intersection; // the set of intersections
 	for (register int i = 0; i < contour_now.size(); ++i) {
 		for (register int j = 0; j < contour_now[i].size(); ++j) {
 			int I = ceil(1.0 * (contour_now[i][j].Y - y0) / Dis);
@@ -82,7 +90,7 @@ Paths DirectionParalle::Raster(const Path& contour, const Paths& holes, double d
 		}
 	}
 
-	// 生成线段集
+	// Generate Raster toolpaths
 	sort(intersection.data(), intersection.data() + intersection.size(), cmp_Raster);
 	for (register int i = 0; i < intersection.size(); i += 2) {
 		Path p;
@@ -94,7 +102,7 @@ Paths DirectionParalle::Raster(const Path& contour, const Paths& holes, double d
 	return ps;
 }
 
-
+// comparasion between points in Raster
 bool DirectionParalle::cmp_Raster(const IntPoint& a, const IntPoint& b) {
 	if (a.Y == b.Y) {
 		return a.X < b.X;
@@ -102,17 +110,18 @@ bool DirectionParalle::cmp_Raster(const IntPoint& a, const IntPoint& b) {
 	return a.Y < b.Y;
 }
 
+// Generate Zigzag toolpaths
+// dis is the distance between toolpaths; angle (rad) is the angle between toolpaths and the x-axis.
 Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double dis, double scale) {
 	Paths ps;
-	Paths contour_now; // 实际用于计算的轮廓
+	Paths contour_now; // Contours for calculation in Path form, including contour and holes
 
-	// 轮廓平行几圈，使用刀补算法
 	contour_now.push_back(contour);
 	for (register int i = 0; i < holes.size(); ++i) {
 		contour_now.push_back(holes[i]);
 	}
 
-	// 接下来用水平线切割
+	// Cut with horizontal lines
 	cInt ymax = contour_now[0][0].Y, ymin = contour_now[0][0].Y;
 	for (register int i = 0; i < contour_now.size(); ++i) {
 		for (register int j = 0; j < contour_now[i].size(); ++j) {
@@ -125,7 +134,7 @@ Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double d
 	cInt y0 = ymin + Dis / 2;
 
 
-	// 定义交点类
+	// Define the struct of InterPoint
 	struct InterPoint {
 		IntPoint point;
 		unsigned int idpath;
@@ -136,12 +145,13 @@ Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double d
 			return DirectionParalle::cmp_Raster(this->point, p.point);
 		}
 		static bool nextto(const InterPoint& a, const InterPoint& b, int size) {
-			// 同一条path上且相邻
+			// a and b is on the same continuous boundary and adjacent
 			return (a.idpath == b.idpath) && ((a.idpoint == (b.idpoint + 1) % size) || (b.idpoint == (a.idpoint + 1) % size));
 		}
 	};
-	vector<InterPoint> intersection; // 交点集
-	int* size_pathinter = new int[contour_now.size()](); // 每条path上交点个数
+	vector<InterPoint> intersection; // the set of intersections
+
+	int* size_pathinter = new int[contour_now.size()](); // number of intersections of every continuous boundary
 	for (register int i = 0; i < contour_now.size(); ++i) {
 		unsigned int idpoint = 0;
 		for (register int j = 0; j < contour_now[i].size(); ++j) {
@@ -155,7 +165,7 @@ Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double d
 		size_pathinter[i] = idpoint;
 	}
 
-	// 生成线段集
+	// Generate Zigzag toolpaths
 	sort(intersection.data(), intersection.data() + intersection.size());
 	vector<vector<InterPoint>> paths;
 	for (register int i = 0; i < intersection.size(); i += 2) {
@@ -174,7 +184,7 @@ Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double d
 				break;
 			}
 		}
-		if (!flag) { // 开一个新的
+		if (!flag) {
 			vector<InterPoint> path_now;
 			path_now.push_back(intersection[i]);
 			path_now.push_back(intersection[i + 1]);
@@ -192,15 +202,18 @@ Paths DirectionParalle::Zigzag(const Path& contour, const Paths& holes, double d
 	return ps;
 }
 
-// Zigzag算法
+// Generate Zigzag toolpaths
+// dis is the distance between toolpaths; angle (rad) is the angle between toolpaths and the x-axis.
 paths DirectionParalle::Zigzag(const path& contour, const paths& holes, double dis, double angle/*=0*/) {
 	if (!contour.length) {
 		return paths();
 	}
 
+	// Rotate the boundaries
 	path* contour_rotate = Curve::rotate(contour, -angle);
 	paths* holes_rotate = Curve::rotate(holes, -angle);
 
+	// Transform the rotated boundaries into Path form
 	double xmax = contour_rotate->x[0];
 	double xmin = contour_rotate->x[0];
 	double ymax = contour_rotate->y[0];
@@ -230,7 +243,10 @@ paths DirectionParalle::Zigzag(const path& contour, const paths& holes, double d
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
 	}
 
+	// Generate Zigzag toolpaths
 	Paths Solution = Zigzag(Contour, Holes, dis, scale);
+
+	// Transform the Zigzag toolpaths into path form
 	paths solution = ContourParallel::Paths2paths(Solution, scale, delta_x, delta_y);
 
 	delete contour_rotate;

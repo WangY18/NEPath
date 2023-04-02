@@ -3,6 +3,6 @@
 using namespace std;
 
 int main() {
-	demo_CP();
+	demo_Raster();
 	return 0;
 }

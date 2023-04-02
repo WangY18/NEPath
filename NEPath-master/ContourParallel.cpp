@@ -1,6 +1,9 @@
 #include "ContourParallel.h"
 
-// 使用Clipper进行偏置。向内为正。无法实现偏置前后点点对应。
+// Offset a path based on Clipper.
+// The path is path(x,y,length), the offsetting distance is dis.
+// dis>0 means offsetting the path inside; dis<0 means offsetting the path outside.
+// If wash==true, the output paths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 paths ContourParallel::OffsetClipper(const double* x, const double* y, double dis, int length, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	double xmax = x[0];
 	double xmin = x[0];
@@ -42,16 +45,15 @@ paths ContourParallel::OffsetClipper(const double* x, const double* y, double di
 	return ps;
 }
 
+// Offset the contour and apply set minus to holes if intersections exist based on Clipper.
+// dis>0 means offsetting the path inside; dis<0 means offsetting the path outside.
+// If wash==true, the output paths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 paths ContourParallel::OffsetClipper(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	paths ps_offset = OffsetClipper(contour.x, contour.y, dis, contour.length, wash, washdis);
 	paths solution;
 	for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset) {
 		paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
 		for (int i = 0; i < ps_clip.size(); ++i) {
-			/*
-			if (Curve::AreaCal(ps_clip[i].x, ps_clip[i].y, ps_clip[i].length) <= 0) {
-				continue;
-			}*/
 			solution.push_back(path());
 			solution[solution.size() - 1].steal(ps_clip[i]);
 		}
@@ -59,14 +61,17 @@ paths ContourParallel::OffsetClipper(const path& contour, const paths& holes, do
 	return solution;
 }
 
+// Transform from a double variable to a cInt variable
 inline cInt ContourParallel::double2cInt(const double& d, double scale, double delta_pos/*=0.0*/) {
 	return (d - delta_pos) * scale;
 }
 
+// Transform from a cInt variable to a double variable
 inline double ContourParallel::cInt2double(const cInt& c, double scale, double delta_pos/*=0.0*/) {
 	return c / scale + delta_pos;
 }
 
+// Transform from a Paths variable to a paths variable
 paths ContourParallel::Paths2paths(const Paths& Ps, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	paths ps;
 	for (int i = 0; i < Ps.size(); ++i) {
@@ -75,6 +80,7 @@ paths ContourParallel::Paths2paths(const Paths& Ps, double scale, double delta_x
 	return ps;
 }
 
+// Transform from a Path variable to a path variable
 path ContourParallel::Path2path(const Path& P, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	path p;
 	p.length = P.size();
@@ -87,29 +93,21 @@ path ContourParallel::Path2path(const Path& P, double scale, double delta_x/*=0.
 	return p;
 }
 
+// Construct a depth tree of CP toolpaths
+// The dis is the line width of toolpaths.
+// If wash==true, the output toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 pathnode* ContourParallel::root_offset(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	pathnode* root = new pathnode(contour);
 	root->parent = NULL;
 	std::stack<pathnode*> S;
 	S.push(root);
 
-	//char outFilename_debug[] = R"(E:\本科\★大四3春\毕业论文\document\恒星杯提交版本\figures\draw\边界平滑实验\data\slice3\delta_1_5_lambda_0\debug.csv)";
-
 	while (!S.empty()) {
 		pathnode* pn_parent = S.top();
 		S.pop();
-		/*
-		std::ofstream outFile_L2A_contour(outFilename_debug, std::ios::out);
-		outFile_L2A_contour << "x,y\n";
-		for (int j = 0; j < pn_parent->data.length; ++j) {
-			outFile_L2A_contour << pn_parent->data.x[j] << ',' << pn_parent->data.y[j] << '\n';
-		}
-		outFile_L2A_contour.close();
-		*/
 		paths ps_offset = OffsetClipper(pn_parent->data.x, pn_parent->data.y, dis, pn_parent->data.length, wash, washdis);
 		for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset) {
 			paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
-			//FileAgent::write_csv(ps_clip, R"(C:\Users\52302\Desktop\新建文件夹\out)", ".csv");
 			for (int i_clip = 0; i_clip < ps_clip.size(); ++i_clip) {
 				pathnode* pn_child = new pathnode(ps_clip[i_clip]);
 				pn_parent->children.push_back(pn_child);
@@ -121,6 +119,11 @@ pathnode* ContourParallel::root_offset(const path& contour, const paths& holes, 
 	return root;
 }
 
+// Generate CP toolpath
+// contour and holes are the contour and the holes of the slice
+// dis>0 is distance between toolpaths
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+// The output is the CP toolpaths
 paths ContourParallel::Contour_Parallel(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	pathnode* root = root_offset(contour, holes, dis, wash, washdis);
 	vector<pathnode*>* dfs = pathnode::DFS_root(root);
@@ -140,6 +143,8 @@ paths ContourParallel::Contour_Parallel(const path& contour, const paths& holes,
 	return solution;
 }
 
+// Apply set minus on contour to holes if intersections exist.
+// If wash==true, the output toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	if (!holes.size()) {
 		paths ps;
@@ -179,20 +184,18 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 	Contour << Contour[0];
 
 	for (int i_hole = 0; i_hole < holes.size(); ++i_hole) {
-		//if (Curve::interset_path(contour, holes[i_hole])) { // 若判别有相交，则考虑入范围。这样做会导致真包围情形会出问题
-
 		Holes.push_back(Path());
 		for (register int i = 0; i < holes[i_hole].length; ++i) {
 			Holes[Holes.size() - 1] << IntPoint(double2cInt(holes[i_hole].x[i], scale, delta_x), double2cInt(holes[i_hole].y[i], scale, delta_y));
 		}
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
-		if (path_subset(Holes[Holes.size() - 1], Contour)) { // 若洞包含于边界，则不剪
+		if (path_subset(Holes[Holes.size() - 1], Contour)) { // Do not apply set minus if the hole is enclosed by the contour
 			Holes.pop_back();
 		}
 	}
 
 	paths solution;
-	if (Holes.empty()) { // 无相交
+	if (Holes.empty()) { // No intersection
 		solution.push_back(contour);
 	}
 	else {
@@ -213,10 +216,6 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 				solution[solution.size() - 1].x[i] = cInt2double(Solution[i_path][i].X, scale, delta_x);
 				solution[solution.size() - 1].y[i] = cInt2double(Solution[i_path][i].Y, scale, delta_y);
 			}
-			/*
-			if (Curve::AreaCal(solution[solution.size() - 1].x, solution[solution.size() - 1].y, solution[solution.size() - 1].length) <= 0) {
-				solution.pop_back();
-			}*/
 		}
 	}
 
@@ -235,6 +234,9 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 	return solution;
 }
 
+// Apply set minus on contour to holes no matter whether intersections exist.
+// dis>0 means offsetting the path inside; dis<0 means offsetting the path outside.
+// If wash==true, the output paths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 paths ContourParallel::set_minus(const path& contour, const paths& holes, bool onlyouter/*=false*/, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	if (!holes.size()) {
 		paths ps;
@@ -291,7 +293,7 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 
 	Paths IntersectHoles;
 	for (int i_hole = 0; i_hole < Holes.size(); ++i_hole) {
-		if (!path_subset(Holes[i_hole], Contour)) { // 若洞包含于边界，则不剪
+		if (!path_subset(Holes[i_hole], Contour)) { // Do not apply set minus if the hole is enclosed by the contour
 			IntersectHoles.push_back(Holes[i_hole]);
 		}
 	}
@@ -336,8 +338,9 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 
 }
 
-// TODO 可以用顺逆时针（面积正负），但尚未实现
-// 刀补，实际上可以用于复现正常的轮廓平行方法
+// Tool compensate. dis>0 means offsetting the path inside; dis<0 means offsetting the path outside
+// dis>0 means offsetting the path inside; dis<0 means offsetting the path outside.
+// If wash==true, the output paths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 paths ContourParallel::tool_compensate(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
 	double xmax = contour.x[0];
 	double xmin = contour.x[0];
@@ -372,7 +375,7 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 	Paths ContourOffset;
 	ClipperOffset co;
 	co.AddPath(Contour, jtRound, etClosedPolygon);
-	co.Execute(ContourOffset, - dis * scale);
+	co.Execute(ContourOffset, dis * scale);
 	co.Clear();
 
 	Paths HolesOffset;
@@ -384,7 +387,7 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 		}
 		Hole << Hole[0];
 		co.AddPath(Hole, jtRound, etClosedPolygon);
-		co.Execute(HoleOffset, dis * scale);
+		co.Execute(HoleOffset, - dis * scale);
 		co.Clear();
 		for (int i = 0; i < HoleOffset.size(); ++i) {
 			HolesOffset.push_back(HoleOffset[i]);
@@ -414,7 +417,7 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 	return solution;
 }
 
-// p1 \subset p2, i.e., p1-p2!=\varnothing
+// Determine whether p1 is enclosed by p2
 bool ContourParallel::path_subset(const Path& p1, const Path& p2) {
 	Paths Solution;
 	Clipper cl;
@@ -424,6 +427,7 @@ bool ContourParallel::path_subset(const Path& p1, const Path& p2) {
 	return !Solution.size();
 }
 
+// Transform from a path variable to a Path variable
 Path ContourParallel::path2Path(const path& p, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	Path P;
 	for (register int i = 0; i < p.length; ++i) {
@@ -433,10 +437,12 @@ Path ContourParallel::path2Path(const path& p, double scale, double delta_x/*=0.
 	return P;
 }
 
+// Clear all voids by adding extra toolpaths
+// root is the root node of the depth tree. holes are the holes of the slices. delta is the line width of toolpaths. area_err>0 is the threshold area of underfill
+// Toolpaths are added as the leaves of the depth tree
 void ContourParallel::clearvoid(pathnode* root, const paths& holes, double delta, double area_err, double delta_errscale/*=0.02*/) {
 	paths ps_real_holes = paths();
 	for (int i = 0; i < holes.size(); ++i) {
-		// paths ps = OffsetClipper(holes[i].x, holes[i].y, -delta * 0.5, holes[i].length, true, 0.1, 50);
 		paths ps = OffsetClipper(holes[i].x, holes[i].y, -delta * 0.5, holes[i].length, true, 0.1, 50);
 		for (int j = 0; j < ps.size(); ++j) {
 			ps_real_holes.push_back(path());
@@ -460,14 +466,12 @@ void ContourParallel::clearvoid(pathnode* root, const paths& holes, double delta
 		paths ps_holes = ps_real_holes;
 		for (int i = 0; i < parent->children.size(); ++i) {
 			S.push(parent->children[i]);
-			// paths ps = OffsetClipper(parent->children[i]->data.x, parent->children[i]->data.y, -delta * (1.0 + delta_errscale), parent->children[i]->data.length, true, 0.1, 50); // 子路径向外跑一半距离多一点
-			paths ps = OffsetClipper(parent->children[i]->data.x, parent->children[i]->data.y, -delta * (0.5 + delta_errscale), parent->children[i]->data.length, true, 0.1, 50); // 子路径向外跑一半距离多一点
+			paths ps = OffsetClipper(parent->children[i]->data.x, parent->children[i]->data.y, -delta * (0.5 + delta_errscale), parent->children[i]->data.length, true, 0.1, 50);
 			for (int j = 0; j < ps.size(); ++j) {
 				ps_holes.push_back(path());
 				ps_holes[ps_holes.size() - 1].steal(ps[j]);
 			}
 		}
-		// 最后一段不收缩
 		paths ps_parent = OffsetClipper(parent->data.x, parent->data.y, delta * 0.5, parent->data.length, true, 0.1, 50);
 		for (int j = 0; j < ps_parent.size(); ++j) {
 			paths ps_void = set_minus(ps_parent[j], ps_holes, true, true, 0.1, 50);

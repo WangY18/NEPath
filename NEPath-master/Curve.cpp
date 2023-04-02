@@ -1,14 +1,8 @@
 #include "Curve.h"
 
-void Curve::write_xy(const char* outfilename, const path& p) {
-	std::ofstream outFile(outfilename, std::ios::out);
-	outFile << "x,y\n";
-	for (int i = 0; i < p.length; ++i) {
-		outFile << p.x[i] << ',' << p.y[i] << '\n';
-	}
-	outFile.close();
-}
-
+// find the point where path a and b interset each other
+// If a and b interset each other, then return true.
+// ida is the index of intersection on a, while idb is the index of intersection on b.
 bool Curve::interset_path_id(const path& a, const path& b, double& ida, double& idb) {
 	for (register int i = 0; i < a.length; ++i) {
 		for (register int j = 0; j < b.length; ++j) {
@@ -30,12 +24,13 @@ bool Curve::interset_path_id(const path& a, const path& b, double& ida, double& 
 	return false;
 }
 
+// determine whether path a and b interset each other
 bool Curve::interset_path(const path& a, const path& b) {
 	double t1, t2;
 	return interset_path_id(a, b, t1, t2);
 }
 
-// 逆时针转, rad
+// rotate the path p with angle (rad) anticlockwise
 path* Curve::rotate(const path& p, double angle) {
 	path* pr = new path();
 	pr->length = p.length;
@@ -48,6 +43,7 @@ path* Curve::rotate(const path& p, double angle) {
 	return pr;
 }
 
+// rotate the paths ps with angle (rad) anticlockwise
 paths* Curve::rotate(const paths& ps, double angle) {
 	paths* psr = new paths();
 	path* hr = NULL;
@@ -63,7 +59,8 @@ paths* Curve::rotate(const paths& ps, double angle) {
 	return psr;
 }
 
-// 计算法向量nx, ny，向左偏。注意原有nx, ny将被抛弃
+// normal directions of path(x,y,length)
+// the output is store in nx and ny. (nx[i],ny[i]) is the normal direction at point (x[i],y[i])
 void Curve::Ndir(const double* x, const double* y, int length, double*& nx, double*& ny) {
 	if (!nx) {
 		nx = new double[length];
@@ -80,7 +77,7 @@ void Curve::Ndir(const double* x, const double* y, int length, double*& nx, doub
 	}
 }
 
-// 计算面积
+// area enclosed by path(x,y,length)
 double Curve::AreaCal(const double* x, const double* y, int length) {
 	double A2 = 0.0;
 	for (register int i = 0; i < length; ++i) {
@@ -89,7 +86,10 @@ double Curve::AreaCal(const double* x, const double* y, int length) {
 	return 0.5 * A2;
 }
 
-// 计算长度
+// distance between waypoints of path(x,y,length)
+// dl[i] is the distance between point (x[i],y[i]) and (x[i+1],y[i+1])
+// poly==true iff the path is closed
+// the output is stored in dl
 void Curve::DiffLength(double*& dl, const double* x, const double* y, int length, bool poly/*=true*/) {
 	if (!dl) {
 		dl = new double[length + poly - 1];
@@ -102,14 +102,17 @@ void Curve::DiffLength(double*& dl, const double* x, const double* y, int length
 	}
 }
 
-// 计算长度
+// distance between waypoints of path(x,y,length)
+// dl[i] is the distance between point (x[i],y[i]) and (x[i+1],y[i+1])
+// poly==true iff the path is closed
 double* Curve::DiffLength(const double* x, const double* y, int length, bool poly/*=true*/) {
 	double* dl;
 	DiffLength(dl, x, y, length, poly);
 	return dl;
 }
 
-// 计算长度
+// length of path(x,y,length)
+// poly==true iff the path is closed
 double Curve::TotalLength(const double* x, const double* y, int length, bool poly/*=true*/) {
 	double L = 0.0;
 	for (register int i = 0; i < length - 1; ++i) {
@@ -121,7 +124,7 @@ double Curve::TotalLength(const double* x, const double* y, int length, bool pol
 	return L;
 }
 
-// 计算两点之间的长度，from和to都是id
+// length along path(x,y,length) between point (x[from],y[from]) to point (x[to],y[to])
 double Curve::LengthBetween(const double* x, const double* y, int length, int from, int to) {
 	if (from == to) {
 		return 0;
@@ -133,7 +136,7 @@ double Curve::LengthBetween(const double* x, const double* y, int length, int fr
 	return L;
 }
 
-// 计算两点之间的长度，from和to都是id
+// length along path(x,y,length) between point (x[from],y[from]) to point (x[to],y[to])
 double Curve::LengthBetween(const double* x, const double* y, int length, double from, double to) {
 	int id_floor_from = floor(from);
 	int id_floor_to = floor(to);
@@ -145,7 +148,9 @@ double Curve::LengthBetween(const double* x, const double* y, int length, double
 	return L + LengthBetween(x, y, length, (id_floor_from + 1) % length, id_floor_to);
 }
 
-// 计算简单偏置，向左偏。注意原有xnew, ynew将被抛弃
+// offset path(x,y,length) on direction (nx,ny) with a const distance delta
+// By default, nx and ny are NULL. They will be calculated as the normal directions.
+// The output is stored in xnew and ynew
 void Curve::OffsetNaive(const double* x, const double* y, const double* delta, int length, double*& xnew, double*& ynew, double* nx/*=NULL*/, double* ny/*=NULL*/) {
 	if (!(nx && ny)) {
 		Ndir(x, y, length, nx, ny);
@@ -158,7 +163,9 @@ void Curve::OffsetNaive(const double* x, const double* y, const double* delta, i
 	}
 }
 
-// 计算简单偏置，向左偏。注意原有xnew, ynew将被抛弃
+// offset path(x,y,length) on direction (nx,ny) with variable distances delta
+// By default, nx and ny are NULL. They will be calculated as the normal directions.
+// The output is stored in xnew and ynew
 void Curve::OffsetNaive(const double* x, const double* y, double delta, int length, double*& xnew, double*& ynew, double* nx/*=NULL*/, double* ny/*=NULL*/) {
 	if (!(nx && ny)) {
 		Ndir(x, y, length, nx, ny);
@@ -175,10 +182,12 @@ void Curve::OffsetNaive(const double* x, const double* y, double delta, int leng
 	}
 }
 
+// resample the path p with a distance approximately equal to dis
 path Curve::wash_dis(const path& p, double dis) {
 	return wash_dis(p.x, p.y, p.length, dis);
 }
 
+// resample the path p(x,y,length) with a distance approximately equal to dis
 path Curve::wash_dis(const double* x, const double* y, int length, double dis, bool output_poly/*=false*/) {
 	double* dl = new double[length];
 	double sumL = 0;
@@ -218,8 +227,7 @@ path Curve::wash_dis(const double* x, const double* y, int length, double dis, b
 	return pnew;
 }
 
-// 后继点, 整数部分为后继点的秩，小数部分为alpha。
-// 未处理总长度未达到dis的情况
+// the point on path(x,y,length) back (x[id],y[id]) with a length of dis along the path
 double Curve::BackDis(const double* x, const double* y, int length, double id, double dis) {
 	if (dis < 0) {
 		return ForDis(x, y, length, id, -dis);
@@ -245,8 +253,7 @@ double Curve::BackDis(const double* x, const double* y, int length, double id, d
 	}
 }
 
-// 前继点, 整数部分为后继点的秩，小数部分为alpha。
-// 未处理总长度未达到dis的情况
+// the point on path(x,y,length) forward (x[id],y[id]) with a length of dis along the path
 double Curve::ForDis(const double* x, const double* y, int length, double id, double dis) {
 	if (dis < 0) {
 		return BackDis(x, y, length, id, -dis);
@@ -272,12 +279,14 @@ double Curve::ForDis(const double* x, const double* y, int length, double id, do
 	}
 }
 
+// interp of the index id in x
 double Curve::interp_id(const double* x, int length, double id) {
 	int id_floor = floor(id);
 	double alpha = id - id_floor;
 	return x[id_floor] * (1.0 - alpha) + x[(id_floor + 1) % length] * alpha;
 }
 
+// the distance between path(x,y,length) and point (x0,y0) 
 double Curve::distance_point2path(const double* x, const double* y, int length, double x0, double y0) {
 	double id = nearest_id(x, y, length, x0, y0);
 	double xm = interp_id(x, length, id);
@@ -285,6 +294,7 @@ double Curve::distance_point2path(const double* x, const double* y, int length, 
 	return dis(x0, y0, xm, ym);
 }
 
+//the index of nearest point on path(x,y,length) to point (x0,y0)
 double Curve::nearest_id(const double* x, const double* y, int length, double x0, double y0) {
 	double idm = 0.0;
 	double dism = dis(x[0], y[0], x0, y0);
@@ -301,6 +311,7 @@ double Curve::nearest_id(const double* x, const double* y, int length, double x0
 	return idm;
 }
 
+// the index of furthest point on path(x,y,length) to point (x0,y0) 
 double Curve::furthest_id(const double* x, const double* y, int length, double x0, double y0) {
 	int idm = 0;
 	double dism = dis(x[0], y[0], x0, y0);
@@ -314,6 +325,8 @@ double Curve::furthest_id(const double* x, const double* y, int length, double x
 	return idm;
 }
 
+// the index of nearest points between path p and q
+// idp is the index of nearest point on p, while idq is the index of nearest point on q
 double Curve::curves_nearest(const path& p, const path& q, double& idp, double& idq) {
 	if (interset_path_id(p, q, idp, idq)) {
 		return 0;
@@ -358,12 +371,12 @@ double Curve::curves_nearest(const path& p, const path& q, double& idp, double& 
 	return dism1;
 }
 
-// 欠填充计算结果
-// ps为打印路径，delta为打印直径，reratio为分辨率，即像素化之后相邻点之间距离
+// calculate the underfill
+// ps is toolpaths; delta is linewidth; reratio is the reratio, i.e., distance between pixel points
 UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, const paths& ps, double delta, double reratio) {
 	UnderFillSolution sol;
 
-	// 矩形框选
+	// Bounding box
 	double xmax = contour.xmax();
 	double xmin = contour.xmin();
 	double ymax = contour.ymax();
@@ -385,7 +398,7 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 	xmin -= delta;
 	ymin -= delta;
 	
-	// 像素化
+	// Pixelization
 	sol.nx = ceil((xmax - xmin) / reratio) + 1;
 	sol.ny = ceil((ymax - ymin) / reratio) + 1;
 	sol.xs = new double[sol.nx]();
@@ -397,7 +410,7 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 		sol.ys[i] = (ymin + ymax - (sol.ny - 1) * reratio) * 0.5 + i * reratio;
 	}
 
-	// 判断在切片内的部分
+	// Determine which points are in the slice
 	sol.map_slice = new bool* [sol.nx];
 	for (int i = 0; i < sol.nx; ++i) {
 		sol.map_slice[i] = new bool[sol.ny]();
@@ -440,17 +453,17 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 		int i = round((intersection[k].x - sol.xs[0]) / reratio);
 		if (i != round((intersection[k + 1].x - sol.xs[0]) / reratio)) {
 			--k;
-			continue; // 把两个点算成一个点了，直接k-1且跳过
+			continue;
 		}
 		for (int j = ceil((intersection[k].y - sol.ys[0]) / reratio) - 1; j < sol.ny && sol.ys[j] <= intersection[k + 1].y; ++j) {
-			if (j < 0 || sol.ys[j] < intersection[k].y) { // 防止数值误差
+			if (j < 0 || sol.ys[j] < intersection[k].y) {
 				continue;
 			}
 			sol.map_slice[i][j] = true;
 		}
 	}
 
-	// 像素化：求解0.5*delta邻域
+	// Determine which points have distances shorter than 0.5*delta to toolpaths
 	sol.map_delta = new bool* [sol.nx];
 	for (int i = 0; i < sol.nx; ++i) {
 		sol.map_delta[i] = new bool[sol.ny]();
@@ -459,7 +472,7 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 		}
 	}
 	for (int ip = 0; ip < ps.size(); ++ip) {
-		for (int is = 0; is < ps[ip].length - 1; ++is) { // 线段is
+		for (int is = 0; is < ps[ip].length - 1; ++is) {
 			double x1 = ps[ip].x[is];
 			double y1 = ps[ip].y[is];
 			double x2 = ps[ip].x[is + 1];
@@ -473,7 +486,7 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 				}
 			}
 		}
-		for (int is = 0; is < ps[ip].length; ++is) { // 点is
+		for (int is = 0; is < ps[ip].length; ++is) {
 			double x = ps[ip].x[is];
 			double y = ps[ip].y[is];
 			for (int i = (std::max)(0, (int)floor((x - delta * 0.5 - sol.xs[0]) / reratio)); i < sol.nx && sol.xs[i] <= x + 0.5 * delta; ++i) {
@@ -499,6 +512,8 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 	return sol;
 }
 
+// calculate the underfill rate
+// ps is toolpaths; delta is linewidth; reratio is the reratio, i.e., distance between pixel points
 double Curve::UnderFillRate(const path& contour, const paths& holes, const paths& ps, double delta, double reratio) {
 	UnderFillSolution sol = UnderFill(contour, holes, ps, delta, reratio);
 	double rate = sol.underfillrate;
@@ -513,6 +528,7 @@ bool Curve::cmp_Raster(const point& a, const point& b) {
 	return a.x < b.x;
 }
 
+// initial
 void UnderFillSolution::clear() {
 	if (map_slice) {
 		for (int i = 0; i < nx; ++i) {
@@ -533,8 +549,8 @@ void UnderFillSolution::clear() {
 	underfillrate = -1.0;
 }
 
-// 面积不变量，即以p[id]为圆心，radius为半径的圆与p一侧的交集的面积，注意到这里仅考虑所交最近2点及之间的圆弧
-// 若某一侧不相交，则返回-pi*radius^2
+// calculate the area invariant of a waypoint
+// If fail, return -pi*radius^2
 // Pottmann H, Wallner J, Huang Q X, et al. Integral invariants for robust geometry processing[J]. Computer Aided Geometric Design, 2009, 26(1): 37-60.
 double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool close) {
 	double xminus = 0.0;
@@ -647,10 +663,11 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 	return Area1 + Area2;
 }
 
-// 急转弯计算结果
-// p为打印路径，radius为积分半径，threshold为面积占比的百分比阈值
-// 若close为true，则认为p首尾相连，此时结果的数组比p点数多1
-// washdis<=0时不去重，washdis>0时按照washdis去重，保证两个急转弯距离超过washdis，即过近的急转弯视为一个，一般建议washdis==radius
+// calculate the sharp corners
+// ps is toolpaths; radius is radius of the circle; threshold of area to determine sharp corners
+// If more than threshold area is on the same side of toolpaths, then the waypoint is determined as a sharp corner
+// close==true iff p is closed and the length of output is the number of waypoints plus 1
+// washdis<=0 iff wash is not conducted. washdis>0 iff wash is conducted with a wash dis as washdis
 // Pottmann H, Wallner J, Huang Q X, et al. Integral invariants for robust geometry processing[J]. Computer Aided Geometric Design, 2009, 26(1): 37-60.
 SharpTurnSolution Curve::SharpTurn_Invariant(const path& p, double radius, double threshold/*=0.3*/, bool close/*=false*/, double washdis/*=-1.0*/) {
 	SharpTurnSolution sol;
@@ -778,6 +795,11 @@ SharpTurnSolution Curve::SharpTurn_Invariant(const path& p, double radius, doubl
 	return sol;
 }
 
+// calculate the number of sharp corners
+// ps is toolpaths; radius is radius of the circle; threshold of area to determine sharp corners
+// If more than threshold area is on the same side of toolpaths, then the waypoint is determined as a sharp corner
+// close==true iff p is closed and the length of output is the number of waypoints plus 1
+// washdis<=0 iff wash is not conducted. washdis>0 iff wash is conducted with a wash dis as washdis
 int Curve::SharpTurnNum_Invariant(const path& p, double radius, double threshold/*=0.3*/, bool close/*=false*/, double washdis/*=-1.0*/) {
 	SharpTurnSolution sol = SharpTurn_Invariant(p, radius, threshold, close, washdis);
 	int num = 0;
@@ -788,6 +810,7 @@ int Curve::SharpTurnNum_Invariant(const path& p, double radius, double threshold
 	return num;
 }
 
+// initial
 void SharpTurnSolution::clear() {
 	delete[] AreaPercent;
 	AreaPercent = NULL;

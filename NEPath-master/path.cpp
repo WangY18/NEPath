@@ -22,12 +22,14 @@ path::~path() {
 	clear_with_delete();
 }
 
+// clear all data but do not delete x and y
 void path::clear_without_delete() {
 	x = NULL;
 	y = NULL;
 	length = 0;
 }
 
+// clear all data and delete x and y
 void path::clear_with_delete() {
 	if (x) {
 		delete[] x;
@@ -40,6 +42,7 @@ void path::clear_with_delete() {
 	length = 0;
 }
 
+// copy a path path(x,y,length)
 void path::copy_with_new(const double* xnew, const double* ynew, int length_new) {
 	length = length_new;
 	x = new double[length];
@@ -50,10 +53,12 @@ void path::copy_with_new(const double* xnew, const double* ynew, int length_new)
 	}
 }
 
-void path::copy_with_new(const path& from) {
-	copy_with_new(from.x, from.y, from.length);
+// copy a path pathfrom
+void path::copy_with_new(const path& pathfrom) {
+	copy_with_new(pathfrom.x, pathfrom.y, pathfrom.length);
 }
 
+// copy a path p and delete p
 void path::steal(path& p) {
 	clear_with_delete();
 	length = p.length;
@@ -72,7 +77,9 @@ pathnode::pathnode(const pathnode& pn) : data(pn.data), parent(pn.parent) {
 	}
 }
 
-// 把树转化为向量，并且清除root
+// DFS the depth tree and delete the tree
+// root is the root of the depth tree.
+// The output is all paths on the tree in the order of DFS.
 vector<pathnode*>* pathnode::DFS_root(pathnode* root) {
 	vector<pathnode*>* dfs = new vector<pathnode*>();
 	stack<pathnode*> S;
@@ -83,13 +90,12 @@ vector<pathnode*>* pathnode::DFS_root(pathnode* root) {
 		dfs->push_back(path_now);
 		for (int i_child = path_now->children.size() - 1; i_child >= 0; --i_child) {
 			S.push(path_now->children[i_child]);
-			//path_now->children[i_child] = NULL;
-			//path_now->children.pop_back();
 		}
 	}
 	return dfs;
 }
 
+// find the max x-coordinates of waypoints
 double path::xmax() const {
 	double xm = x[0];
 	for (int i = 1; i < length; ++i) {
@@ -98,6 +104,7 @@ double path::xmax() const {
 	return xm;
 }
 
+// find the min x-coordinates of waypoints
 double path::xmin() const {
 	double xm = x[0];
 	for (int i = 1; i < length; ++i) {
@@ -106,6 +113,7 @@ double path::xmin() const {
 	return xm;
 }
 
+// find the max x-coordinates of waypoints
 double path::ymax() const {
 	double ym = y[0];
 	for (int i = 1; i < length; ++i) {
@@ -114,6 +122,7 @@ double path::ymax() const {
 	return ym;
 }
 
+// find the min y-coordinates of waypoints
 double path::ymin() const {
 	double ym = y[0];
 	for (int i = 1; i < length; ++i) {

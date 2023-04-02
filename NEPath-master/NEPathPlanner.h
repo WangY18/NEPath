@@ -3,31 +3,21 @@
 #include "DirectionParallel.h"
 #include "ContourParallel.h"
 #include "PlanningOptions.h"
+// NEPathPlanner is a class to plan toolpaths, connect toolpaths, and perform tool compensating.
 
-// 集大成——路径规划器
 class NEPathPlanner {
 public:
-	NEPathPlanner();
-	void set_contour(const double* x, const double* y, int length);
-	void set_contour(const path& contour_new);
-	void addhole(const path& hole);
-	void addhole(const double* x, const double* y, int length);
-	void addholes(const paths& holes_new);
-	paths tool_compensate(double dis); // 刀补
-	paths tool_compensate(const ContourParallelOptions& opts); // 刀补
+	void set_contour(const double* x, const double* y, int length, bool wash = true, double washdis = 0.2, int num_least = 50); // Set the contour (outer boundary) of the slice.
+	void set_contour(const path& contour_new, bool wash = true, double washdis = 0.2, int num_least = 50); // Set the contour (outer boundary) of the slice.
+	void addhole(const path& hole_new, bool wash = true, double washdis = 0.2, int num_least = 50); // Add a new hole (inner boundary) onto the slice.
+	void addhole(const double* x, const double* y, int length, bool wash = true, double washdis = 0.2, int num_least = 50); // Add a new hole (inner boundary) onto the slice.
+	void addholes(const paths& holes_new, bool wash = true, double washdis = 0.2, int num_least = 50); // Add some new holes (inner boundaries) onto the slice.
+	paths tool_compensate(const ContourParallelOptions& opts); // Offset the contour and holes of the slice with a distance
 public:
-	paths Raster(double angle = 0); // 纯光栅算法；未复现轮廓平行混合的算法
-	paths Raster(const DirectParallelOptions& opts); // 纯光栅算法；未复现轮廓平行混合的算法
-	paths Zigzag(double angle = 0); // 纯Zigzag算法；未复现轮廓平行混合的算法
-	paths Zigzag(const DirectParallelOptions& opts); // 纯Zigzag算法；未复现轮廓平行混合的算法
-	paths CP(); // 轮廓平行算法
-	paths CP(const ContourParallelOptions& opts); // 轮廓平行算法
+	paths Raster(const DirectParallelOptions& opts); // Generate Raster toolpath
+	paths Zigzag(const DirectParallelOptions& opts); // Generate Zigzag toolpath
+	paths CP(const ContourParallelOptions& opts); // Generate CP toolpath
 public:
 	path contour;
 	paths holes;
-	double delta;
-	bool wash;
-	double washdis;
-	bool debug;
-	int num_least;
 };
