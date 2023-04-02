@@ -1,6 +1,6 @@
 # NEPath
 
-## An Classical Toolpath and Optimization-Based Non-Equidistant Toolpath Planning Library (In C++)
+## A Classical Toolpath and Optimization-Based Non-Equidistant Toolpath Planning Library (In C++)
 
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
