@@ -2,6 +2,9 @@
 #include "Curve.h"
 #include "DirectionParallel.h"
 #include "ContourParallel.h"
+#ifdef IncludeGurobi
+#include "NonEquidistant.h"
+#endif
 #include "PlanningOptions.h"
 // NEPathPlanner is a class to plan toolpaths, connect toolpaths, and perform tool compensating.
 

@@ -48,6 +48,9 @@
     <ClCompile Include="NEPath-master\FileAgent.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="NEPath-master\NonEquidistant.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NEPath-master\Basic.h">
@@ -78,6 +81,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="NEPath-master\FileAgent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NEPath-master\NonEquidistant.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

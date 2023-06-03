@@ -150,6 +150,7 @@
     <ClCompile Include="NEPath-master\Curve.cpp" />
     <ClCompile Include="NEPath-master\DirectionParallel.cpp" />
     <ClCompile Include="NEPath-master\FileAgent.cpp" />
+    <ClCompile Include="NEPath-master\NonEquidistant.cpp" />
     <ClCompile Include="NEPath-master\path.cpp" />
     <ClCompile Include="NEPath-master\NEPathPlanner.cpp" />
     <ClCompile Include="NEPath-master\PlanningOptions.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="NEPath-master\Curve.h" />
     <ClInclude Include="NEPath-master\DirectionParallel.h" />
     <ClInclude Include="NEPath-master\FileAgent.h" />
+    <ClInclude Include="NEPath-master\NonEquidistant.h" />
     <ClInclude Include="NEPath-master\path.h" />
     <ClInclude Include="NEPath-master\NEPathPlanner.h" />
     <ClInclude Include="NEPath-master\PlanningOptions.h" />
