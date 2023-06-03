@@ -8,6 +8,7 @@
 // UnderFillSolution is a struct to store information of underfill.
 // SharpTurnSolution is a struct to store information of sharp corners.
 // Curve is a class to perform basic 2D geometric operations.
+// Sharp corner is determined by: Helmut Pottmann, Johannes Wallner, Qi-Xing Huang, and Yong-Liang Yang.Integral invariants for robust geometry processing. Computer Aided Geometric Design, 26(1): 37-60, 2009.
 
 struct UnderFillSolution {
 	bool** map_slice = NULL; // map_slice[i][j]==true iff point (xs[i],ys[j]) is in the slice

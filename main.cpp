@@ -3,6 +3,6 @@
 using namespace std;
 
 int main() {
-	demo_underfill();
+	demo_sharpcorner();
 	return 0;
 }

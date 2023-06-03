@@ -118,18 +118,8 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 
 `Curve.h` has some fundamental  methods on geometry.
 
-+ **Underfill**. For a slice $D\subset\mathbb{R}^2$ and some toolpaths $\left\{l_i\right\}_{i=1}^N$, underfill is defined as $D\bigcap\left(\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)\right)^C$, where $\delta>0$ is the line width.
++ **Underfill**. For a slice $D\subset\mathbb{R}^2$ and some toolpaths $\left\{l_i\right\}_{i=1}^N$, underfill is defined as $D\bigcap\left(\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)\right)^C$, where $\delta>0$ is the line width.	
 	
-	+ `(struct)UnderFillSolution` is a struct to store information of underfill.
-		+ `(double*)xs` and `(double*)ys` are discrete points on $x$-axis and $y$-axis.
-		+ `(int)nx` and  `(int)ny` are the lengths of `xs` and `ys`.
-		+ `(bool**)map_slice` stores information of slice $D$. `map_slice[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in D$.
-		+ `(bool**)map_delta` stores information of neighborhood of toolpaths $\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$. `map_delta[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$.
-		+ `(double)underfillrate` is the underfill rate, i.e.,
-		$$
-		\text{underfill rate}=\frac{\text{area of underfill}}{\text{area of slice}}\times100\%.
-		$$
-		
 	+ `(static UnderFillSolution)Curve::UnderFill()`: API of calculate underfill. Return a `UnderFillSolution`.
 	
 		+ `(const path&)contour`: the contour of slice.
@@ -137,6 +127,33 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 		+ `(const paths&)ps`: the toolpaths planned before.
 		+ `(double)delta`: the line width $\delta$. Note that for every toolpath, only a width of $\frac\delta2$ on each side is determined as fill.
 		+ `(double)reratio`: the resolution ratio. `xs` and `ys` are sampled with a distance of `reratio` between 2 points.
+	
+	+ `(struct)UnderFillSolution` is a struct to store information of underfill.
+		
+		+ `(double*)xs` and `(double*)ys` are discrete points on $x$-axis and $y$-axis.
+		+ `(int)nx` and  `(int)ny` are the lengths of `xs` and `ys`.
+		+ `(bool**)map_slice` stores information of slice $D$. `map_slice[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in D$.
+		+ `(bool**)map_delta` stores information of neighborhood of toolpaths $\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$. `map_delta[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$.
+		+ `(double)underfillrate` is the underfill rate, i.e.,
+		$$
+		\text{underfill rate}=\frac{\text{area of underfill}}{\text{area of slice}}\times100\%=1-\frac{\text{number of pixels in }D\bigcap\left(\bigcup_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)\right)}{\text{number of pixels in }D}\times100\%.
+		$$
+	
++ **Sharp corner.** To avoid computational sensitivity, sharp corners are determined by [area invariant](https://doi.org/10.1016/j.cagd.2008.01.002) (Helmut Pottmann, et al. 2009).
+
+	+ `(static SharpTurnSolution)Curve::SharpTurn_Invariant()`: determine sharp corners on a toolpath:
+	  + `(const path&)p`: the input toolpath.
+	  + `(double)radius`: the radius of the rolling circle.
+	  + `(double)threshold`: the threshold to determine a sharp corner.
+	  + `(bool)close`: `close` is true if and only if the toolpath is closed.
+	  + `(bool)washdis`: sharp corners would be determined with a uniformly-distributed distance no more than `washdis`.
+	+ `(struct)SharpTurnSolution` is a struct to store information of sharp corners for a toolpath `p`.
+		+ `(int)length`: length of the toolpath.
+		+ `(double)radius`: the radius of the rolling circle.
+		+ `(double)threshold`: the threshold to determine a sharp corner.
+		+ `(double*)AreaPercent`: `AreaPercent[i]` is the percent of area on one side of the toolpath at `(p.x[i],p.y[i])`.
+		+ `(bool*)SharpTurn`: `SharpTurn[i]==ture` if and only if `AreaPercent[i]>threshold`.
+		+ `(bool)close`: `close` is true if and only if the toolpath is closed.
 
 ## Examples
 
@@ -196,7 +213,7 @@ int main() {
 		cout << "Toopath " << i << " has " << CP_paths[i].length << " waypoints." << endl;
 	}
     
-    return 0;
+	return 0;
 }
 ```
 
@@ -245,7 +262,7 @@ int main() {
         cout << "Toopath " << i << " has " << zigzag_paths[i].length << " waypoints." << endl;
     }
     
-    return 0;
+	return 0;
 }
 ```
 
@@ -290,7 +307,7 @@ int main() {
 	paths raster_paths = planner.Raster(opts); // all raster paths
 	cout << "There are " << raster_paths.size() << " continuous toolpaths in total." << endl;
     
-    return 0;
+	return 0;
 }
 ```
 
@@ -351,7 +368,7 @@ int main() {
 		cout << "Toopath " << i << " has " << ps_toolcompensate[i].length << " waypoints." << endl;
 	}
     
-    return 0;
+	return 0;
 }
 ```
 
@@ -371,7 +388,71 @@ int main() {
 using namespace std;
 
 int main() {
-	NEPathPlanner planner;
+    NEPathPlanner planner;
+
+    // Obtain the contour of the outer boundary of slices
+    path contour;
+    contour.length = 1000; // the number of waypoints
+    contour.x = new double[contour.length](); // x-coordinate of waypoints
+    contour.y = new double[contour.length](); // y-coordinate of waypoints
+    const double pi = acos(-1.0); // pi == 3.1415926...
+    for (int i = 0; i < contour.length; ++i) {
+        double theta = 2.0 * pi * i / contour.length;
+        double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
+        contour.x[i] = r * cos(theta);
+        contour.y[i] = r * sin(theta);
+    }
+
+    // The out boundary should be offset with half of the line width to obtain the outmost toolpath
+    NEPathPlanner planner_toolcompensate;
+    planner_toolcompensate.set_contour(contour);
+    ContourParallelOptions opts_toolcompensate;
+    opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
+    opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts_toolcompensate.washdis = 0.2;
+    paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+
+    planner.set_contour(path_outmost[0]);
+    // or `planner.set_contour(contour.x, contour.y, contour.length)`
+
+    // Set the toolpath parameters
+    ContourParallelOptions opts;
+    opts.delta = 1.0; // the line width of toolpaths
+    opts.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts.washdis = 0.2;
+
+    paths CP_paths = planner.CP(opts); // all CP paths
+
+    double delta_underfill = opts.delta; // the line width for underfill computation
+    double reratio = 0.03; // resolution ratio for underfill computation
+
+    UnderFillSolution ufs = Curve::UnderFill(contour, paths(), CP_paths, delta_underfill, reratio); // Obtain the results of underfill
+
+    cout << "The underfill rate is " << ufs.underfillrate * 100 << "%." << endl;
+    
+	return 0;
+}
+```
+
+<p align="center">
+	<img src="https://github.com/WangY18/NEPath/assets/75420225/e050a611-8108-4f4d-b293-b801443de746" alt="Underfill" height="300" />
+</p>
+<p align="center">
+    <b>Figure.</b> Underfill. The underfill rate is 1.2401% in this example.
+</p>
+
+
+#### Sharp corner
+
+```c++
+#include "NEPath-master/NEPathPlanner.h"
+#include <iostream>
+using namespace std;
+
+int main() {
+    NEPathPlanner planner;
 
 	// Obtain the contour of the outer boundary of slices
 	path contour;
@@ -407,23 +488,29 @@ int main() {
 	opts.washdis = 0.2;
 
 	paths CP_paths = planner.CP(opts); // all CP paths
-	cout << "There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
 
-	double delta_underfill = opts.delta; // the line width for underfill computation
-	double reratio = 0.03; // resolution ratio for underfill computation
+	double radius = 1.0; // radius of the rolling circle
+	double threshold = 0.3; // threshold of area on one side to determine a sharp corner
 
-	UnderFillSolution ufs = Curve::UnderFill(contour, paths(), CP_paths, delta_underfill, reratio); // Obtain the results of underfill
+	// Obtain the results of underfill
+	int num = 0;
+	for (int i = 0; i < CP_paths.size(); ++i) {
+		SharpTurnSolution sol = Curve::SharpTurn_Invariant(CP_paths[i], radius, threshold, true, 0.5);
+		for (int j = 0; j < sol.length; ++j) {
+			num += sol.SharpTurn[j];
+		}
+	}
 
-	cout << "The underfill rate is " << ufs.underfillrate * 100 << "%." << endl;
+	cout << "There exist " << num << " sharp corners." << endl;
     
-    return 0;
+	return 0;
 }
 ```
 
 <p align="center">
-	<img src="https://github.com/WangY18/NEPath/assets/75420225/e050a611-8108-4f4d-b293-b801443de746" alt="Underfill" height="300" />
+	<img src="https://github.com/WangY18/NEPath/assets/75420225/4586213c-d5e2-415b-b81a-d09ed680ffe9" alt="Underfill" height="300" />
 </p>
 <p align="center">
-    <b>Figure.</b> Underfill. The underfill rate is 1.2401% in this example.
+    <b>Figure.</b> Sharp corners. There exist 44 sharp corners in this example.
 </p>
 
