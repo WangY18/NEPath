@@ -22,7 +22,7 @@ The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D print
 Among them, the IQOP is proposed by Wang et al., with an article under review, i.e., 
 
 ```
-Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing. (under review)
+Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023. (accept)
 ```
 
 After the article is published, the **NEPath** library would provide the API and details of IQOP. More non-equidistant toolpaths would be designed soon.
@@ -53,6 +53,7 @@ IQOP is an optimization-based non-equidistant toolpath planning method for AM an
 <p align="center">
 	<img src="https://user-images.githubusercontent.com/75420225/229330834-c5703971-8983-416b-af8d-ca3f9a1ab629.png" alt="gallery" />
 </p>
+
 <p align="center">
 	Figure. Some demos of IQOP.
 </p>
