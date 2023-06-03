@@ -199,12 +199,13 @@ void demo_underfill() {
 	cout << "There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
 
 	double delta_underfill = opts.delta; // the line width for underfill computation
-	double reratio = 0.03; // reratio for underfill computation
+	double reratio = 0.03; // resolution ratio for underfill computation
 
-	UnderFillSolution ufs = Curve::UnderFill(contour, paths(), CP_paths, delta_underfill, reratio);
+	UnderFillSolution ufs = Curve::UnderFill(contour, paths(), CP_paths, delta_underfill, reratio); // Obtain the results of underfill
 
 	cout << "The underfill rate is " << ufs.underfillrate * 100 << "%." << endl;
 
+	// Output as files
 	std::ofstream xsoutFile(R"(.\data_examples\demo_underfill\underfill\xs.csv)", std::ios::out);
 	xsoutFile << "x\n";
 	for (int i = 0; i < ufs.nx; ++i) {
