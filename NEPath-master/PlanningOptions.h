@@ -21,11 +21,6 @@ struct NonEquidistantOptions {
 	double dot_delta = 1.0; // the upper bound of \dot{delta_i}
 	double ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
 
-	bool wash = true;
-	double washdis = 0.2;
-	int num_least = 50;
-	// If wash==true, the toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
-
 	bool optimize_Q = true; // whether the isoperimetric quotient is in the objective function
 	bool optimize_S = true; // whether the area is in the objective function
 	bool optimize_L = true; // whether the length is in the objective function
@@ -36,5 +31,8 @@ struct NonEquidistantOptions {
 	double epsilon = 1e-2; // the maximum error of offsetting distances
 	int step_max = 10; // the maximum iteration steps
 
-	// TODO clear void
+	bool wash = true;
+	double washdis = 0.2;
+	int num_least = 50;
+	// If wash==true, the toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 };

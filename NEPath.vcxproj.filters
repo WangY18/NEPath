@@ -86,5 +86,8 @@
     <ClInclude Include="NEPath-master\NonEquidistant.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="NEPath-master\setup_NEPath.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

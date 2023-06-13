@@ -7,8 +7,8 @@
 The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)]([3D printing - Wikipedia](https://en.wikipedia.org/wiki/3D_printing)) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths:
 
 + Optimization-based non-equidistant toolpath:
-	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**. (Temporarily unavailable)
-	+ Other non-equidistant toolpaths and even user-designed toolpaths would be updated soon.
+	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**.
+	+ Variants of IQOP, like toolpaths that minimizing the perimeter, the isoperimetric quotient, and the area.
 + Classical toolpath:
 	+ **Contour-Parallel Toolpath (CP)**.
 	+ **Zigzag Toolpath**.
@@ -19,7 +19,7 @@ The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D print
 	+ Calculating underfill rate.
 	+ Determining sharp corners.
 
-Among them, the IQOP is proposed by Wang et al., with an article under review, i.e., 
+Among them, the IQOP is proposed by Wang et al., with an article (accept), i.e., 
 
 ```
 Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023. (accept)
@@ -31,15 +31,15 @@ After the article is published, the **NEPath** library would provide the API and
 
 C++17
 
-### Statement
+### Statement and Dependence
 
 + This project cites [AngusJohnson/Clipper2](https://github.com/AngusJohnson/Clipper2) as a dependent package.
 
-+ This project depends on [Gurobi](https://www.gurobi.com/) optimizer for solving [quadratically constrained quadratic program](https://en.wikipedia.org/wiki/Quadratically_constrained_quadratic_program) with [second-order cone constraints](https://en.wikipedia.org/wiki/Second-order_cone_programming). If you need to use another optimizer, you can rewrite the method in the `MyOptimization` function. Furthermore, the current-version project only provides CP, Zigzag, and Raster toolpath, so it does not depend on [Gurobi](https://www.gurobi.com/) in this version. In the future version, if you only need CP, Zigzag, and Raster toolpath except IQOP or other optimization-based toolpaths, a macro will be open to remove all optimization-based toolpath algorithms and the dependence on [Gurobi](https://www.gurobi.com/).
++ This project depends on [Gurobi](https://www.gurobi.com/) optimizer for solving [quadratically constrained quadratic program](https://en.wikipedia.org/wiki/Quadratically_constrained_quadratic_program) with [second-order cone constraints](https://en.wikipedia.org/wiki/Second-order_cone_programming). If you need to use another optimizer, you can rewrite the method in the `MyOptimization` function (Temporarily unavailable). If you don't need IQOP and other optimization-based toolpaths, you can comment out `#define IncludeGurobi` in `NEPath-master/setup_NEPath.h` to avoid the dependence on [Gurobi](https://www.gurobi.com/).
 
 ### About Citing
 
-If you need to use the **NEPath** project, please cite  "Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing. (accept)" after published.
+If you need to use the **NEPath** project, please cite  "Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing. 2023."
 
 ## Introduction to IQOP
 
@@ -72,7 +72,7 @@ IQOP is an optimization-based non-equidistant toolpath planning method for AM an
 </p>
 More details of IQOP would be provided after the article is published.
 
-### Optimization Problem
+### Optimization Problem of IQOP
 
 The toolpaths can be planned by offsetting non-equidistantly. The offsetting distances $\left\{\delta_i\right\}_{i=1}^n$ can be seen as optimization variables. $\delta_i$ is the offsetting distance at $\left(x_i,y_i\right)$.
 
@@ -125,6 +125,12 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 		+ If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
 	+ The order of outputs is the offsetting results of `contour`, `holes[0]`, `holes[1]`, ..., `holes[holes.size()-1]`. Note that the offsetting results of each toolpath can be one, serval, or even zero toolpath.
 	+  `(paths)NEPathPlanner::tool_compensate()` is achieved based on [AngusJohnson/Clipper2](https://github.com/AngusJohnson/Clipper2).
++ `(paths)NEPathPlanner::IQOP()`: Generate the **IQOP** toolpath of a slice. The optimization problem of IQOP is provided above. If you don't need IQOP and other optimization-based toolpaths, you can comment out `#define IncludeGurobi` in `NEPath-master/setup_NEPath.h` to avoid the dependence on [Gurobi](https://www.gurobi.com/).
+  + `(const NonEquidistantOptions&)opts`: 
+    + `opts.delta` is the maximum distance between toolpaths. `opts.alpha` the scale of the minimum distance. The distances between toolpaths at every point are between `opts.alpha*opts.delta` and `opts.delta`, i.e., $\forall i,\delta_i\in$ (`opts.alpha*opts.delta`, `opts.delta`).  `opts.dot_delta` is $\dot\delta_\mathrm{m}$, i.e., the upper bound of $\frac{\mathrm{d}\delta}{\mathrm{d}s}$. `opts.dot_delta` is $\ddot\delta_\mathrm{m}$, i.e., the upper bound of $\frac{\mathrm{d}^2\delta}{\mathrm{d}s^2}$.
+    + `opts.optimize_Q` is true if $Q$ is in the objective function. `opts.optimize_S` is true if $S$ is in the objective function. `opts.optimize_L` is true if $L$ is in the objective function.  `opts.lambda_Q`,  `opts.lambda_S`, and `opts.lambda_L` are $\lambda_Q,\lambda_S,\lambda_L$, respectively.
+    + `opts.epsilon` is the upper bound of error in $\left\|\cdot\right\|_\infty$. `opts.set_max` is the maximum iteration steps.
+    + If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
 + `(paths)NEPathPlanner::Raster()`: Generate the **Raster** toolpath of a slice.
 	+ `(const DirectParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. `opts.angle` is the angle between Raster toolpaths and the $x$-axis. The unit of `opts.angle` is rad, and you can use `acos(-1.0)` to obtain a accurate $\pi=3.1415926\cdots$.
 	+ Every Raster toolpath has two waypoints, i.e., the start point and the end point.
@@ -181,9 +187,80 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 
 ### Toolpath Generation
 
-#### IQOP (Isoperimetric-Quotient-Optimal Toolpath, Wang Y et al.)
+#### IQOP (Isoperimetric-Quotient-Optimal Toolpath, Wang Y et al., 2023)
 
-The API and examples of IQOP would be provided after the article is published.
+
+```c++
+	NEPathPlanner planner;
+
+	// Obtain the contour of the outer boundary of slices
+	path contour;
+	contour.length = 1000; // the number of waypoints
+	contour.x = new double[contour.length](); // x-coordinate of waypoints
+	contour.y = new double[contour.length](); // y-coordinate of waypoints
+	const double pi = acos(-1.0); // pi == 3.1415926...
+	for (int i = 0; i < contour.length; ++i) {
+		double theta = 2.0 * pi * i / contour.length;
+		double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
+		contour.x[i] = r * cos(theta);
+		contour.y[i] = r * sin(theta);
+	}
+
+	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
+	NEPathPlanner planner_toolcompensate;
+	planner_toolcompensate.set_contour(contour);
+	ContourParallelOptions opts_toolcompensate;
+	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
+	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
+	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+	opts_toolcompensate.washdis = 0.2;
+	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+
+	planner.set_contour(path_outmost[0]);
+	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+
+	// Set the toolpath parameters
+	NonEquidistantOptions opts;
+	opts.delta = 1.0; // the line width of toolpaths
+	opts.alpha = 0.5; // the scale of minimum distance
+	opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
+	opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+
+	opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
+	opts.optimize_S = false; // the area is not in the objective function
+	opts.optimize_L = false; // the length is not in the objective function
+	opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
+
+	opts.wash = true; // it is recommended to set opt.wash=true
+	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+	opts.washdis = 0.2;
+
+
+	paths IQOP_paths = planner.IQOP(opts, true); // all IQOP paths
+	cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
+```
+
+<p align="center">
+	<img src="https://github.com/WangY18/NEPath/assets/75420225/6f5a6369-1eda-444f-838b-c260aac58ecf" alt="IQOP" height="300" />
+</p>
+<p align="center">
+	<b>Figure.</b> IQOP toolpath minimizing Q.
+</p>
+
+<p align="center">
+	<img src="https://github.com/WangY18/NEPath/assets/75420225/65b5b1a7-ebc4-4f8b-b2d0-f72352afda9d" alt="IQSOP" height="300" />
+</p>
+<p align="center">
+	<b>Figure.</b> IQOP toolpath minimizing Q+1.0S.
+</p>
+
+<p align="center">
+	<img src="https://github.com/WangY18/NEPath/assets/75420225/aac675c2-644e-4ff2-b608-36d26226fc26" alt="IQSOP" height="300" />
+</p>
+<p align="center">
+	<b>Figure.</b> IQOP toolpath minimizing L.
+</p>
+
 
 #### CP (Contour-Parallel)
 
@@ -535,4 +612,3 @@ int main() {
 <p align="center">
     <b>Figure.</b> Sharp corners. There exist 44 sharp corners in this example.
 </p>
-

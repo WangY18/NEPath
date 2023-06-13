@@ -67,6 +67,14 @@ void NEPathPlanner::addholes(const paths& holes_new, bool wash/*=true*/, double 
 	}
 }
 
+#ifdef IncludeGurobi
+// Generate IQOP toolpath
+paths NEPathPlanner::IQOP(const NonEquidistantOptions& opts, bool log/*=true*/) {
+	NonEquidistant NE(log);
+	return NE.NEpaths(contour, holes, opts);
+}
+#endif
+
 // Generate Raster toolpath
 paths NEPathPlanner::Raster(const DirectParallelOptions& opts) {
 	return DirectionParalle::Raster(contour, holes, opts.delta, opts.angle);

@@ -167,6 +167,7 @@
     <ClInclude Include="NEPath-master\path.h" />
     <ClInclude Include="NEPath-master\NEPathPlanner.h" />
     <ClInclude Include="NEPath-master\PlanningOptions.h" />
+    <ClInclude Include="NEPath-master\setup_NEPath.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
