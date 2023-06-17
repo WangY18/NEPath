@@ -19,10 +19,24 @@ The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D print
 	+ Calculating underfill rate.
 	+ Determining sharp corners.
 
-Among them, the IQOP is proposed by Wang et al., with an article (accept), i.e., 
+Among them, the IQOP is proposed by Wang et al., with a journal article, i.e., 
 
 ```
-Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023. (accept)
+Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023, 84: 102599.
+```
+
+or in BiBTeX:
+
+```
+@article{wang2023optimization,
+  title={Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation},
+  author={Wang, Yunan and Hu, Chuxiong and Wang, Ze and Lin, Shize and Zhao, Ziyan and Zhao, Wenxiang and Hu, Kehui and Huang, Zhongyi and Zhu, Yu and Lu, Zhigang},
+  journal={Robotics and Computer-Integrated Manufacturing},
+  volume={84},
+  pages={102599},
+  year={2023},
+  publisher={Elsevier}
+}
 ```
 
 After the article is published, the **NEPath** library would provide the API and details of IQOP. More non-equidistant toolpaths would be designed soon.
@@ -39,7 +53,7 @@ C++17
 
 ### About Citing
 
-If you need to use the **NEPath** project, please cite  "Yunan Wang, Chuxiong Hu, et al. Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation[J]. Robotics and Computer-Integrated Manufacturing. 2023."
+If you need to use the **NEPath** project, please cite  "Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023, 84: 102599."
 
 ## Introduction to IQOP
 
