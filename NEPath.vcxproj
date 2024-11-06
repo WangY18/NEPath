@@ -146,6 +146,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NEPath-master\Basic.cpp" />
     <ClCompile Include="NEPath-master\clipper.cpp" />
+    <ClCompile Include="NEPath-master\Connector.cpp" />
     <ClCompile Include="NEPath-master\ContourParallel.cpp" />
     <ClCompile Include="NEPath-master\Curve.cpp" />
     <ClCompile Include="NEPath-master\DirectionParallel.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="demos.h" />
     <ClInclude Include="NEPath-master\Basic.h" />
     <ClInclude Include="NEPath-master\clipper.hpp" />
+    <ClInclude Include="NEPath-master\Connector.h" />
     <ClInclude Include="NEPath-master\ContourParallel.h" />
     <ClInclude Include="NEPath-master\Curve.h" />
     <ClInclude Include="NEPath-master\DirectionParallel.h" />

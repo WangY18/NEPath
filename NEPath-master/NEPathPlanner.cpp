@@ -71,7 +71,17 @@ void NEPathPlanner::addholes(const paths& holes_new, bool wash/*=true*/, double 
 // Generate IQOP toolpath
 paths NEPathPlanner::IQOP(const NonEquidistantOptions& opts, bool log/*=true*/) {
 	NonEquidistant NE(log);
-	return NE.NEpaths(contour, holes, opts);
+	if (opts.connect == none) {
+		return NE.NEpaths(contour, holes, opts);
+	}
+	paths ps;
+	if (opts.connect == cfs) {
+		ps.push_back(NE.NEpaths_CFS(contour, holes, opts));
+	}
+	else if (opts.connect == dfs) {
+		ps.push_back(NE.NEpaths_DFS(contour, holes, opts));
+	}
+	return ps;
 }
 #endif
 
@@ -87,7 +97,17 @@ paths NEPathPlanner::Zigzag(const DirectParallelOptions& opts) {
 
 // Generate CP toolpath
 paths NEPathPlanner::CP(const ContourParallelOptions& opts) {
-	return ContourParallel::Contour_Parallel(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
+	if (opts.connect == none) {
+		return ContourParallel::Contour_Parallel(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
+	}
+	paths ps;
+	if (opts.connect == cfs) {
+		ps.push_back(ContourParallel::Contour_Parallel_CFS(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least));
+	}
+	else if (opts.connect == dfs) {
+		ps.push_back(ContourParallel::Contour_Parallel_DFS(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least));
+	}
+	return ps;
 }
 
 // Offset the contour and holes of the slice with a distance

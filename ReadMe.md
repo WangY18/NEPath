@@ -7,13 +7,15 @@
 The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)]([3D printing - Wikipedia](https://en.wikipedia.org/wiki/3D_printing)) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths:
 
 + Optimization-based non-equidistant toolpath:
-	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**.
+	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**. (Recommended)
 	+ Variants of IQOP, like toolpaths that minimizing the perimeter, the isoperimetric quotient, and the area.
 + Classical toolpath:
 	+ **Contour-Parallel Toolpath (CP)**.
 	+ **Zigzag Toolpath**.
 	+ **Raster Toolpath**.
-+ Toolpath connection. (Temporarily unavailable)
++ Toolpath connection:
+    + **Connected Fermat Spiral (CFS)**. (Recommended)
+    + Depth First Search (DFS).
 + Other functions:
 	+ Tool Compensating.
 	+ Calculating underfill rate.
@@ -39,8 +41,6 @@ or in BiBTeX:
 }
 ```
 
-After the article is published, the **NEPath** library would provide the API and details of IQOP. More non-equidistant toolpaths would be designed soon.
-
 ### Complier
 
 C++17
@@ -53,7 +53,7 @@ C++17
 
 ### About Citing
 
-If you need to use the **NEPath** project, please cite  "Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023, 84: 102599."
+If you need to use the **NEPath** project, please cite  "Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. *Robotics and Computer-Integrated Manufacturing*, 2023, 84: 102599."
 
 ## Introduction to IQOP
 
@@ -88,7 +88,7 @@ More details of IQOP would be provided after the article is published.
 
 ### Optimization Problem of IQOP
 
-The toolpaths can be planned by offsetting non-equidistantly. The offsetting distances $\left\{\delta_i\right\}_{i=1}^n$ can be seen as optimization variables. $\delta_i$ is the offsetting distance at $\left(x_i,y_i\right)$.
+The toolpaths can be planned by offsetting non-equidistantly. The offsetting distances $(\delta_i)_{i=1}^n$ can be seen as optimization variables. $\delta_i$ is the offsetting distance at $(x_i,y_i)$.
 
 <p align="center">
 	<img src="https://github.com/WangY18/NEPath/assets/75420225/169ab971-35b6-42b3-a1ce-8fa356532902" alt="Underfill" height="200" />
@@ -97,17 +97,10 @@ The toolpaths can be planned by offsetting non-equidistantly. The offsetting dis
     <b>Figure.</b> Optimization variables.
 </p>
 Given $l$, the optimization problem for generating $\tilde{l}$ can be written as:
-$$
-\begin{align}
-\min\quad& \lambda_QQ+\lambda_SS+\lambda_LL\\
-\mathrm{s.t.}\quad& L\text{ is the length of }\tilde{l}\\
-& S\text{ is the area of the region enclosed by }\tilde{l}\\
-& Q=\frac{L^2}{4\pi S}\text{ is the isoperimetric quotient of }\tilde{l}\\
-& \alpha\delta_{\mathrm{m}}\leq\delta_i\leq\delta_{\mathrm{m}},\forall i\in\left[n\right]\\
-& \left|\dot{\delta}_i\right|\leq\dot{\delta}_{\mathrm{m}},\forall i\in\left[n\right]\\
-& \left|\ddot{\delta}_i\right|\leq\ddot{\delta}_{\mathrm{m}},\forall i\in\left[n\right]\\
-\end{align}
-$$
+<p align="center">
+	<img src="https://github.com/user-attachments/assets/e617e046-9342-4383-b8e7-39a21c01881e" alt="optimization_problem" height="220" />
+</p>
+
 In our paper `Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation`, the above optimization problem is convexified, and the problem of self-intersection is solved. The above method can be applied for slices with arbitrary shapes and topological structures.
 
 ## API
@@ -145,6 +138,7 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
     + `opts.optimize_Q` is true if $Q$ is in the objective function. `opts.optimize_S` is true if $S$ is in the objective function. `opts.optimize_L` is true if $L$ is in the objective function.  `opts.lambda_Q`,  `opts.lambda_S`, and `opts.lambda_L` are $\lambda_Q,\lambda_S,\lambda_L$, respectively.
     + `opts.epsilon` is the upper bound of error in $\left\|\cdot\right\|_\infty$. `opts.set_max` is the maximum iteration steps.
     + If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
+    + If `opts.connect` is `none`, then toolpaths are not connected. If `opts.connect` is `cfs`/`dfs`, then toolpaths are connected into a continuous one based on CFS/DFS. 
 + `(paths)NEPathPlanner::Raster()`: Generate the **Raster** toolpath of a slice.
 	+ `(const DirectParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. `opts.angle` is the angle between Raster toolpaths and the $x$-axis. The unit of `opts.angle` is rad, and you can use `acos(-1.0)` to obtain a accurate $\pi=3.1415926\cdots$.
 	+ Every Raster toolpath has two waypoints, i.e., the start point and the end point.
@@ -154,6 +148,7 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 + `(paths)NEPathPlanner::CP()`: Generate the **CP** toolpath of a slice.
 	+ `(const ContourParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
 	+ `(paths)NEPathPlanner::CP()` is achieved based on [AngusJohnson/Clipper2](https://github.com/AngusJohnson/Clipper2).
+	+ If `opts.connect` is `none`, then toolpaths are not connected. If `opts.connect` is `cfs`/`dfs`, then toolpaths are connected into a continuous one based on CFS/DFS. 
 + Other toolpath generation algorithms and toolpath connection algorithm will be added into `NEPathPlanner` latter.
 
 #### `NEPath-master/Curve.h`
@@ -177,13 +172,13 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 		+ `(bool**)map_slice` stores information of slice $D$. `map_slice[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in D$.
 		+ `(bool**)map_delta` stores information of neighborhood of toolpaths $\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$. `map_delta[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$.
 		+ `(double)underfillrate` is the underfill rate, i.e.,
-		$$
-		\text{underfill rate}=\frac{\text{area of underfill}}{\text{area of slice}}=1-\frac{\text{number of pixels in }D\bigcap\left(\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)\right)}{\text{number of pixels in }D}.
-		$$
-	
-+ **Sharp corner.** To avoid computational sensitivity, sharp corners are determined by [area invariant](https://doi.org/10.1016/j.cagd.2008.01.002) (Helmut Pottmann, et al. 2009).
+<p align="center">
+	<img src="https://github.com/user-attachments/assets/794ee62e-5d2c-4a19-9837-51e30517e343" alt="optimization_problem" height="80" />
+</p>
 
-	+ `(static SharpTurnSolution)Curve::SharpTurn_Invariant()`: determine sharp corners on a toolpath:
+
++ **Sharp corner.** To avoid computational sensitivity, sharp corners are determined by [area invariant](https://doi.org/10.1016/j.cagd.2008.01.002) (Helmut Pottmann, et al. 2009).
++ `(static SharpTurnSolution)Curve::SharpTurn_Invariant()`: determine sharp corners on a toolpath:
 	  + `(const path&)p`: the input toolpath.
 	  + `(double)radius`: the radius of the rolling circle.
 	  + `(double)threshold`: the threshold to determine a sharp corner.
@@ -205,7 +200,12 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 
 
 ```c++
-	NEPathPlanner planner;
+#include "NEPath-master/NEPathPlanner.h"
+#include <iostream>
+using namespace std;
+
+int main() {
+   	NEPathPlanner planner;
 
 	// Obtain the contour of the outer boundary of slices
 	path contour;
@@ -249,9 +249,10 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
 	opts.washdis = 0.2;
 
-
 	paths IQOP_paths = planner.IQOP(opts, true); // all IQOP paths
 	cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
+	return 0;
+}
 ```
 
 <p align="center">
@@ -434,7 +435,140 @@ int main() {
 
 ### Toolpath Connection
 
-The API and examples of toolpath connection would be available soon.
+#### IQOP connected by CFS
+
+CP can be connected by CFS in the same way.
+
+```c++
+#include "NEPath-master/NEPathPlanner.h"
+#include <iostream>
+using namespace std;
+
+int main() {
+    NEPathPlanner planner;
+
+    // Obtain the contour of the outer boundary of slices
+    path contour;
+    contour.length = 1000; // the number of waypoints
+    contour.x = new double[contour.length](); // x-coordinate of waypoints
+    contour.y = new double[contour.length](); // y-coordinate of waypoints
+    const double pi = acos(-1.0); // pi == 3.1415926...
+    for (int i = 0; i < contour.length; ++i) {
+        double theta = 2.0 * pi * i / contour.length;
+        double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
+        contour.x[i] = r * cos(theta);
+        contour.y[i] = r * sin(theta);
+    }
+
+    // The out boundary should be offset with half of the line width to obtain the outmost toolpath
+    NEPathPlanner planner_toolcompensate;
+    planner_toolcompensate.set_contour(contour);
+    ContourParallelOptions opts_toolcompensate;
+    opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
+    opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts_toolcompensate.washdis = 0.2;
+    paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+
+    planner.set_contour(path_outmost[0]);
+    // or `planner.set_contour(contour.x, contour.y, contour.length)`
+
+    // Set the toolpath parameters
+    NonEquidistantOptions opts;
+    opts.delta = 1.0; // the line width of toolpaths
+    opts.alpha = 0.5; // the scale of minimum distance
+    opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
+    opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+
+    opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
+    opts.optimize_S = false; // the area is not in the objective function
+    opts.optimize_L = false; // the length is not in the objective function
+    opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
+
+    opts.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts.washdis = 0.2;
+    opts.connect = cfs; // select cfs as the connecting method
+
+    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with CFS
+	return 0;
+}
+```
+
+<p align="center">
+	<img src="https://github.com/user-attachments/assets/38b01606-ff3e-4149-89c8-39335ed70ac3" alt="iqop_cfs" height="300" />
+</p>
+<p align="center">
+	<b>Figure.</b> IQOP connected by CFS.
+</p>
+
+#### IQOP connected by DFS
+
+CP can be connected by DFS in the same way.
+
+```c++
+#include "NEPath-master/NEPathPlanner.h"
+#include <iostream>
+using namespace std;
+
+int main() {
+    NEPathPlanner planner;
+
+    // Obtain the contour of the outer boundary of slices
+    path contour;
+    contour.length = 1000; // the number of waypoints
+    contour.x = new double[contour.length](); // x-coordinate of waypoints
+    contour.y = new double[contour.length](); // y-coordinate of waypoints
+    const double pi = acos(-1.0); // pi == 3.1415926...
+    for (int i = 0; i < contour.length; ++i) {
+        double theta = 2.0 * pi * i / contour.length;
+        double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
+        contour.x[i] = r * cos(theta);
+        contour.y[i] = r * sin(theta);
+    }
+
+    // The out boundary should be offset with half of the line width to obtain the outmost toolpath
+    NEPathPlanner planner_toolcompensate;
+    planner_toolcompensate.set_contour(contour);
+    ContourParallelOptions opts_toolcompensate;
+    opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
+    opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts_toolcompensate.washdis = 0.2;
+    paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+
+    planner.set_contour(path_outmost[0]);
+    // or `planner.set_contour(contour.x, contour.y, contour.length)`
+
+    // Set the toolpath parameters
+    NonEquidistantOptions opts;
+    opts.delta = 1.0; // the line width of toolpaths
+    opts.alpha = 0.5; // the scale of minimum distance
+    opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
+    opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+
+    opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
+    opts.optimize_S = false; // the area is not in the objective function
+    opts.optimize_L = false; // the length is not in the objective function
+    opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
+
+    opts.wash = true; // it is recommended to set opt.wash=true
+    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
+    opts.washdis = 0.2;
+    opts.connect = dfs; // select dfs as the connecting method
+
+    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with DFS
+	return 0;
+}
+```
+
+<p align="center">
+	<img src="https://github.com/user-attachments/assets/c03acb4f-c14f-40b9-81f5-ad49f758611d" alt="iqop_dfs" height="300" />
+</p>
+<p align="center">
+	<b>Figure.</b> IQOP connected by DFS.
+</p>
+
 
 ### Others
 

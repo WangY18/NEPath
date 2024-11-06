@@ -1,6 +1,7 @@
 #include "NonEquidistant.h"
 #include "Basic.h"
 #include "ContourParallel.h"
+#include "Connector.h"
 
 #ifdef IncludeGurobi
 NonEquidistant::NonEquidistant(bool debug/*=false*/) : gurobi(GRBEnv(true)) {
@@ -275,4 +276,18 @@ paths NonEquidistant::do1offset(const path& p, const NonEquidistantOptions& opts
 	}
 	return ps;
 }
+
+path NonEquidistant::NEpaths_CFS(const path& contour, const paths& holes, const NonEquidistantOptions& opts) {
+	pathnode* root = root_offset(contour, holes, opts);
+	ContourParallel::clearvoid(root, holes, opts.delta, pi * opts.delta * opts.delta * 0.09, 0.02);
+	return Connector::ConnectedFermatSpiral_MultMinimum(root, opts.delta);
+}
+
+path NonEquidistant::NEpaths_DFS(const path& contour, const paths& holes, const NonEquidistantOptions& opts) {
+	pathnode* root = root_offset(contour, holes, opts);
+	path p = Connector::ConnectedDFS(root);
+	delete root;
+	return opts.wash ? p : Curve::wash_dis(p, opts.washdis);
+}
+
 #endif

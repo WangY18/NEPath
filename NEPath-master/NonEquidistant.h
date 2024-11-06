@@ -11,6 +11,8 @@ class NonEquidistant {
 public:
 	NonEquidistant(bool debug = false);
 	paths NEpaths(const path& contour, const paths& holes, const NonEquidistantOptions& opts);
+	path NEpaths_CFS(const path& contour, const paths& holes, const NonEquidistantOptions& opts);
+	path NEpaths_DFS(const path& contour, const paths& holes, const NonEquidistantOptions& opts);
 private:
 	double* Optimize_QSL(path p, const NonEquidistantOptions& opts);
 	paths do1offset(const path& contour, const NonEquidistantOptions& opts);

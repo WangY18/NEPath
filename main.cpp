@@ -3,6 +3,7 @@
 using namespace std;
 
 int main() {
-	demo_Raster();
+	demo_IQOP_DFS();
+	demo_IQOP_CFS();
 	return 0;
 }

@@ -25,6 +25,8 @@ public:
 	paths Zigzag(const DirectParallelOptions& opts); // Generate Zigzag toolpath
 	paths CP(const ContourParallelOptions& opts); // Generate CP toolpath
 public:
+	
+public:
 	path contour;
 	paths holes;
 };

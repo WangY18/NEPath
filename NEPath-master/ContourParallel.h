@@ -6,6 +6,8 @@ using namespace ClipperLib;
 
 class ContourParallel {
 public:
+	static path Contour_Parallel_DFS(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50);
+	static path Contour_Parallel_CFS(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50);
 	static paths Contour_Parallel(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50); // Generate CP toolpath
 	static paths OffsetClipper(const double* x, const double* y, double dis, int length, bool wash = true, double washdis = 0.5, int num_least = 50); // Offset a path based on Clipper. dis>0 means offsetting the path inside; dis<0 means offsetting the path outside
 	static paths cut_holes(const path& contour, const paths& holes, bool wash = true, double washdis = 0.5, int num_least = 50); // Apply set minus on contour to holes if intersections exist.

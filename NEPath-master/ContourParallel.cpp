@@ -1,4 +1,5 @@
 #include "ContourParallel.h"
+#include "Connector.h"
 
 // Offset a path based on Clipper.
 // The path is path(x,y,length), the offsetting distance is dis.
@@ -485,4 +486,27 @@ void ContourParallel::clearvoid(pathnode* root, const paths& holes, double delta
 			}
 		}
 	}
+}
+
+// Generate CP toolpath and connect all toolpaths with connected Fermat spirals.
+// contour and holes are the contour and the holes of the slice
+// dis>0 is distance between toolpaths
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+// The output is the CP toolpaths
+path ContourParallel::Contour_Parallel_CFS(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+	pathnode* root = root_offset(contour, holes, dis, wash, washdis);
+	ContourParallel::clearvoid(root, holes, dis, pi * dis * dis * 0.09, 0.02);
+	return Connector::ConnectedFermatSpiral_MultMinimum(root, dis);
+}
+
+// Generate CP toolpath and connect all toolpaths with Depth First Search.
+// contour and holes are the contour and the holes of the slice
+// dis>0 is distance between toolpaths
+// If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
+// The output is the CP toolpaths
+path ContourParallel::Contour_Parallel_DFS(const path& contour, const paths& holes, double dis, bool wash/*=true*/, double washdis/*=0.5*/, int num_least/*=50*/) {
+	pathnode* root = root_offset(contour, holes, dis, wash, washdis);
+	path p = Connector::ConnectedDFS(root);
+	delete root;
+	return wash ? p : Curve::wash_dis(p, washdis);
 }
