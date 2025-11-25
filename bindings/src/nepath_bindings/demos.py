@@ -4,17 +4,11 @@ NEPath Demo Functions
 This module replicates the functionality from demos.cpp using the Python bindings.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import numpy as np
 from numpy.typing import NDArray
 
 import nepath_bindings as _nepath
-
-if TYPE_CHECKING:
-    from nepath_bindings import Path, SharpTurnSolution, UnderFillSolution
+from nepath_bindings import Path, SharpTurnSolution, UnderFillSolution
 
 
 def create_contour(num_points: int = 1000) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
