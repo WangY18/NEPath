@@ -4,13 +4,32 @@ NEPath Demo Functions
 This module replicates the functionality from demos.cpp using the Python bindings.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
-# from . import _nepath
+from numpy.typing import NDArray
+
 import nepath_bindings as _nepath
 
+if TYPE_CHECKING:
+    from nepath_bindings import Path, SharpTurnSolution, UnderFillSolution
 
-def create_contour(num_points=1000):
-    """Create a sample contour (flower shape)."""
+
+def create_contour(num_points: int = 1000) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Create a sample contour (flower shape).
+    
+    Parameters
+    ----------
+    num_points : int
+        Number of points in the contour
+        
+    Returns
+    -------
+    tuple[NDArray[np.float64], NDArray[np.float64]]
+        x and y coordinate arrays
+    """
     theta = np.linspace(0, 2 * np.pi, num_points)
     r = 15.0 * (1.0 + 0.15 * np.cos(10.0 * theta))
     x = r * np.cos(theta)
@@ -18,7 +37,11 @@ def create_contour(num_points=1000):
     return x, y
 
 
-def demo_Raster(delta=1.0, angle=-np.pi/3.0, output_dir="./data_examples/demo_raster/"):
+def demo_Raster(
+    delta: float = 1.0,
+    angle: float = -np.pi / 3.0,
+    output_dir: str = "./data_examples/demo_raster/",
+) -> list[Path]:
     """
     Generate Raster toolpaths.
 
@@ -30,6 +53,11 @@ def demo_Raster(delta=1.0, angle=-np.pi/3.0, output_dir="./data_examples/demo_ra
         Angle of raster toolpaths in radians
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of generated raster toolpaths
     """
     planner = _nepath.NEPathPlanner()
 
@@ -53,7 +81,11 @@ def demo_Raster(delta=1.0, angle=-np.pi/3.0, output_dir="./data_examples/demo_ra
     return raster_paths
 
 
-def demo_Zigzag(delta=1.0, angle=np.pi/3.0, output_dir="./data_examples/demo_zigzag/"):
+def demo_Zigzag(
+    delta: float = 1.0,
+    angle: float = np.pi / 3.0,
+    output_dir: str = "./data_examples/demo_zigzag/",
+) -> list[Path]:
     """
     Generate Zigzag toolpaths.
 
@@ -65,6 +97,11 @@ def demo_Zigzag(delta=1.0, angle=np.pi/3.0, output_dir="./data_examples/demo_zig
         Angle of zigzag toolpaths in radians
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of generated zigzag toolpaths
     """
     planner = _nepath.NEPathPlanner()
 
@@ -94,7 +131,11 @@ def demo_Zigzag(delta=1.0, angle=np.pi/3.0, output_dir="./data_examples/demo_zig
     return zigzag_paths
 
 
-def demo_CP(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP/"):
+def demo_CP(
+    delta: float = 1.0,
+    washdis: float = 0.2,
+    output_dir: str = "./data_examples/demo_CP/",
+) -> list[Path]:
     """
     Generate Contour Parallel (CP) toolpaths.
 
@@ -106,6 +147,11 @@ def demo_CP(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP/"):
         Resampling distance for uniform waypoint distribution
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of generated CP toolpaths
     """
     planner = _nepath.NEPathPlanner()
 
@@ -142,7 +188,11 @@ def demo_CP(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP/"):
     return CP_paths
 
 
-def demo_CP_CFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_CFS/"):
+def demo_CP_CFS(
+    delta: float = 1.0,
+    washdis: float = 0.2,
+    output_dir: str = "./data_examples/demo_CP_CFS/",
+) -> list[Path]:
     """
     Generate Contour Parallel (CP) toolpaths with CFS connection.
 
@@ -154,6 +204,11 @@ def demo_CP_CFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_CFS/
         Resampling distance for uniform waypoint distribution
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of generated CP toolpaths with CFS connection
     """
     planner = _nepath.NEPathPlanner()
 
@@ -191,7 +246,11 @@ def demo_CP_CFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_CFS/
     return CP_paths
 
 
-def demo_CP_DFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_DFS/"):
+def demo_CP_DFS(
+    delta: float = 1.0,
+    washdis: float = 0.2,
+    output_dir: str = "./data_examples/demo_CP_DFS/",
+) -> list[Path]:
     """
     Generate Contour Parallel (CP) toolpaths with DFS connection.
 
@@ -203,6 +262,11 @@ def demo_CP_DFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_DFS/
         Resampling distance for uniform waypoint distribution
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of generated CP toolpaths with DFS connection
     """
     planner = _nepath.NEPathPlanner()
 
@@ -240,7 +304,11 @@ def demo_CP_DFS(delta=1.0, washdis=0.2, output_dir="./data_examples/demo_CP_DFS/
     return CP_paths
 
 
-def demo_tool_compensate(delta_offset=-1.5, washdis=0.2, output_dir="./data_examples/demo_toolcompensate/"):
+def demo_tool_compensate(
+    delta_offset: float = -1.5,
+    washdis: float = 0.2,
+    output_dir: str = "./data_examples/demo_toolcompensate/",
+) -> list[Path]:
     """
     Demonstrate tool compensation (offsetting).
 
@@ -252,6 +320,11 @@ def demo_tool_compensate(delta_offset=-1.5, washdis=0.2, output_dir="./data_exam
         Resampling distance for uniform waypoint distribution
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    list[Path]
+        List of tool-compensated paths
     """
     planner = _nepath.NEPathPlanner()
 
@@ -283,7 +356,12 @@ def demo_tool_compensate(delta_offset=-1.5, washdis=0.2, output_dir="./data_exam
     return ps_toolcompensate
 
 
-def demo_underfill(delta=1.0, washdis=0.2, reratio=0.03, output_dir="./data_examples/demo_underfill/"):
+def demo_underfill(
+    delta: float = 1.0,
+    washdis: float = 0.2,
+    reratio: float = 0.03,
+    output_dir: str = "./data_examples/demo_underfill/",
+) -> tuple[list[Path], UnderFillSolution]:
     """
     Demonstrate underfill calculation.
 
@@ -297,6 +375,11 @@ def demo_underfill(delta=1.0, washdis=0.2, reratio=0.03, output_dir="./data_exam
         Resolution ratio for underfill computation
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    tuple[list[Path], UnderFillSolution]
+        Tuple of (CP paths, underfill solution)
     """
     planner = _nepath.NEPathPlanner()
 
@@ -339,8 +422,13 @@ def demo_underfill(delta=1.0, washdis=0.2, reratio=0.03, output_dir="./data_exam
     return CP_paths, ufs
 
 
-def demo_sharpcorner(delta=1.0, washdis=0.2, radius=1.0, threshold=0.3,
-                    output_dir="./data_examples/demo_sharpcorner/"):
+def demo_sharpcorner(
+    delta: float = 1.0,
+    washdis: float = 0.2,
+    radius: float = 1.0,
+    threshold: float = 0.3,
+    output_dir: str = "./data_examples/demo_sharpcorner/",
+) -> tuple[list[Path], list[Path]]:
     """
     Demonstrate sharp corner detection.
 
@@ -356,6 +444,11 @@ def demo_sharpcorner(delta=1.0, washdis=0.2, radius=1.0, threshold=0.3,
         Threshold of area on one side to determine a sharp corner
     output_dir : str
         Directory to save output files
+        
+    Returns
+    -------
+    tuple[list[Path], list[Path]]
+        Tuple of (CP paths, sharp turn paths)
     """
     planner = _nepath.NEPathPlanner()
 
@@ -416,7 +509,12 @@ try:
     # Test if IQOP is available
     test_planner = _nepath.NEPathPlanner()
     if hasattr(test_planner, 'IQOP'):
-        def demo_IQOP(delta=1.0, alpha=0.5, washdis=0.2, output_dir="./data_examples/demo_IQOP/"):
+        def demo_IQOP(
+            delta: float = 1.0,
+            alpha: float = 0.5,
+            washdis: float = 0.2,
+            output_dir: str = "./data_examples/demo_IQOP/",
+        ) -> list[Path]:
             """
             Generate IQOP toolpaths.
 
@@ -433,7 +531,7 @@ try:
 
             Returns
             -------
-            list
+            list[Path]
                 List of IQOP toolpath objects
             """
             planner = _nepath.NEPathPlanner()
@@ -482,7 +580,12 @@ try:
             return IQOP_paths
 
 
-        def demo_IQOP_CFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir="./data_examples/demo_IQOP/"):
+        def demo_IQOP_CFS(
+            delta: float = 1.0,
+            alpha: float = 0.5,
+            washdis: float = 0.2,
+            output_dir: str = "./data_examples/demo_IQOP/",
+        ) -> list[Path]:
             """
             Generate IQOP toolpaths with CFS (Connected Fermat Spiral) connection.
 
@@ -499,7 +602,7 @@ try:
 
             Returns
             -------
-            list
+            list[Path]
                 List of IQOP toolpath objects with CFS connection
             """
             planner = _nepath.NEPathPlanner()
@@ -547,7 +650,12 @@ try:
             return IQOP_paths
 
 
-        def demo_IQOP_DFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir="./data_examples/demo_IQOP/"):
+        def demo_IQOP_DFS(
+            delta: float = 1.0,
+            alpha: float = 0.5,
+            washdis: float = 0.2,
+            output_dir: str = "./data_examples/demo_IQOP/",
+        ) -> list[Path]:
             """
             Generate IQOP toolpaths with DFS (Depth First Search) connection.
 
@@ -564,7 +672,7 @@ try:
 
             Returns
             -------
-            list
+            list[Path]
                 List of IQOP toolpath objects with DFS connection
             """
             planner = _nepath.NEPathPlanner()
@@ -611,5 +719,5 @@ try:
 
             return IQOP_paths
 
-except:
+except (AttributeError, ImportError):
     pass  # IQOP not available
