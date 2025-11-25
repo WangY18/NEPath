@@ -465,8 +465,8 @@ try:
             opts.optimize_S = False
             opts.optimize_L = False
             opts.lambda_Q = 1.0
-            # TODO: wash=True causes segfault in Python bindings (memory management issue)
-            opts.wash = False
+            opts.wash = True
+            opts.washdis = washdis
             opts.washdis = washdis
 
             # Generate IQOP paths
@@ -531,8 +531,8 @@ try:
             opts.optimize_S = False
             opts.optimize_L = False
             opts.lambda_Q = 1.0
-            # TODO: wash=True causes segfault in Python bindings (memory management issue)
-            opts.wash = False
+            opts.wash = True
+            opts.washdis = washdis
             opts.washdis = washdis
             opts.connect = _nepath.ConnectAlgorithm.cfs  # Use CFS connection
 
@@ -596,8 +596,8 @@ try:
             opts.optimize_S = False
             opts.optimize_L = False
             opts.lambda_Q = 1.0
-            # TODO: wash=True causes segfault in Python bindings (memory management issue)
-            opts.wash = False
+            opts.wash = True
+            opts.washdis = washdis
             opts.washdis = washdis
             opts.connect = _nepath.ConnectAlgorithm.dfs  # Use DFS connection
 

@@ -43,6 +43,14 @@ paths ContourParallel::OffsetClipper(const double* x, const double* y, double di
 			ps[i].steal(p);
 		}
 	}
+	else {
+		// When wash=false, still need to convert clipper paths to NEPath paths
+		for (int i = 0; i < solution.size(); ++i) {
+			path p = Path2path(solution[i], scale, delta_x, delta_y);
+			ps.push_back(path());
+			ps[i].steal(p);
+		}
+	}
 	return ps;
 }
 

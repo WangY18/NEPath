@@ -106,7 +106,7 @@ void Curve::DiffLength(double*& dl, const double* x, const double* y, int length
 // dl[i] is the distance between point (x[i],y[i]) and (x[i+1],y[i+1])
 // poly==true iff the path is closed
 double* Curve::DiffLength(const double* x, const double* y, int length, bool poly/*=true*/) {
-	double* dl;
+	double* dl = nullptr;  // FIX: Initialize to nullptr to avoid undefined behavior
 	DiffLength(dl, x, y, length, poly);
 	return dl;
 }
