@@ -8,7 +8,7 @@ void demo_CP_DFS();
 void demo_tool_compensate();
 void demo_underfill();
 void demo_sharpcorner();
-#ifdef IncludeGurobi
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 void demo_IQOP();
 void demo_IQOP_CFS();
 void demo_IQOP_DFS();

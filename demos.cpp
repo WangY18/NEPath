@@ -413,7 +413,7 @@ void demo_sharpcorner() {
 	// FileAgent::write_csv(contour, R"(.\data_examples\contour.csv)");
 }
 
-#ifdef IncludeGurobi
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 void demo_IQOP() {
 	NEPathPlanner planner;
 

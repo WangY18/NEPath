@@ -411,7 +411,7 @@ def demo_sharpcorner(delta=1.0, washdis=0.2, radius=1.0, threshold=0.3,
     return CP_paths, ps_sharpturn
 
 
-# IQOP demos (only if Gurobi is available)
+# IQOP demos (only if IPOPT is available)
 try:
     # Test if IQOP is available
     test_planner = _nepath.NEPathPlanner()
@@ -430,6 +430,11 @@ try:
                 Resampling distance for uniform waypoint distribution
             output_dir : str
                 Directory to save output files
+
+            Returns
+            -------
+            list
+                List of IQOP toolpath objects
             """
             planner = _nepath.NEPathPlanner()
 
@@ -460,11 +465,12 @@ try:
             opts.optimize_S = False
             opts.optimize_L = False
             opts.lambda_Q = 1.0
-            opts.wash = True
+            # TODO: wash=True causes segfault in Python bindings (memory management issue)
+            opts.wash = False
             opts.washdis = washdis
 
             # Generate IQOP paths
-            IQOP_paths = planner.IQOP(opts, True)
+            IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
             print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
 
             # Write output files
@@ -474,5 +480,136 @@ try:
             _nepath.FileAgent.write_csv(contour_path, output_dir + "contour.csv")
 
             return IQOP_paths
+
+
+        def demo_IQOP_CFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir="./data_examples/demo_IQOP/"):
+            """
+            Generate IQOP toolpaths with CFS (Connected Fermat Spiral) connection.
+
+            Parameters
+            ----------
+            delta : float
+                Upper bound of delta_i (line width)
+            alpha : float
+                Scale of minimum distance
+            washdis : float
+                Resampling distance for uniform waypoint distribution
+            output_dir : str
+                Directory to save output files
+
+            Returns
+            -------
+            list
+                List of IQOP toolpath objects with CFS connection
+            """
+            planner = _nepath.NEPathPlanner()
+
+            # Create contour (slightly different for IQOP)
+            theta = np.linspace(0, 2 * np.pi, 1000)
+            r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+            x = r * np.cos(theta)
+            y = r * np.sin(theta)
+
+            # Tool compensate to get the outmost toolpath
+            planner_toolcompensate = _nepath.NEPathPlanner()
+            planner_toolcompensate.set_contour(x, y)
+            opts_toolcompensate = _nepath.ContourParallelOptions()
+            opts_toolcompensate.delta = -0.5 * delta
+            opts_toolcompensate.wash = True
+            opts_toolcompensate.washdis = washdis
+            path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
+
+            planner.set_contour(path_outmost[0])
+
+            # Set toolpath parameters
+            opts = _nepath.NonEquidistantOptions()
+            opts.delta = delta
+            opts.alpha = alpha
+            opts.dot_delta = 1.0
+            opts.ddot_delta = 0.1
+            opts.optimize_Q = True
+            opts.optimize_S = False
+            opts.optimize_L = False
+            opts.lambda_Q = 1.0
+            # TODO: wash=True causes segfault in Python bindings (memory management issue)
+            opts.wash = False
+            opts.washdis = washdis
+            opts.connect = _nepath.ConnectAlgorithm.cfs  # Use CFS connection
+
+            # Generate IQOP paths with CFS
+            IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+            print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
+
+            # Write output files
+            _nepath.FileAgent.delete_AllFiles(output_dir + "path_IQOP_CFS/")
+            _nepath.FileAgent.write_csv(IQOP_paths, output_dir + "path_IQOP_CFS/", ".csv")
+
+            return IQOP_paths
+
+
+        def demo_IQOP_DFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir="./data_examples/demo_IQOP/"):
+            """
+            Generate IQOP toolpaths with DFS (Depth First Search) connection.
+
+            Parameters
+            ----------
+            delta : float
+                Upper bound of delta_i (line width)
+            alpha : float
+                Scale of minimum distance
+            washdis : float
+                Resampling distance for uniform waypoint distribution
+            output_dir : str
+                Directory to save output files
+
+            Returns
+            -------
+            list
+                List of IQOP toolpath objects with DFS connection
+            """
+            planner = _nepath.NEPathPlanner()
+
+            # Create contour (slightly different for IQOP)
+            theta = np.linspace(0, 2 * np.pi, 1000)
+            r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+            x = r * np.cos(theta)
+            y = r * np.sin(theta)
+
+            # Tool compensate to get the outmost toolpath
+            planner_toolcompensate = _nepath.NEPathPlanner()
+            planner_toolcompensate.set_contour(x, y)
+            opts_toolcompensate = _nepath.ContourParallelOptions()
+            opts_toolcompensate.delta = -0.5 * delta
+            opts_toolcompensate.wash = True
+            opts_toolcompensate.washdis = washdis
+            path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
+
+            planner.set_contour(path_outmost[0])
+
+            # Set toolpath parameters
+            opts = _nepath.NonEquidistantOptions()
+            opts.delta = delta
+            opts.alpha = alpha
+            opts.dot_delta = 1.0
+            opts.ddot_delta = 0.1
+            opts.optimize_Q = True
+            opts.optimize_S = False
+            opts.optimize_L = False
+            opts.lambda_Q = 1.0
+            # TODO: wash=True causes segfault in Python bindings (memory management issue)
+            opts.wash = False
+            opts.washdis = washdis
+            opts.connect = _nepath.ConnectAlgorithm.dfs  # Use DFS connection
+
+            # Generate IQOP paths with DFS
+            IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+            print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
+
+            # Write output files
+            _nepath.FileAgent.delete_AllFiles(output_dir + "path_IQOP_DFS/")
+            _nepath.FileAgent.write_csv(IQOP_paths, output_dir + "path_IQOP_DFS/", ".csv")
+
+            return IQOP_paths
+
 except:
     pass  # IQOP not available

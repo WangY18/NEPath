@@ -6,7 +6,7 @@
 #ifdef ENABLE_DIRECTION_PARALLEL
 #include "DirectionParallel.h"
 #endif
-#if defined(IncludeGurobi) && (IncludeGurobi != 0)
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 #include "NonEquidistant.h"
 #endif
 // NEPathPlanner is a class to plan toolpaths, connect toolpaths, and perform tool compensating.
@@ -20,7 +20,7 @@ public:
 	void addholes(const paths& holes_new, bool wash = true, double washdis = 0.2, int num_least = 50); // Add some new holes (inner boundaries) onto the slice.
 	paths tool_compensate(const ContourParallelOptions& opts); // Offset the contour and holes of the slice with a distance
 public:
-	#if defined(IncludeGurobi) && (IncludeGurobi != 0)
+	#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 	paths IQOP(const NonEquidistantOptions& opts, bool log = true); // Generate IQOP toolpath
 	#endif
 	#ifdef ENABLE_DIRECTION_PARALLEL

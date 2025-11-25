@@ -49,6 +49,10 @@ include_directories(
   ${EIGEN_INCLUDE_DIR}
 )
 
+# Find IPOPT
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(IPOPT REQUIRED ipopt)
+
 # Collect NEPath source files
 set(NEPATH_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master/Basic.cpp
@@ -61,9 +65,8 @@ set(NEPATH_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master/PlanningOptions.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master/clipper.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master/path.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master/NonEquidistant.cpp  # Now included with IPOPT support
 )
-
-# Note: NonEquidistant.cpp excluded (requires Gurobi)
 
 # Define a function to add a nanobind module with common settings
 function(add_nanobind_extension name source)
@@ -84,11 +87,13 @@ function(add_nanobind_extension name source)
     ${CMAKE_CURRENT_SOURCE_DIR}/../NEPath-master
     ${EIGEN_INCLUDE_DIR}
     ${nanobind_INCLUDE_DIRS}
+    ${IPOPT_INCLUDE_DIRS}
   )
 
   # Compiler definitions
   target_compile_definitions(${name} PRIVATE
-    IncludeGurobi=0  # Disable Gurobi-dependent code
+    IncludeIpopt=1   # Enable IPOPT support
+    IncludeGurobi=0  # Disable Gurobi
     ENABLE_DIRECTION_PARALLEL  # Enable Raster/Zigzag support
   )
 
@@ -103,6 +108,17 @@ function(add_nanobind_extension name source)
       /wd4996  # Disable deprecation warnings
     )
   endif()
+
+  # Link IPOPT libraries
+  target_link_libraries(${name} PRIVATE
+    ${IPOPT_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+  )
+
+  # Add IPOPT link directories
+  target_link_directories(${name} PRIVATE
+    ${IPOPT_LIBRARY_DIRS}
+  )
 
   # Add dependencies
   add_dependencies(${name} external_downloads)
@@ -119,4 +135,7 @@ message(STATUS "============= Build Configuration =============")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
 message(STATUS "Eigen Include Dir: ${EIGEN_INCLUDE_DIR}")
+message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
+message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
+message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
 message(STATUS "=======================================")

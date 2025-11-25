@@ -117,6 +117,36 @@ class TestDemoInvocation:
         assert len(paths) > 0
         print(f"✓ demo_Zigzag generated {len(paths)} paths")
 
+    @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP'), reason="IQOP not available (requires IPOPT)")
+    def test_demo_IQOP(self, temp_output_dir):
+        """Test IQOP (Isoperimetric Quotient Optimal) toolpath demo."""
+        output_dir = f"{temp_output_dir}/demo_IQOP/"
+        paths = demos.demo_IQOP(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
+
+        assert paths is not None
+        assert len(paths) > 0, "IQOP should generate at least one path"
+        print(f"✓ demo_IQOP generated {len(paths)} paths")
+
+    @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP_CFS'), reason="IQOP not available (requires IPOPT)")
+    def test_demo_IQOP_CFS(self, temp_output_dir):
+        """Test IQOP with CFS connection demo."""
+        output_dir = f"{temp_output_dir}/demo_IQOP/"
+        paths = demos.demo_IQOP_CFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
+
+        assert paths is not None
+        assert len(paths) > 0, "IQOP_CFS should generate at least one path"
+        print(f"✓ demo_IQOP_CFS generated {len(paths)} paths")
+
+    @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP_DFS'), reason="IQOP not available (requires IPOPT)")
+    def test_demo_IQOP_DFS(self, temp_output_dir):
+        """Test IQOP with DFS connection demo."""
+        output_dir = f"{temp_output_dir}/demo_IQOP/"
+        paths = demos.demo_IQOP_DFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
+
+        assert paths is not None
+        assert len(paths) > 0, "IQOP_DFS should generate at least one path"
+        print(f"✓ demo_IQOP_DFS generated {len(paths)} paths")
+
 
 class TestCoreClasses:
     """Test core NEPath classes and functionality."""

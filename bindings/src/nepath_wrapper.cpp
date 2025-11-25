@@ -243,7 +243,7 @@ NB_MODULE(_nepath, m) {
         .def("CP", &NEPathPlanner::CP,
              "opts"_a,
              "Generate CP (Contour Parallel) toolpath")
-        #if defined(IncludeGurobi) && (IncludeGurobi != 0)
+        #if defined(IncludeIpopt) && (IncludeIpopt != 0)
         .def("IQOP", &NEPathPlanner::IQOP,
              "opts"_a, "log"_a = true,
              "Generate IQOP (Isoperimetric Quotient Optimization) toolpath")

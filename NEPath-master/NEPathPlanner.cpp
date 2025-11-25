@@ -67,7 +67,7 @@ void NEPathPlanner::addholes(const paths& holes_new, bool wash/*=true*/, double 
 	}
 }
 
-#if defined(IncludeGurobi) && (IncludeGurobi != 0)
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 // Generate IQOP toolpath
 paths NEPathPlanner::IQOP(const NonEquidistantOptions& opts, bool log/*=true*/) {
 	NonEquidistant NE(log);
