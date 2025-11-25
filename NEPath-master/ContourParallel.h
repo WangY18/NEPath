@@ -15,8 +15,14 @@ public:
 	static paths tool_compensate(const path& contour, const paths& holes, double dis, bool wash = true, double washdis = 0.5, int num_least = 50); // Tool compensate. dis>0 means offsetting the path inside; dis<0 means offsetting the path outside
 	static paths set_minus(const path& contour, const paths& holes, bool onlyouter = false, bool wash = true, double washdis = 0.5, int num_least = 50); // Apply set minus on contour to holes no matter whether intersections exist.
 public:
-	static inline cInt double2cInt(const double& d, double scale, double delta_pos = 0.0); // Transform from a double variable to a cInt variable
-	static inline double cInt2double(const cInt& c, double scale, double delta_pos = 0.0); // Transform from a cInt variable to a double variable
+	// Transform from a double variable to a cInt variable
+	static inline cInt double2cInt(const double& d, double scale, double delta_pos = 0.0) {
+		return (d - delta_pos) * scale;
+	}
+	// Transform from a cInt variable to a double variable
+	static inline double cInt2double(const cInt& c, double scale, double delta_pos = 0.0) {
+		return c / scale + delta_pos;
+	}
 	static paths Paths2paths(const Paths& Ps, double scale, double delta_x = 0.0, double delta_y = 0.0); // Transform from a Paths variable to a paths variable
 	static path Path2path(const Path& P, double scale, double delta_x = 0.0, double delta_y = 0.0); // Transform from a Path variable to a path variable
 	static Path path2Path(const path& p, double scale, double delta_x = 0.0, double delta_y = 0.0); // Transform from a path variable to a Path variable

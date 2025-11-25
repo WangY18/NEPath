@@ -62,15 +62,7 @@ paths ContourParallel::OffsetClipper(const path& contour, const paths& holes, do
 	return solution;
 }
 
-// Transform from a double variable to a cInt variable
-inline cInt ContourParallel::double2cInt(const double& d, double scale, double delta_pos/*=0.0*/) {
-	return (d - delta_pos) * scale;
-}
-
-// Transform from a cInt variable to a double variable
-inline double ContourParallel::cInt2double(const cInt& c, double scale, double delta_pos/*=0.0*/) {
-	return c / scale + delta_pos;
-}
+// double2cInt and cInt2double are now defined inline in ContourParallel.h
 
 // Transform from a Paths variable to a paths variable
 paths ContourParallel::Paths2paths(const Paths& Ps, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {

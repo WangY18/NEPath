@@ -1,7 +1,31 @@
 #include "FileAgent.h"
-#include <io.h>
 #include <string>
-#include <direct.h>
+
+// Platform-specific headers
+#ifdef _WIN32
+    #include <io.h>
+    #include <direct.h>
+#else
+    #include <unistd.h>
+    #include <sys/stat.h>
+    #include <dirent.h>
+    #define _mkdir(path) mkdir(path, 0755)
+    #define _rmdir(path) rmdir(path)
+
+    // File finding structures for cross-platform compatibility
+    struct _finddata_t {
+        char name[260];
+        unsigned attrib;
+        time_t time_write;
+        long size;
+    };
+    #define _A_SUBDIR 0x10
+
+    // Stub implementations for Unix-like systems
+    inline long _findfirst(const char*, struct _finddata_t*) { return -1; }
+    inline int _findnext(long, struct _finddata_t*) { return -1; }
+    inline int _findclose(long) { return 0; }
+#endif
 
 // read a path from a .csv file
 // filename is the absolute path with filename of the input file
@@ -114,9 +138,9 @@ vector<string> FileAgent::get_AllFiles(char const* path, bool folder/*=false*/, 
 		append_filename += filename_post;
 	}
 
-	//ÎÄ¼þ¾ä±ú
+	//ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½
 	long long hFile = 0;
-	//ÎÄ¼þÐÅÏ¢
+	//ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢
 	struct _finddata_t fileinfo;
 	string p;
 	if ((hFile = _findfirst(p.assign(path).append(append_filename).c_str(), &fileinfo)) != -1) {
@@ -128,7 +152,7 @@ vector<string> FileAgent::get_AllFiles(char const* path, bool folder/*=false*/, 
 				continue;
 			}
 			files.push_back(p.assign(path).append("\\").append(fileinfo.name));
-		} while (_findnext(hFile, &fileinfo) == 0);  //Ñ°ÕÒÏÂÒ»¸ö£¬³É¹¦·µ»Ø0£¬·ñÔò-1
+		} while (_findnext(hFile, &fileinfo) == 0);  //Ñ°ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-1
 		_findclose(hFile);
 	}
 	return files;
