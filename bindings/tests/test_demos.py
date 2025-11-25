@@ -5,113 +5,13 @@ Tests verify that all demo methods can be invoked successfully.
 """
 
 import pytest
-import numpy as np  
+import numpy as np
 import tempfile
 import shutil
 from pathlib import Path
 
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend for tests
-import matplotlib.pyplot as plt
-
 from nepath_bindings import demos
-
-
-def plot_paths(paths, title="NEPath Toolpaths", contour=None, holes=None, 
-               sharp_corners=None, underfill_regions=None, figsize=(10, 10)):
-    """
-    Plot toolpaths with optional contour, holes, sharp corners, and underfill regions.
-    
-    Parameters
-    ----------
-    paths : list
-        List of Path objects to plot
-    title : str
-        Plot title
-    contour : Path, optional
-        Contour boundary to plot
-    holes : list of Path, optional
-        Hole boundaries to plot
-    sharp_corners : list of tuples, optional
-        List of (x, y) sharp corner points to highlight
-    underfill_regions : list of Path, optional
-        Underfill region paths to highlight
-    figsize : tuple
-        Figure size (width, height)
-    
-    Returns
-    -------
-    fig, ax : matplotlib figure and axis
-    """
-    fig, ax = plt.subplots(figsize=figsize)
-    
-    # Generate colors for paths using a colormap
-    cmap = plt.cm.viridis
-    n_paths = len(paths) if paths else 1
-    
-    # Plot contour if provided
-    if contour is not None:
-        x, y = contour.get_arrays()
-        ax.plot(x, y, 'k-', linewidth=2, label='Contour', zorder=10)
-    
-    # Plot holes if provided
-    if holes:
-        for i, hole in enumerate(holes):
-            x, y = hole.get_arrays()
-            ax.plot(x, y, 'k--', linewidth=2, label='Hole' if i == 0 else None, zorder=10)
-    
-    # Plot underfill regions if provided
-    if underfill_regions:
-        for i, region in enumerate(underfill_regions):
-            x, y = region.get_arrays()
-            ax.fill(x, y, alpha=0.3, color='red', label='Underfill' if i == 0 else None, zorder=1)
-    
-    # Plot toolpaths
-    if paths:
-        for i, path in enumerate(paths):
-            x, y = path.get_arrays()
-            color = cmap(i / n_paths)
-            ax.plot(x, y, '-', color=color, linewidth=1, alpha=0.8, zorder=5)
-            # Mark start and end points
-            if len(x) > 0:
-                ax.plot(x[0], y[0], 'go', markersize=4, zorder=15)  # Start: green
-                ax.plot(x[-1], y[-1], 'ro', markersize=4, zorder=15)  # End: red
-    
-    # Plot sharp corners if provided
-    if sharp_corners:
-        sc_x, sc_y = zip(*sharp_corners) if sharp_corners else ([], [])
-        ax.scatter(sc_x, sc_y, c='orange', s=100, marker='*', 
-                   label='Sharp corners', zorder=20, edgecolors='black')
-    
-    ax.set_aspect('equal')
-    ax.set_title(title)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.grid(True, alpha=0.3)
-    
-    # Add legend if we have labeled items
-    handles, labels = ax.get_legend_handles_labels()
-    if handles:
-        ax.legend(loc='upper right')
-    
-    # Add path count annotation
-    if paths:
-        ax.annotate(f'{len(paths)} paths', xy=(0.02, 0.98), xycoords='axes fraction',
-                    fontsize=10, verticalalignment='top',
-                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    
-    plt.tight_layout()
-    return fig, ax
-
-
-def save_plot(fig, output_dir, filename):
-    """Save a figure to the output directory."""
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-    filepath = output_path / filename
-    fig.savefig(filepath, dpi=150, bbox_inches='tight')
-    plt.close(fig)
-    return filepath
+from .plot_utils import plot_paths, save_plot, plot_comparison
 
 
 @pytest.fixture
@@ -598,29 +498,7 @@ class TestCurveOperations:
         assert resampled.length >= path.length
         
         # Visualize original and resampled paths side by side
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-        
-        # Original path
-        x_orig, y_orig = path.get_arrays()
-        axes[0].plot(x_orig, y_orig, 'b-o', markersize=8, label=f'Original ({path.length} pts)')
-        axes[0].set_title('Original Path')
-        axes[0].set_xlabel('X')
-        axes[0].set_ylabel('Y')
-        axes[0].legend()
-        axes[0].grid(True, alpha=0.3)
-        axes[0].set_aspect('equal')
-        
-        # Resampled path
-        x_res, y_res = resampled.get_arrays()
-        axes[1].plot(x_res, y_res, 'r-o', markersize=4, label=f'Resampled ({resampled.length} pts)')
-        axes[1].set_title('Resampled Path (wash_dis=0.5)')
-        axes[1].set_xlabel('X')
-        axes[1].set_ylabel('Y')
-        axes[1].legend()
-        axes[1].grid(True, alpha=0.3)
-        axes[1].set_aspect('equal')
-        
-        plt.tight_layout()
+        fig, axes = plot_comparison(path, resampled, title="Path Resampling (wash_dis=0.5)")
         save_plot(fig, plot_output_dir, "test_wash_dis_resampling.png")
         print(f"✓ Resampled path from {path.length} to {resampled.length} points")
 
