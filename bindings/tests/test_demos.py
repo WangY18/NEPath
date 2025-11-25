@@ -5,13 +5,113 @@ Tests verify that all demo methods can be invoked successfully.
 """
 
 import pytest
-import numpy as np
+import numpy as np  
 import tempfile
 import shutil
 from pathlib import Path
 
-import nepath_bindings
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for tests
+import matplotlib.pyplot as plt
+
 from nepath_bindings import demos
+
+
+def plot_paths(paths, title="NEPath Toolpaths", contour=None, holes=None, 
+               sharp_corners=None, underfill_regions=None, figsize=(10, 10)):
+    """
+    Plot toolpaths with optional contour, holes, sharp corners, and underfill regions.
+    
+    Parameters
+    ----------
+    paths : list
+        List of Path objects to plot
+    title : str
+        Plot title
+    contour : Path, optional
+        Contour boundary to plot
+    holes : list of Path, optional
+        Hole boundaries to plot
+    sharp_corners : list of tuples, optional
+        List of (x, y) sharp corner points to highlight
+    underfill_regions : list of Path, optional
+        Underfill region paths to highlight
+    figsize : tuple
+        Figure size (width, height)
+    
+    Returns
+    -------
+    fig, ax : matplotlib figure and axis
+    """
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Generate colors for paths using a colormap
+    cmap = plt.cm.viridis
+    n_paths = len(paths) if paths else 1
+    
+    # Plot contour if provided
+    if contour is not None:
+        x, y = contour.get_arrays()
+        ax.plot(x, y, 'k-', linewidth=2, label='Contour', zorder=10)
+    
+    # Plot holes if provided
+    if holes:
+        for i, hole in enumerate(holes):
+            x, y = hole.get_arrays()
+            ax.plot(x, y, 'k--', linewidth=2, label='Hole' if i == 0 else None, zorder=10)
+    
+    # Plot underfill regions if provided
+    if underfill_regions:
+        for i, region in enumerate(underfill_regions):
+            x, y = region.get_arrays()
+            ax.fill(x, y, alpha=0.3, color='red', label='Underfill' if i == 0 else None, zorder=1)
+    
+    # Plot toolpaths
+    if paths:
+        for i, path in enumerate(paths):
+            x, y = path.get_arrays()
+            color = cmap(i / n_paths)
+            ax.plot(x, y, '-', color=color, linewidth=1, alpha=0.8, zorder=5)
+            # Mark start and end points
+            if len(x) > 0:
+                ax.plot(x[0], y[0], 'go', markersize=4, zorder=15)  # Start: green
+                ax.plot(x[-1], y[-1], 'ro', markersize=4, zorder=15)  # End: red
+    
+    # Plot sharp corners if provided
+    if sharp_corners:
+        sc_x, sc_y = zip(*sharp_corners) if sharp_corners else ([], [])
+        ax.scatter(sc_x, sc_y, c='orange', s=100, marker='*', 
+                   label='Sharp corners', zorder=20, edgecolors='black')
+    
+    ax.set_aspect('equal')
+    ax.set_title(title)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.grid(True, alpha=0.3)
+    
+    # Add legend if we have labeled items
+    handles, labels = ax.get_legend_handles_labels()
+    if handles:
+        ax.legend(loc='upper right')
+    
+    # Add path count annotation
+    if paths:
+        ax.annotate(f'{len(paths)} paths', xy=(0.02, 0.98), xycoords='axes fraction',
+                    fontsize=10, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    plt.tight_layout()
+    return fig, ax
+
+
+def save_plot(fig, output_dir, filename):
+    """Save a figure to the output directory."""
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    filepath = output_path / filename
+    fig.savefig(filepath, dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    return filepath
 
 
 @pytest.fixture
@@ -23,37 +123,57 @@ def temp_output_dir():
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+@pytest.fixture
+def plot_output_dir():
+    """Create a persistent directory for plot outputs that won't be cleaned up."""
+    output_dir = Path(__file__).parent / "plot_outputs"
+    output_dir.mkdir(exist_ok=True)
+    return str(output_dir)
+
+
 class TestDemoInvocation:
     """Test that all demo functions can be invoked without errors."""
 
-    def test_demo_CP(self, temp_output_dir):
+    def test_demo_CP(self, temp_output_dir, plot_output_dir):
         """Test Contour Parallel (CP) demo."""
         output_dir = f"{temp_output_dir}/demo_CP/"
         paths = demos.demo_CP(delta=1.0, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "CP should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="Contour Parallel (CP) Toolpaths")
+        save_plot(fig, plot_output_dir, "demo_CP.png")
         print(f"✓ demo_CP generated {len(paths)} paths")
 
-    def test_demo_CP_CFS(self, temp_output_dir):
+    def test_demo_CP_CFS(self, temp_output_dir, plot_output_dir):
         """Test CP with Connected Fermat Spiral."""
         output_dir = f"{temp_output_dir}/demo_CP_CFS/"
         paths = demos.demo_CP_CFS(delta=1.0, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "CP_CFS should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="Contour Parallel with Connected Fermat Spiral (CFS)")
+        save_plot(fig, plot_output_dir, "demo_CP_CFS.png")
         print(f"✓ demo_CP_CFS generated {len(paths)} paths")
 
-    def test_demo_CP_DFS(self, temp_output_dir):
+    def test_demo_CP_DFS(self, temp_output_dir, plot_output_dir):
         """Test CP with DFS connection."""
         output_dir = f"{temp_output_dir}/demo_CP_DFS/"
         paths = demos.demo_CP_DFS(delta=1.0, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "CP_DFS should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="Contour Parallel with DFS Connection")
+        save_plot(fig, plot_output_dir, "demo_CP_DFS.png")
         print(f"✓ demo_CP_DFS generated {len(paths)} paths")
 
-    def test_demo_tool_compensate(self, temp_output_dir):
+    def test_demo_tool_compensate(self, temp_output_dir, plot_output_dir):
         """Test tool compensation demo."""
         output_dir = f"{temp_output_dir}/demo_toolcompensate/"
         paths = demos.demo_tool_compensate(
@@ -64,9 +184,13 @@ class TestDemoInvocation:
 
         assert paths is not None
         assert len(paths) > 0, "Tool compensate should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="Tool Compensation (offset=-1.5)")
+        save_plot(fig, plot_output_dir, "demo_tool_compensate.png")
         print(f"✓ demo_tool_compensate generated {len(paths)} paths")
 
-    def test_demo_underfill(self, temp_output_dir):
+    def test_demo_underfill(self, temp_output_dir, plot_output_dir):
         """Test underfill analysis demo."""
         output_dir = f"{temp_output_dir}/demo_underfill/"
         paths, underfill_solution = demos.demo_underfill(
@@ -80,9 +204,16 @@ class TestDemoInvocation:
         assert len(paths) > 0, "Underfill should generate paths"
         assert underfill_solution is not None, "Should return underfill solution"
         assert 0.0 <= underfill_solution.underfillrate <= 1.0, "Underfill rate should be between 0 and 1"
+        
+        # Visualize results with underfill information
+        fig, ax = plot_paths(
+            paths, 
+            title=f"Underfill Analysis (rate: {underfill_solution.underfillrate*100:.2f}%)"
+        )
+        save_plot(fig, plot_output_dir, "demo_underfill.png")
         print(f"✓ demo_underfill: {len(paths)} paths, underfill rate: {underfill_solution.underfillrate*100:.2f}%")
 
-    def test_demo_sharpcorner(self, temp_output_dir):
+    def test_demo_sharpcorner(self, temp_output_dir, plot_output_dir):
         """Test sharp corner detection demo."""
         output_dir = f"{temp_output_dir}/demo_sharpcorner/"
         cp_paths, sharp_corners = demos.demo_sharpcorner(
@@ -97,61 +228,108 @@ class TestDemoInvocation:
         assert len(cp_paths) > 0, "Sharp corner should generate CP paths"
         assert sharp_corners is not None
         assert len(sharp_corners) > 0, "Should return sharp corner data"
+        
+        # Extract sharp corner points for visualization
+        corner_points = []
+        for sol in sharp_corners:
+            if hasattr(sol, 'get_sharp_turn'):
+                sharp_flags = sol.get_sharp_turn()
+                # Get corresponding path points
+                for path in cp_paths:
+                    x_arr, y_arr = path.get_arrays()
+                    for i, is_sharp in enumerate(sharp_flags):
+                        if is_sharp and i < len(x_arr):
+                            corner_points.append((x_arr[i], y_arr[i]))
+                    break  # Just use first path for now
+        
+        # Visualize results
+        fig, ax = plot_paths(
+            cp_paths, 
+            title="Sharp Corner Detection (threshold=0.3)",
+            sharp_corners=corner_points if corner_points else None
+        )
+        save_plot(fig, plot_output_dir, "demo_sharpcorner.png")
         print(f"✓ demo_sharpcorner: {len(cp_paths)} paths analyzed")
 
-    def test_demo_Raster(self, temp_output_dir):
+    def test_demo_Raster(self, temp_output_dir, plot_output_dir):
         """Test Raster toolpath demo."""
         output_dir = f"{temp_output_dir}/demo_raster/"
         paths = demos.demo_Raster(delta=1.0, angle=-np.pi/3.0, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0
+        
+        # Visualize results
+        fig, ax = plot_paths(
+            paths, 
+            title=f"Raster Toolpaths (angle={np.degrees(-np.pi/3.0):.1f}°)"
+        )
+        save_plot(fig, plot_output_dir, "demo_Raster.png")
         print(f"✓ demo_Raster generated {len(paths)} paths")
 
-    def test_demo_Zigzag(self, temp_output_dir):
+    def test_demo_Zigzag(self, temp_output_dir, plot_output_dir):
         """Test Zigzag toolpath demo."""
         output_dir = f"{temp_output_dir}/demo_zigzag/"
         paths = demos.demo_Zigzag(delta=1.0, angle=np.pi/3.0, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0
+        
+        # Visualize results
+        fig, ax = plot_paths(
+            paths, 
+            title=f"Zigzag Toolpaths (angle={np.degrees(np.pi/3.0):.1f}°)"
+        )
+        save_plot(fig, plot_output_dir, "demo_Zigzag.png")
         print(f"✓ demo_Zigzag generated {len(paths)} paths")
 
     @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP'), reason="IQOP not available (requires IPOPT)")
-    def test_demo_IQOP(self, temp_output_dir):
+    def test_demo_IQOP(self, temp_output_dir, plot_output_dir):
         """Test IQOP (Isoperimetric Quotient Optimal) toolpath demo."""
         output_dir = f"{temp_output_dir}/demo_IQOP/"
         paths = demos.demo_IQOP(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "IQOP should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="IQOP Toolpaths (alpha=0.5)")
+        save_plot(fig, plot_output_dir, "demo_IQOP.png")
         print(f"✓ demo_IQOP generated {len(paths)} paths")
 
     @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP_CFS'), reason="IQOP not available (requires IPOPT)")
-    def test_demo_IQOP_CFS(self, temp_output_dir):
+    def test_demo_IQOP_CFS(self, temp_output_dir, plot_output_dir):
         """Test IQOP with CFS connection demo."""
         output_dir = f"{temp_output_dir}/demo_IQOP/"
         paths = demos.demo_IQOP_CFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "IQOP_CFS should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="IQOP with CFS Connection")
+        save_plot(fig, plot_output_dir, "demo_IQOP_CFS.png")
         print(f"✓ demo_IQOP_CFS generated {len(paths)} paths")
 
     @pytest.mark.skipif(not hasattr(demos, 'demo_IQOP_DFS'), reason="IQOP not available (requires IPOPT)")
-    def test_demo_IQOP_DFS(self, temp_output_dir):
+    def test_demo_IQOP_DFS(self, temp_output_dir, plot_output_dir):
         """Test IQOP with DFS connection demo."""
         output_dir = f"{temp_output_dir}/demo_IQOP/"
         paths = demos.demo_IQOP_DFS(delta=1.0, alpha=0.5, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "IQOP_DFS should generate at least one path"
+        
+        # Visualize results
+        fig, ax = plot_paths(paths, title="IQOP with DFS Connection")
+        save_plot(fig, plot_output_dir, "demo_IQOP_DFS.png")
         print(f"✓ demo_IQOP_DFS generated {len(paths)} paths")
 
 
 class TestCoreClasses:
     """Test core NEPath classes and functionality."""
 
-    def test_path_creation(self):
+    def test_path_creation(self, plot_output_dir):
         """Test Path creation and array access."""
         from nepath_bindings import Path
 
@@ -164,11 +342,15 @@ class TestCoreClasses:
         x_out, y_out = path.get_arrays()
         np.testing.assert_array_equal(x_out, x)
         np.testing.assert_array_equal(y_out, y)
+        
+        # Visualize the path
+        fig, ax = plot_paths([path], title="Simple Path Creation Test")
+        save_plot(fig, plot_output_dir, "test_path_creation.png")
         print("✓ Path creation and array access works")
 
-    def test_nepath_planner_basic(self):
+    def test_nepath_planner_basic(self, plot_output_dir):
         """Test basic NEPathPlanner operations."""
-        from nepath_bindings import NEPathPlanner, ContourParallelOptions
+        from nepath_bindings import NEPathPlanner, ContourParallelOptions, Path
 
         # Create simple contour
         theta = np.linspace(0, 2*np.pi, 50)
@@ -188,6 +370,11 @@ class TestCoreClasses:
         paths = planner.CP(opts)
 
         assert len(paths) > 0
+        
+        # Visualize the circular contour and generated paths
+        contour_path = Path.from_arrays(x, y)
+        fig, ax = plot_paths(paths, title="NEPathPlanner Basic CP Test", contour=contour_path)
+        save_plot(fig, plot_output_dir, "test_nepath_planner_basic.png")
         print(f"✓ NEPathPlanner generated {len(paths)} CP paths")
 
     def test_connect_algorithms(self):
@@ -234,9 +421,9 @@ class TestCoreClasses:
         assert opts.connect == ConnectAlgorithm.cfs
         print("✓ ContourParallelOptions configuration works")
 
-    def test_tool_compensate(self):
+    def test_tool_compensate(self, plot_output_dir):
         """Test tool compensation functionality."""
-        from nepath_bindings import NEPathPlanner, ContourParallelOptions
+        from nepath_bindings import NEPathPlanner, ContourParallelOptions, Path
 
         # Create contour
         theta = np.linspace(0, 2*np.pi, 100)
@@ -255,11 +442,16 @@ class TestCoreClasses:
         compensated_paths = planner.tool_compensate(opts)
 
         assert len(compensated_paths) > 0
+        
+        # Visualize original contour and compensated path
+        contour_path = Path.from_arrays(x, y)
+        fig, ax = plot_paths(compensated_paths, title="Tool Compensation (offset=-1.0)", contour=contour_path)
+        save_plot(fig, plot_output_dir, "test_tool_compensate.png")
         print(f"✓ Tool compensation generated {len(compensated_paths)} paths")
 
-    def test_add_holes(self):
+    def test_add_holes(self, plot_output_dir):
         """Test adding holes to a planner."""
-        from nepath_bindings import NEPathPlanner
+        from nepath_bindings import NEPathPlanner, Path, ContourParallelOptions
 
         # Create outer contour
         theta = np.linspace(0, 2*np.pi, 100)
@@ -276,13 +468,24 @@ class TestCoreClasses:
 
         assert len(planner.holes) == 1
         assert planner.holes[0].length > 0
+        
+        # Generate paths with hole
+        opts = ContourParallelOptions()
+        opts.delta = 1.0
+        paths = planner.CP(opts)
+        
+        # Visualize contour with hole and generated paths
+        contour_path = Path.from_arrays(x_outer, y_outer)
+        hole_path = Path.from_arrays(x_hole, y_hole)
+        fig, ax = plot_paths(paths, title="Contour with Hole", contour=contour_path, holes=[hole_path])
+        save_plot(fig, plot_output_dir, "test_add_holes.png")
         print(f"✓ Added hole with {planner.holes[0].length} points")
 
 
 class TestCurveOperations:
     """Test Curve class static methods."""
 
-    def test_underfill_calculation(self):
+    def test_underfill_calculation(self, plot_output_dir):
         """Test UnderFill calculation."""
         from nepath_bindings import Curve, Path, NEPathPlanner, ContourParallelOptions
 
@@ -313,11 +516,19 @@ class TestCurveOperations:
 
         assert ufs.underfillrate >= 0.0
         assert ufs.underfillrate <= 1.0
+        
+        # Visualize paths with underfill rate
+        fig, ax = plot_paths(
+            paths, 
+            title=f"Underfill Calculation (rate: {ufs.underfillrate*100:.2f}%)",
+            contour=contour
+        )
+        save_plot(fig, plot_output_dir, "test_underfill_calculation.png")
         print(f"✓ UnderFill calculation: {ufs.underfillrate*100:.2f}%")
 
-    def test_sharp_turn_detection(self):
+    def test_sharp_turn_detection(self, plot_output_dir):
         """Test SharpTurn detection."""
-        from nepath_bindings import Curve, NEPathPlanner, ContourParallelOptions
+        from nepath_bindings import Curve, NEPathPlanner, ContourParallelOptions, Path
 
         # Create contour with sharp corners
         theta = np.linspace(0, 2*np.pi, 100)
@@ -332,6 +543,7 @@ class TestCurveOperations:
         paths = planner.CP(opts)
 
         # Detect sharp corners on first path
+        corner_points = []
         if len(paths) > 0:
             sol = Curve.SharpTurn_Invariant(paths[0], radius=1.0, threshold=0.3, close=True)
 
@@ -350,9 +562,26 @@ class TestCurveOperations:
 
             assert len(sharp_turns) == sol.length
             assert len(area_percent) == sol.length
+            
+            # Collect sharp corner points for visualization
+            x_arr, y_arr = paths[0].get_arrays()
+            for i, is_sharp in enumerate(sharp_turns):
+                if is_sharp and i < len(x_arr):
+                    corner_points.append((x_arr[i], y_arr[i]))
+            
             print(f"✓ Sharp turn detection: {sum(sharp_turns)} corners found")
+        
+        # Visualize paths with sharp corners marked
+        contour_path = Path.from_arrays(x, y)
+        fig, ax = plot_paths(
+            paths, 
+            title=f"Sharp Turn Detection ({len(corner_points)} corners found)",
+            contour=contour_path,
+            sharp_corners=corner_points if corner_points else None
+        )
+        save_plot(fig, plot_output_dir, "test_sharp_turn_detection.png")
 
-    def test_wash_dis_resampling(self):
+    def test_wash_dis_resampling(self, plot_output_dir):
         """Test path resampling with wash_dis."""
         from nepath_bindings import Curve, Path
 
@@ -367,6 +596,32 @@ class TestCurveOperations:
 
         # Resampled path should have more points
         assert resampled.length >= path.length
+        
+        # Visualize original and resampled paths side by side
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        
+        # Original path
+        x_orig, y_orig = path.get_arrays()
+        axes[0].plot(x_orig, y_orig, 'b-o', markersize=8, label=f'Original ({path.length} pts)')
+        axes[0].set_title('Original Path')
+        axes[0].set_xlabel('X')
+        axes[0].set_ylabel('Y')
+        axes[0].legend()
+        axes[0].grid(True, alpha=0.3)
+        axes[0].set_aspect('equal')
+        
+        # Resampled path
+        x_res, y_res = resampled.get_arrays()
+        axes[1].plot(x_res, y_res, 'r-o', markersize=4, label=f'Resampled ({resampled.length} pts)')
+        axes[1].set_title('Resampled Path (wash_dis=0.5)')
+        axes[1].set_xlabel('X')
+        axes[1].set_ylabel('Y')
+        axes[1].legend()
+        axes[1].grid(True, alpha=0.3)
+        axes[1].set_aspect('equal')
+        
+        plt.tight_layout()
+        save_plot(fig, plot_output_dir, "test_wash_dis_resampling.png")
         print(f"✓ Resampled path from {path.length} to {resampled.length} points")
 
 
