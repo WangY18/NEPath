@@ -51,6 +51,8 @@ C++17
 
 + This project depends on [Gurobi](https://www.gurobi.com/) optimizer for solving [quadratically constrained quadratic program](https://en.wikipedia.org/wiki/Quadratically_constrained_quadratic_program) with [second-order cone constraints](https://en.wikipedia.org/wiki/Second-order_cone_programming). If you need to use another optimizer, you can rewrite the method in the `MyOptimization` function (Temporarily unavailable). If you don't need IQOP and other optimization-based toolpaths, you can comment out `#define IncludeGurobi` in `NEPath-master/setup_NEPath.h` to avoid the dependence on [Gurobi](https://www.gurobi.com/).
 
++ The authors would like to sincerely thank <mark>[Jelle Feringa](https://github.com/jf---)</mark> for his significant contribution, providing a Python wrapper and a version that generates non-equidistant paths using [IPOPT](https://github.com/coin-or/Ipopt.git). We plan to refactor and properly repackage this library in the near future.
+
 ### About Citing
 
 If you need to use the **NEPath** project, please cite  "Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. *Robotics and Computer-Integrated Manufacturing*, 2023, 84: 102599."
