@@ -9,6 +9,12 @@ enum ConnectAlgorithm
     dfs  // Connector::ConnectedDFS
 };
 
+enum OptimizationAlgorithm
+{
+    ipopt, // IPOPT solver
+    gurobi // Gurobi solver
+};
+
 struct DirectParallelOptions
 {
     double delta = 1.0; // the line width
@@ -23,7 +29,7 @@ struct ContourParallelOptions
     int num_least = 50;
     // If wash==true, the toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 
-    ConnectAlgorithm connect = none;
+    ConnectAlgorithm connect = ConnectAlgorithm::none;
 };
 
 struct NonEquidistantOptions
