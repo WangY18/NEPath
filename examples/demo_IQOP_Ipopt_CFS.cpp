@@ -56,7 +56,7 @@ int main()
     opts.washdis = 0.2;
     opts.connect = cfs; // select cfs as the connecting method
 
-    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with CFS
+    paths IQOP_paths = planner.IQOP(opts, false); // IQOP with CFS
     cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
 
     FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "paths_IQ").string().c_str());
