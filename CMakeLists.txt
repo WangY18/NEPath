@@ -82,6 +82,10 @@ add_executable(demo_CP
     examples/demo_CP.cpp
     ${NEPATH_SOURCES}
 )
+add_executable(demo_CP_CFS
+    examples/demo_CP_CFS.cpp
+    ${NEPATH_SOURCES}
+)
 
 # # Link IPOPT libraries
 # target_link_libraries(test_demos
