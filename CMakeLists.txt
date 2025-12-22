@@ -116,6 +116,8 @@ set(DEMO_LIST
     demo_underfill
     demo_sharpcorner
     demo_IQOP_Ipopt
+    demo_IQOP_Ipopt_CFS
+    demo_IQOP_Ipopt_DFS
 )
 
 foreach(demo ${DEMO_LIST})

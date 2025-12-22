@@ -54,13 +54,14 @@ int main()
     opts.wash = true; // it is recommended to set opt.wash=true
     // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
     opts.washdis = 0.2;
+    opts.connect = dfs; // select dfs as the connecting method
 
-    paths IQOP_paths = planner.IQOP(opts, true); // all IQOP paths
-    cout << "IQOP-IPOPT: There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
+    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with DFS
+    cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt" / "paths_IQ").string().c_str());
-    FileAgent::write_csv(IQOP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt" / "paths_IQ").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt" / "contour.csv").string().c_str());
+    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt_DFS" / "paths_IQ").string().c_str());
+    FileAgent::write_csv(IQOP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt_DFS" / "paths_IQ").string().c_str(), ".csv");
+    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP" / "contour.csv").string().c_str());
 
     return 0;
 }
