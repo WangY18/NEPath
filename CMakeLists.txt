@@ -94,6 +94,10 @@ add_executable(demo_tool_compensate
     examples/demo_tool_compensate.cpp
     ${NEPATH_SOURCES}
 )
+add_executable(demo_underfill
+    examples/demo_underfill.cpp
+    ${NEPATH_SOURCES}
+)
 
 # # Link IPOPT libraries
 # target_link_libraries(test_demos
