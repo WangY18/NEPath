@@ -1,10 +1,12 @@
 #include "NEPathPlanner.h"
+#include "setup_NEPath.h"
 #include "FileAgent.h"
 #include <cmath>
 #include <iostream>
-using namespace std;
 #include <filesystem>
 namespace fs = std::filesystem;
+using namespace std;
+using namespace nepath;
 
 int main()
 {

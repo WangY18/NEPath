@@ -19,32 +19,36 @@ if(IncludeIpopt)
     message(STATUS "Enable IPOPT support")
     add_compile_definitions(IncludeIpopt=1)
 
-    find_package(PkgConfig) # First, apply PkgConfig to find IPOPT
+    find_package(PkgConfig) # Apply PkgConfig to find IPOPT
     if(PkgConfig_FOUND)
         pkg_check_modules(IPOPT ipopt)
     endif()
 
     if(DEFINED IPOPT_PKG_FOUND AND IPOPT_PKG_FOUND)
-        # Found via PkgConfig
-        set(IPOPT_INCLUDE_DIRS ${IPOPT_INCLUDE_DIRS})
-        set(IPOPT_LIBRARY_DIRS ${IPOPT_LIBRARY_DIRS})
-        set(IPOPT_LIBRARIES ${IPOPT_LIBRARIES})
+        message(STATUS "Found IPOPT via pkg-config")
     else()
         # Fallback to environment variable or user-provided path
         if(NOT DEFINED IPOPT_ROOT)
             if(DEFINED ENV{IPOPT_ROOT})
+                message(STATUS "Using IPOPT_ROOT from environment: $ENV{IPOPT_ROOT}")
                 set(IPOPT_ROOT "$ENV{IPOPT_ROOT}")
             else()
                 message(FATAL_ERROR "IncludeIpopt=ON but IPOPT not found. Please set IPOPT_ROOT environment variable or pass -DIPOPT_ROOT=/path/to/ipopt")
             endif()
         endif()
-        set(IPOPT_INCLUDE_DIR "$ENV{IPOPT_ROOT}/include")
-        set(IPOPT_LIBRARY_DIR "$ENV{IPOPT_ROOT}/lib")
+        set(IPOPT_INCLUDE_DIRS "${IPOPT_ROOT}/include")
+        set(IPOPT_LIBRARY_DIRS "${IPOPT_ROOT}/lib")
         set(IPOPT_LIBRARIES ipopt)
     endif()
     
-    include_directories(${IPOPT_INCLUDE_DIR})
-    link_directories(${IPOPT_LIBRARY_DIR})
+    set(IPOPT_INCLUDE_DIRS ${IPOPT_INCLUDE_DIRS})
+    set(IPOPT_LIBRARY_DIRS ${IPOPT_LIBRARY_DIRS})
+    set(IPOPT_LIBRARIES ${IPOPT_LIBRARIES})
+    message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
+    message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
+    message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
+    include_directories("${IPOPT_INCLUDE_DIRS}/coin")
+    link_directories("${IPOPT_LIBRARY_DIRS}/coin")
 else()
     message(STATUS "Disable IPOPT support")
     add_compile_definitions(IncludeIpopt=0)
@@ -102,45 +106,34 @@ set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
     COMPILE_FLAGS "-w"
 )
 
-# Create test_demos executable
-add_executable(demo_Raster
-    examples/demo_Raster.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_Zigzag
-    examples/demo_Zigzag.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_CP
-    examples/demo_CP.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_CP_CFS
-    examples/demo_CP_CFS.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_CP_DFS
-    examples/demo_CP_DFS.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_tool_compensate
-    examples/demo_tool_compensate.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_underfill
-    examples/demo_underfill.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_sharpcorner
-    examples/demo_sharpcorner.cpp
-    ${NEPATH_SOURCES}
-)
-add_executable(demo_IQOP_Ipopt
-    examples/demo_IQOP_Ipopt.cpp
-    ${NEPATH_SOURCES}
+set(DEMO_LIST
+    demo_Raster
+    demo_Zigzag
+    demo_CP
+    demo_CP_CFS
+    demo_CP_DFS
+    demo_tool_compensate
+    demo_underfill
+    demo_sharpcorner
+    demo_IQOP_Ipopt
 )
 
-
+foreach(demo ${DEMO_LIST})
+    message(STATUS "Building demo: ${demo}")
+    add_executable(${demo}
+        examples/${demo}.cpp
+        ${NEPATH_SOURCES}
+    ) # Create test_demos executable
+    if(IncludeIpopt)
+        target_link_libraries(${demo}
+            ${IPOPT_LIBRARIES}
+            ${CMAKE_DL_LIBS}
+        ) # Link IPOPT libraries
+        target_link_directories(${demo} PRIVATE
+            ${IPOPT_LIBRARY_DIRS}
+        ) # Add IPOPT link directories
+    endif()
+endforeach()
 
 # if(IncludeIpopt)
     # target_link_libraries(test_demos
@@ -152,9 +145,4 @@ add_executable(demo_IQOP_Ipopt
 #     ) # Add IPOPT link directories
 # endif()
 
-if(IncludeIpopt)
-    message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
-    message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
-    message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
-endif()
 message(STATUS "=======================================")

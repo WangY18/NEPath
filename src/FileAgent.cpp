@@ -13,20 +13,22 @@
 #define _mkdir(path) mkdir(path, 0755)
 #define _rmdir(path) rmdir(path)
 
-// File finding structures for cross-platform compatibility
-struct _finddata_t
+namespace nepath
 {
-    char name[260];
-    unsigned attrib;
-    time_t time_write;
-    long size;
-};
+    // File finding structures for cross-platform compatibility
+    struct _finddata_t
+    {
+        char name[260];
+        unsigned attrib;
+        time_t time_write;
+        long size;
+    };
 #define _A_SUBDIR 0x10
 
-// Stub implementations for Unix-like systems
-inline long _findfirst(const char *, struct _finddata_t *) { return -1; }
-inline int _findnext(long, struct _finddata_t *) { return -1; }
-inline int _findclose(long) { return 0; }
+    // Stub implementations for Unix-like systems
+    inline long _findfirst(const char *, struct _finddata_t *) { return -1; }
+    inline int _findnext(long, struct _finddata_t *) { return -1; }
+    inline int _findclose(long) { return 0; }
 #endif
 
 // read a path from a .csv file
@@ -43,14 +45,14 @@ path FileAgent::read_csv(char const *filename)
         printf("%s is not csv file.", filename);
         return path();
     }
-    ifstream inFile(filename, ios::in);
+    std::ifstream inFile(filename, std::ios::in);
     if (!inFile)
     {
         printf("File %s does not exist.\n", filename);
         return path();
     }
-    vector<double> x;
-    vector<double> y;
+    std::vector<double> x;
+    std::vector<double> y;
     while (!inFile.eof())
     {
         bool end = false;
@@ -112,7 +114,7 @@ void FileAgent::write_csv(const paths &ps, char const *filename_pre, char const 
         filename_post = new char[5];
         filename_post = ".csv";
     }
-    string filename(filename_pre);
+    std::string filename(filename_pre);
     int num = 0;
     int n = ps.size();
     while (n)
@@ -143,10 +145,10 @@ void FileAgent::write_csv(const paths &ps, char const *filename_pre, char const 
 }
 
 // get all filenames in the folder
-vector<string> FileAgent::get_AllFiles(char const *path, bool folder /*=false*/, char const *filename_pre /*=NULL*/, char const *filename_post /*=NULL*/)
+std::vector<std::string> FileAgent::get_AllFiles(char const *path, bool folder /*=false*/, char const *filename_pre /*=NULL*/, char const *filename_post /*=NULL*/)
 {
-    vector<string> files;
-    string append_filename = "\\";
+    std::vector<std::string> files;
+    std::string append_filename = "\\";
     if (filename_pre)
     {
         append_filename += filename_pre;
@@ -159,7 +161,7 @@ vector<string> FileAgent::get_AllFiles(char const *path, bool folder /*=false*/,
 
     long long hFile = 0;
     struct _finddata_t fileinfo;
-    string p;
+    std::string p;
     if ((hFile = _findfirst(p.assign(path).append(append_filename).c_str(), &fileinfo)) != -1)
     {
         do
@@ -182,8 +184,8 @@ vector<string> FileAgent::get_AllFiles(char const *path, bool folder /*=false*/,
 // delete all files in the folder
 void FileAgent::delete_AllFiles(const char *path)
 {
-    string dir(path);
-    string newDir = dir + "\\*.*";
+    std::string dir(path);
+    std::string newDir = dir + "\\*.*";
     intptr_t handle;
     struct _finddata_t fileinfo;
     handle = _findfirst(newDir.c_str(), &fileinfo);
@@ -206,7 +208,7 @@ void FileAgent::delete_AllFiles(const char *path)
         }
         else
         {
-            string file_path = dir + "\\" + fileinfo.name;
+            std::string file_path = dir + "\\" + fileinfo.name;
             remove(file_path.c_str());
         }
     } while (!_findnext(handle, &fileinfo));
@@ -223,4 +225,5 @@ void FileAgent::mkdir(const char *path, bool clear /*=false*/)
         delete_AllFiles(path);
     }
     _mkdir(path);
+}
 }
