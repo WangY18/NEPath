@@ -58,6 +58,11 @@ set(NEPATH_SOURCES
     src/NonEquidistant.cpp
 )
 
+# Eliminate warnings from Clipper library
+set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
+    COMPILE_FLAGS "-w"
+)
+
 # # Demo sources
 # set(DEMO_SOURCES
 #     demos.cpp
