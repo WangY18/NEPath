@@ -68,7 +68,7 @@ void NEPathPlanner::addhole(const path &hole_new, bool wash /*=true*/, double wa
 // If wash==true, the output CP toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 void NEPathPlanner::addholes(const paths &holes_new, bool wash /*=true*/, double washdis /*=0.2*/, int num_least /*=50*/)
 {
-    for (std::size_t i = 0; i < holes_new.size(); ++i)
+    for (int i = 0; i < holes_new.size(); ++i)
     {
         holes.push_back(path());
         if (wash)

@@ -55,7 +55,7 @@ paths *Curve::rotate(const paths &ps, double angle)
 {
     paths *psr = new paths();
     path *hr = NULL;
-    for (std::size_t i = 0; i < ps.size(); ++i)
+    for (int i = 0; i < ps.size(); ++i)
     {
         psr->push_back(path());
         hr = Curve::rotate(ps[i], angle);
@@ -453,14 +453,14 @@ UnderFillSolution Curve::UnderFill(const path &contour, const paths &holes, cons
     double xmin = contour.xmin();
     double ymax = contour.ymax();
     double ymin = contour.ymin();
-    for (std::size_t i = 0; i < holes.size(); ++i)
+    for (int i = 0; i < holes.size(); ++i)
     {
         xmax = (std::max)(xmax, holes[i].xmax());
         xmin = (std::min)(xmin, holes[i].xmin());
         ymax = (std::max)(ymax, holes[i].ymax());
         ymin = (std::min)(ymin, holes[i].ymin());
     }
-    for (std::size_t i = 0; i < ps.size(); ++i)
+    for (int i = 0; i < ps.size(); ++i)
     {
         xmax = (std::max)(xmax, ps[i].xmax());
         xmin = (std::min)(xmin, ps[i].xmin());
@@ -497,13 +497,13 @@ UnderFillSolution Curve::UnderFill(const path &contour, const paths &holes, cons
         }
     }
     const path **all_contours = new const path *[holes.size() + 1];
-    for (std::size_t i = 0; i < holes.size(); ++i)
+    for (int i = 0; i < holes.size(); ++i)
     {
         all_contours[i] = holes.data() + i;
     }
     all_contours[holes.size()] = &contour;
     vector<point> intersection;
-    for (std::size_t i = 0; i <= holes.size(); ++i)
+    for (int i = 0; i <= holes.size(); ++i)
     {
         for (int j = 0; j < all_contours[i]->length; ++j)
         { // ��x�и���߶ΰ�����㡢�������յ�
@@ -536,7 +536,7 @@ UnderFillSolution Curve::UnderFill(const path &contour, const paths &holes, cons
         }
     }
     sort(intersection.data(), intersection.data() + intersection.size(), cmp_Raster);
-    for (std::size_t k = 0; k < intersection.size() - 1; k += 2)
+    for (int k = 0; k < intersection.size() - 1; k += 2)
     {
         int i = round((intersection[k].x - sol.xs[0]) / reratio);
         if (i != round((intersection[k + 1].x - sol.xs[0]) / reratio))
@@ -564,7 +564,7 @@ UnderFillSolution Curve::UnderFill(const path &contour, const paths &holes, cons
             sol.map_delta[i][j] = false;
         }
     }
-    for (std::size_t ip = 0; ip < ps.size(); ++ip)
+    for (int ip = 0; ip < ps.size(); ++ip)
     {
         for (int is = 0; is < ps[ip].length - 1; ++is)
         {

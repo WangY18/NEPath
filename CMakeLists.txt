@@ -62,6 +62,7 @@ set(NEPATH_SOURCES
 set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
     COMPILE_FLAGS "-w"
 )
+add_compile_options(-Wno-sign-compare) # Suppress sign-compare warnings in NEPath sources
 
 # # Demo sources
 # set(DEMO_SOURCES
@@ -75,6 +76,10 @@ add_executable(demo_Raster
 )
 add_executable(demo_Zigzag
     examples/demo_Zigzag.cpp
+    ${NEPATH_SOURCES}
+)
+add_executable(demo_CP
+    examples/demo_CP.cpp
     ${NEPATH_SOURCES}
 )
 

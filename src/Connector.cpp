@@ -37,7 +37,7 @@ path Connector::ConnectedFermatSpiral_MultMinimum(pathnode *root, double dis, do
         if (child->children.size() > 1)
         { // Branches.
             // Stack branches one by one. Note that children with higher ranks will be added to the stack, so in the end, one can directly pop them herefork.
-            for (std::size_t i = 0; i < child->children.size(); ++i)
+            for (int i = 0; i < child->children.size(); ++i)
             {
                 pathnode *children = child->children[i];
                 while (children->children.size() == 1)

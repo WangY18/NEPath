@@ -83,7 +83,7 @@ pathnode::pathnode(const path &p) : data(p), parent(NULL) {}
 
 pathnode::pathnode(const pathnode &pn) : data(pn.data), parent(pn.parent)
 {
-    for (std::size_t i = 0; i < pn.children.size(); ++i)
+    for (int i = 0; i < pn.children.size(); ++i)
     {
         children.push_back(pn.children[i]);
     }
@@ -102,7 +102,7 @@ vector<pathnode *> *pathnode::DFS_root(pathnode *root)
         pathnode *path_now = S.top();
         S.pop();
         dfs->push_back(path_now);
-        for (std::size_t i_child = path_now->children.size() - 1; i_child >= 0; --i_child)
+        for (int i_child = path_now->children.size() - 1; i_child >= 0; --i_child)
         {
             S.push(path_now->children[i_child]);
         }

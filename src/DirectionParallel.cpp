@@ -39,7 +39,7 @@ paths DirectionParalle::Raster(const path &contour, const paths &holes, double d
     }
     Contour << Contour[0];
 
-    for (std::size_t i_hole = 0; i_hole < holes_rotate->size(); ++i_hole)
+    for (int i_hole = 0; i_hole < holes_rotate->size(); ++i_hole)
     {
         Holes.push_back(Path());
         for (int i = 0; i < (*holes_rotate)[i_hole].length; ++i)
@@ -69,16 +69,16 @@ Paths DirectionParalle::Raster(const Path &contour, const Paths &holes, double d
     Paths contour_now; // Contours for calculation in Path form, including contour and holes
 
     contour_now.push_back(contour);
-    for (std::size_t i = 0; i < holes.size(); ++i)
+    for (int i = 0; i < holes.size(); ++i)
     {
         contour_now.push_back(holes[i]);
     }
 
     // Cut with horizontal lines
     cInt ymax = contour_now[0][0].Y, ymin = contour_now[0][0].Y;
-    for (std::size_t i = 0; i < contour_now.size(); ++i)
+    for (int i = 0; i < contour_now.size(); ++i)
     {
-        for (std::size_t j = 0; j < contour_now[i].size(); ++j)
+        for (int j = 0; j < contour_now[i].size(); ++j)
         {
             ymax = max(ymax, contour_now[i][j].Y);
             ymin = min(ymin, contour_now[i][j].Y);
@@ -89,9 +89,9 @@ Paths DirectionParalle::Raster(const Path &contour, const Paths &holes, double d
     cInt y0 = ymin + Dis / 2;
 
     vector<IntPoint> intersection; // the set of intersections
-    for (std::size_t i = 0; i < contour_now.size(); ++i)
+    for (int i = 0; i < contour_now.size(); ++i)
     {
-        for (std::size_t j = 0; j < contour_now[i].size(); ++j)
+        for (int j = 0; j < contour_now[i].size(); ++j)
         {
             int I = ceil(1.0 * (contour_now[i][j].Y - y0) / Dis);
             int II = ceil(1.0 * (contour_now[i][(j + 1) % contour_now[i].size()].Y - y0) / Dis);
@@ -105,7 +105,7 @@ Paths DirectionParalle::Raster(const Path &contour, const Paths &holes, double d
 
     // Generate Raster toolpaths
     sort(intersection.data(), intersection.data() + intersection.size(), cmp_Raster);
-    for (std::size_t i = 0; i < intersection.size(); i += 2)
+    for (int i = 0; i < intersection.size(); i += 2)
     {
         Path p;
         p.push_back(intersection[i]);
@@ -134,16 +134,16 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
     Paths contour_now; // Contours for calculation in Path form, including contour and holes
 
     contour_now.push_back(contour);
-    for (std::size_t i = 0; i < holes.size(); ++i)
+    for (int i = 0; i < holes.size(); ++i)
     {
         contour_now.push_back(holes[i]);
     }
 
     // Cut with horizontal lines
     cInt ymax = contour_now[0][0].Y, ymin = contour_now[0][0].Y;
-    for (std::size_t i = 0; i < contour_now.size(); ++i)
+    for (int i = 0; i < contour_now.size(); ++i)
     {
-        for (std::size_t j = 0; j < contour_now[i].size(); ++j)
+        for (int j = 0; j < contour_now[i].size(); ++j)
         {
             ymax = max(ymax, contour_now[i][j].Y);
             ymin = min(ymin, contour_now[i][j].Y);
@@ -173,10 +173,10 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
     vector<InterPoint> intersection; // the set of intersections
 
     int *size_pathinter = new int[contour_now.size()](); // number of intersections of every continuous boundary
-    for (std::size_t i = 0; i < contour_now.size(); ++i)
+    for (int i = 0; i < contour_now.size(); ++i)
     {
         unsigned int idpoint = 0;
-        for (std::size_t j = 0; j < contour_now[i].size(); ++j)
+        for (int j = 0; j < contour_now[i].size(); ++j)
         {
             int I = ceil(1.0 * (contour_now[i][j].Y - y0) / Dis);
             int II = ceil(1.0 * (contour_now[i][(j + 1) % contour_now[i].size()].Y - y0) / Dis);
@@ -192,7 +192,7 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
     // Generate Zigzag toolpaths
     sort(intersection.data(), intersection.data() + intersection.size());
     vector<vector<InterPoint>> paths;
-    for (std::size_t i = 0; i < intersection.size(); i += 2)
+    for (int i = 0; i < intersection.size(); i += 2)
     {
         bool flag = false;
         for (int j = paths.size() - 1; j >= 0; --j)
@@ -221,10 +221,10 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
         }
     }
 
-    for (std::size_t i = 0; i < paths.size(); ++i)
+    for (int i = 0; i < paths.size(); ++i)
     {
         Path p;
-        for (std::size_t j = 0; j < paths[i].size(); ++j)
+        for (int j = 0; j < paths[i].size(); ++j)
         {
             p.push_back(paths[i][j].point);
         }
@@ -271,7 +271,7 @@ paths DirectionParalle::Zigzag(const path &contour, const paths &holes, double d
     }
     Contour << Contour[0];
 
-    for (std::size_t i_hole = 0; i_hole < holes_rotate->size(); ++i_hole)
+    for (int i_hole = 0; i_hole < holes_rotate->size(); ++i_hole)
     {
         Holes.push_back(Path());
         for (int i = 0; i < (*holes_rotate)[i_hole].length; ++i)

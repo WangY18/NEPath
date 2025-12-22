@@ -125,7 +125,7 @@ void FileAgent::write_csv(const paths &ps, char const *filename_pre, char const 
         filename += "0";
     }
     filename += filename_post;
-    for (std::size_t i = 0; i < ps.size(); ++i)
+    for (int i = 0; i < ps.size(); ++i)
     {
         int j = i;
         for (int k = 0; k < num; ++k)

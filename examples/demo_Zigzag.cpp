@@ -33,7 +33,7 @@ int main()
 
     paths zigzag_paths = planner.Zigzag(opts); // all zigzag paths
     cout << "Zigzag: There are " << zigzag_paths.size() << " continuous toolpaths in total." << endl;
-    for (std::size_t i = 0; i < zigzag_paths.size(); ++i)
+    for (int i = 0; i < zigzag_paths.size(); ++i)
     {
         // zigzag_paths[i] is the i-th continuous toolpath
         cout << "Toopath " << i << " has " << zigzag_paths[i].length << " waypoints." << endl;

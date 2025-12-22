@@ -39,7 +39,7 @@ paths ContourParallel::OffsetClipper(const double *x, const double *y, double di
 
     if (wash)
     {
-        for (std::size_t i = 0; i < solution.size(); ++i)
+        for (int i = 0; i < solution.size(); ++i)
         {
             path p0 = Path2path(solution[i], scale, delta_x, delta_y);
             double Length = Curve::TotalLength(p0.x, p0.y, p0.length, true);
@@ -51,7 +51,7 @@ paths ContourParallel::OffsetClipper(const double *x, const double *y, double di
     else
     {
         // When wash=false, still need to convert clipper paths to NEPath paths
-        for (std::size_t i = 0; i < solution.size(); ++i)
+        for (int i = 0; i < solution.size(); ++i)
         {
             path p = Path2path(solution[i], scale, delta_x, delta_y);
             ps.push_back(path());
@@ -68,10 +68,10 @@ paths ContourParallel::OffsetClipper(const path &contour, const paths &holes, do
 {
     paths ps_offset = OffsetClipper(contour.x, contour.y, dis, contour.length, wash, washdis);
     paths solution;
-    for (std::size_t i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
+    for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
     {
         paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
-        for (std::size_t i = 0; i < ps_clip.size(); ++i)
+        for (int i = 0; i < ps_clip.size(); ++i)
         {
             solution.push_back(path());
             solution[solution.size() - 1].steal(ps_clip[i]);
@@ -86,7 +86,7 @@ paths ContourParallel::OffsetClipper(const path &contour, const paths &holes, do
 paths ContourParallel::Paths2paths(const Paths &Ps, double scale, double delta_x /*=0.0*/, double delta_y /*=0.0*/)
 {
     paths ps;
-    for (std::size_t i = 0; i < Ps.size(); ++i)
+    for (int i = 0; i < Ps.size(); ++i)
     {
         ps.push_back(Path2path(Ps[i], scale, delta_x, delta_y));
     }
@@ -123,10 +123,10 @@ pathnode *ContourParallel::root_offset(const path &contour, const paths &holes, 
         pathnode *pn_parent = S.top();
         S.pop();
         paths ps_offset = OffsetClipper(pn_parent->data.x, pn_parent->data.y, dis, pn_parent->data.length, wash, washdis);
-        for (std::size_t i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
+        for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
         {
             paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
-            for (std::size_t i_clip = 0; i_clip < ps_clip.size(); ++i_clip)
+            for (int i_clip = 0; i_clip < ps_clip.size(); ++i_clip)
             {
                 pathnode *pn_child = new pathnode(ps_clip[i_clip]);
                 pn_parent->children.push_back(pn_child);
@@ -148,14 +148,14 @@ paths ContourParallel::Contour_Parallel(const path &contour, const paths &holes,
     pathnode *root = root_offset(contour, holes, dis, wash, washdis);
     vector<pathnode *> *dfs = pathnode::DFS_root(root);
     paths solution;
-    for (std::size_t i = 0; i < dfs->size(); ++i)
+    for (int i = 0; i < dfs->size(); ++i)
     {
         solution.push_back(path());
         solution[i].length = (*dfs)[i]->data.length;
         solution[i].x = (*dfs)[i]->data.x;
         solution[i].y = (*dfs)[i]->data.y;
         (*dfs)[i]->data.clear_without_delete();
-        for (std::size_t j = 0; j < (*dfs)[i]->children.size(); ++j)
+        for (int j = 0; j < (*dfs)[i]->children.size(); ++j)
         {
             (*dfs)[i]->children[j] = NULL;
         }
@@ -189,7 +189,7 @@ paths ContourParallel::cut_holes(const path &contour, const paths &holes, bool w
         ymax = (std::max)(ymax, contour.y[i]);
         ymin = (std::min)(ymin, contour.y[i]);
     }
-    for (std::size_t j = 0; j < holes.size(); ++j)
+    for (int j = 0; j < holes.size(); ++j)
     {
         for (int i = 0; i < holes[j].length; ++i)
         {
@@ -211,7 +211,7 @@ paths ContourParallel::cut_holes(const path &contour, const paths &holes, bool w
     }
     Contour << Contour[0];
 
-    for (std::size_t i_hole = 0; i_hole < holes.size(); ++i_hole)
+    for (int i_hole = 0; i_hole < holes.size(); ++i_hole)
     {
         Holes.push_back(Path());
         for (int i = 0; i < holes[i_hole].length; ++i)
@@ -237,7 +237,7 @@ paths ContourParallel::cut_holes(const path &contour, const paths &holes, bool w
         cl.AddPath(Contour, ptSubject, true);
         cl.AddPaths(Holes, ptClip, true);
         cl.Execute(ctDifference, Solution);
-        for (std::size_t i_path = 0; i_path < Solution.size(); ++i_path)
+        for (int i_path = 0; i_path < Solution.size(); ++i_path)
         {
             if (Solution[i_path].size() < 3)
             {
@@ -247,7 +247,7 @@ paths ContourParallel::cut_holes(const path &contour, const paths &holes, bool w
             solution[solution.size() - 1].length = Solution[i_path].size();
             solution[solution.size() - 1].x = new double[solution[solution.size() - 1].length];
             solution[solution.size() - 1].y = new double[solution[solution.size() - 1].length];
-            for (std::size_t i = 0; i < Solution[i_path].size(); ++i)
+            for (int i = 0; i < Solution[i_path].size(); ++i)
             {
                 solution[solution.size() - 1].x[i] = cInt2double(Solution[i_path][i].X, scale, delta_x);
                 solution[solution.size() - 1].y[i] = cInt2double(Solution[i_path][i].Y, scale, delta_y);
@@ -257,7 +257,7 @@ paths ContourParallel::cut_holes(const path &contour, const paths &holes, bool w
 
     if (wash)
     {
-        for (std::size_t i = 0; i < solution.size(); ++i)
+        for (int i = 0; i < solution.size(); ++i)
         {
             double Length = Curve::TotalLength(solution[i].x, solution[i].y, solution[i].length, true);
             path p = Curve::wash_dis(solution[i], (std::min)(washdis, Length * 1.0 / num_least));
@@ -297,7 +297,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
         ymax = (std::max)(ymax, contour.y[i]);
         ymin = (std::min)(ymin, contour.y[i]);
     }
-    for (std::size_t j = 0; j < holes.size(); ++j)
+    for (int j = 0; j < holes.size(); ++j)
     {
         for (int i = 0; i < holes[j].length; ++i)
         {
@@ -320,7 +320,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
     Contour << Contour[0];
 
     Clipper cl_hole;
-    for (std::size_t i_hole = 0; i_hole < holes.size(); ++i_hole)
+    for (int i_hole = 0; i_hole < holes.size(); ++i_hole)
     {
         Path Hole;
         for (int i = 0; i < holes[i_hole].length; ++i)
@@ -340,7 +340,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
     cl_hole.Execute(ctUnion, Holes);
 
     Paths IntersectHoles;
-    for (std::size_t i_hole = 0; i_hole < Holes.size(); ++i_hole)
+    for (int i_hole = 0; i_hole < Holes.size(); ++i_hole)
     {
         if (!path_subset(Holes[i_hole], Contour))
         { // Do not apply set minus if the hole is enclosed by the contour
@@ -354,7 +354,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
     cl.AddPath(Contour, ptSubject, true);
     cl.AddPaths(IntersectHoles, ptClip, true);
     cl.Execute(ctDifference, Solution);
-    for (std::size_t i_path = 0; i_path < Solution.size(); ++i_path)
+    for (int i_path = 0; i_path < Solution.size(); ++i_path)
     {
         if (Solution[i_path].size() < 3)
         {
@@ -364,7 +364,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
         solution[solution.size() - 1].length = Solution[i_path].size();
         solution[solution.size() - 1].x = new double[solution[solution.size() - 1].length];
         solution[solution.size() - 1].y = new double[solution[solution.size() - 1].length];
-        for (std::size_t i = 0; i < Solution[i_path].size(); ++i)
+        for (int i = 0; i < Solution[i_path].size(); ++i)
         {
             solution[solution.size() - 1].x[i] = cInt2double(Solution[i_path][i].X, scale, delta_x);
             solution[solution.size() - 1].y[i] = cInt2double(Solution[i_path][i].Y, scale, delta_y);
@@ -377,7 +377,7 @@ paths ContourParallel::set_minus(const path &contour, const paths &holes, bool o
 
     if (wash)
     {
-        for (std::size_t i = 0; i < solution.size(); ++i)
+        for (int i = 0; i < solution.size(); ++i)
         {
             double Length = Curve::TotalLength(solution[i].x, solution[i].y, solution[i].length, true);
             path p = Curve::wash_dis(solution[i], (std::min)(washdis, Length * 1.0 / num_least));
@@ -410,7 +410,7 @@ paths ContourParallel::tool_compensate(const path &contour, const paths &holes, 
         ymax = (std::max)(ymax, contour.y[i]);
         ymin = (std::min)(ymin, contour.y[i]);
     }
-    for (std::size_t j = 0; j < holes.size(); ++j)
+    for (int j = 0; j < holes.size(); ++j)
     {
         for (int i = 0; i < holes[j].length; ++i)
         {
@@ -438,7 +438,7 @@ paths ContourParallel::tool_compensate(const path &contour, const paths &holes, 
     co.Clear();
 
     Paths HolesOffset;
-    for (std::size_t i_hole = 0; i_hole < holes.size(); ++i_hole)
+    for (int i_hole = 0; i_hole < holes.size(); ++i_hole)
     {
         Path Hole;
         Paths HoleOffset;
@@ -450,7 +450,7 @@ paths ContourParallel::tool_compensate(const path &contour, const paths &holes, 
         co.AddPath(Hole, jtRound, etClosedPolygon);
         co.Execute(HoleOffset, -dis * scale);
         co.Clear();
-        for (std::size_t i = 0; i < HoleOffset.size(); ++i)
+        for (int i = 0; i < HoleOffset.size(); ++i)
         {
             HolesOffset.push_back(HoleOffset[i]);
         }
@@ -472,7 +472,7 @@ paths ContourParallel::tool_compensate(const path &contour, const paths &holes, 
     paths solution = Paths2paths(Solution, scale, delta_x, delta_y);
     if (wash)
     {
-        for (std::size_t i = 0; i < Solution.size(); ++i)
+        for (int i = 0; i < Solution.size(); ++i)
         {
             double Length = Curve::TotalLength(solution[i].x, solution[i].y, solution[i].length, true);
             path p = Curve::wash_dis(solution[i], (std::min)(washdis, Length * 1.0 / num_least));
@@ -512,10 +512,10 @@ Path ContourParallel::path2Path(const path &p, double scale, double delta_x /*=0
 void ContourParallel::clearvoid(pathnode *root, const paths &holes, double delta, double area_err, double delta_errscale /*=0.02*/)
 {
     paths ps_real_holes = paths();
-    for (std::size_t i = 0; i < holes.size(); ++i)
+    for (int i = 0; i < holes.size(); ++i)
     {
         paths ps = OffsetClipper(holes[i].x, holes[i].y, -delta * 0.5, holes[i].length, true, 0.1, 50);
-        for (std::size_t j = 0; j < ps.size(); ++j)
+        for (int j = 0; j < ps.size(); ++j)
         {
             ps_real_holes.push_back(path());
             ps_real_holes[ps_real_holes.size() - 1].steal(ps[j]);
@@ -538,21 +538,21 @@ void ContourParallel::clearvoid(pathnode *root, const paths &holes, double delta
         }
 
         paths ps_holes = ps_real_holes;
-        for (std::size_t i = 0; i < parent->children.size(); ++i)
+        for (int i = 0; i < parent->children.size(); ++i)
         {
             S.push(parent->children[i]);
             paths ps = OffsetClipper(parent->children[i]->data.x, parent->children[i]->data.y, -delta * (0.5 + delta_errscale), parent->children[i]->data.length, true, 0.1, 50);
-            for (std::size_t j = 0; j < ps.size(); ++j)
+            for (int j = 0; j < ps.size(); ++j)
             {
                 ps_holes.push_back(path());
                 ps_holes[ps_holes.size() - 1].steal(ps[j]);
             }
         }
         paths ps_parent = OffsetClipper(parent->data.x, parent->data.y, delta * 0.5, parent->data.length, true, 0.1, 50);
-        for (std::size_t j = 0; j < ps_parent.size(); ++j)
+        for (int j = 0; j < ps_parent.size(); ++j)
         {
             paths ps_void = set_minus(ps_parent[j], ps_holes, true, true, 0.1, 50);
-            for (std::size_t i = 0; i < ps_void.size(); ++i)
+            for (int i = 0; i < ps_void.size(); ++i)
             {
                 if (Curve::AreaCal(ps_void[i].x, ps_void[i].y, ps_void[i].length) > area_err)
                 {
