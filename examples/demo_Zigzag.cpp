@@ -28,13 +28,18 @@ int main()
 
     // Set the toolpath parameters
     DirectParallelOptions opts;
-    opts.delta = 1.0;       // the line width of toolpaths
-    opts.angle = -pi / 3.0; // the angle of raster toolpaths, unit: rad
+    opts.delta = 1.0;      // the line width of toolpaths
+    opts.angle = pi / 3.0; // the angle of Zigzag toolpaths, unit: rad
 
-    paths raster_paths = planner.Raster(opts); // all raster paths
-    cout << "Raster: There are " << raster_paths.size() << " continuous toolpaths in total." << endl;
+    paths zigzag_paths = planner.Zigzag(opts); // all zigzag paths
+    cout << "Zigzag: There are " << zigzag_paths.size() << " continuous toolpaths in total." << endl;
+    for (std::size_t i = 0; i < zigzag_paths.size(); ++i)
+    {
+        // zigzag_paths[i] is the i-th continuous toolpath
+        cout << "Toopath " << i << " has " << zigzag_paths[i].length << " waypoints." << endl;
+    }
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_raster").string().c_str());
-    FileAgent::write_csv(raster_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_raster").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, R"(.\data_examples\contour.csv)");
+    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_zigzag").string().c_str());
+    FileAgent::write_csv(zigzag_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_zigzag").string().c_str(), ".csv");
+    FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
 }

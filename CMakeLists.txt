@@ -69,11 +69,13 @@ set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
 # )
 
 # Create test_demos executable
-add_executable(test_demos
-    # main.cpp
+add_executable(demo_Raster
     examples/demo_Raster.cpp
     ${NEPATH_SOURCES}
-    ${DEMO_SOURCES}
+)
+add_executable(demo_Zigzag
+    examples/demo_Zigzag.cpp
+    ${NEPATH_SOURCES}
 )
 
 # # Link IPOPT libraries

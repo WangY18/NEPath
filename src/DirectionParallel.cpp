@@ -195,7 +195,7 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
     for (std::size_t i = 0; i < intersection.size(); i += 2)
     {
         bool flag = false;
-        for (std::size_t j = paths.size() - 1; j >= 0; --j)
+        for (int j = paths.size() - 1; j >= 0; --j)
         {
             if (InterPoint::nextto(intersection[i], paths[j][paths[j].size() - 1], size_pathinter[intersection[i].idpath]))
             {
@@ -220,6 +220,7 @@ Paths DirectionParalle::Zigzag(const Path &contour, const Paths &holes, double d
             paths.push_back(path_now);
         }
     }
+
     for (std::size_t i = 0; i < paths.size(); ++i)
     {
         Path p;
@@ -279,7 +280,6 @@ paths DirectionParalle::Zigzag(const path &contour, const paths &holes, double d
         }
         Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
     }
-
     // Generate Zigzag toolpaths
     Paths Solution = Zigzag(Contour, Holes, dis, scale);
 
