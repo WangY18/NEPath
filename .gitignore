@@ -138,3 +138,8 @@ venv/
 *.7z
 *.idea/
 *.vscode/
+
+
+# Ignore local environment setup scripts
+# Local env file with paths, do not commit
+set_env.sh

@@ -6,17 +6,47 @@ set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+message(STATUS "============= Build Configuration =============")
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
 
 # Options to enable optional dependencies
-option(IncludeIpopt "Enable IPOPT support" OFF)
-option(IncludeGurobi "Enable Gurobi support" OFF)
+option(IncludeIpopt "Enable IPOPT support" ON) # IPOPT: ON / OFF
+option(IncludeGurobi "Enable Gurobi support" OFF) # Gurobi: ON / OFF
 
 # Compiler definitions: IPOPT
 if(IncludeIpopt)
+    message(STATUS "Enable IPOPT support")
     add_compile_definitions(IncludeIpopt=1)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(IPOPT REQUIRED ipopt)
+
+    find_package(PkgConfig) # First, apply PkgConfig to find IPOPT
+    if(PkgConfig_FOUND)
+        pkg_check_modules(IPOPT ipopt)
+    endif()
+
+    if(DEFINED IPOPT_PKG_FOUND AND IPOPT_PKG_FOUND)
+        # Found via PkgConfig
+        set(IPOPT_INCLUDE_DIRS ${IPOPT_INCLUDE_DIRS})
+        set(IPOPT_LIBRARY_DIRS ${IPOPT_LIBRARY_DIRS})
+        set(IPOPT_LIBRARIES ${IPOPT_LIBRARIES})
+    else()
+        # Fallback to environment variable or user-provided path
+        if(NOT DEFINED IPOPT_ROOT)
+            if(DEFINED ENV{IPOPT_ROOT})
+                set(IPOPT_ROOT "$ENV{IPOPT_ROOT}")
+            else()
+                message(FATAL_ERROR "IncludeIpopt=ON but IPOPT not found. Please set IPOPT_ROOT environment variable or pass -DIPOPT_ROOT=/path/to/ipopt")
+            endif()
+        endif()
+        set(IPOPT_INCLUDE_DIR "$ENV{IPOPT_ROOT}/include")
+        set(IPOPT_LIBRARY_DIR "$ENV{IPOPT_ROOT}/lib")
+        set(IPOPT_LIBRARIES ipopt)
+    endif()
+    
+    include_directories(${IPOPT_INCLUDE_DIR})
+    link_directories(${IPOPT_LIBRARY_DIR})
 else()
+    message(STATUS "Disable IPOPT support")
     add_compile_definitions(IncludeIpopt=0)
 endif()
 
@@ -50,7 +80,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/external/clipper
-    # ${IPOPT_INCLUDE_DIRS}
 )
 
 # Collect NEPath source files
@@ -106,25 +135,26 @@ add_executable(demo_sharpcorner
     examples/demo_sharpcorner.cpp
     ${NEPATH_SOURCES}
 )
+add_executable(demo_IQOP_Ipopt
+    examples/demo_IQOP_Ipopt.cpp
+    ${NEPATH_SOURCES}
+)
 
 
 
-if(IncludeIpopt)
-    target_link_libraries(test_demos
-        ${IPOPT_LIBRARIES}
-        ${CMAKE_DL_LIBS}
-    ) # Link IPOPT libraries
-    target_link_directories(test_demos PRIVATE
-        ${IPOPT_LIBRARY_DIRS}
-    ) # Add IPOPT link directories
-endif()
+# if(IncludeIpopt)
+    # target_link_libraries(test_demos
+    #     ${IPOPT_LIBRARIES}
+    #     ${CMAKE_DL_LIBS}
+    # ) # Link IPOPT libraries
+#     target_link_directories(test_demos PRIVATE
+#         ${IPOPT_LIBRARY_DIRS}
+#     ) # Add IPOPT link directories
+# endif()
 
-message(STATUS "============= Build Configuration =============")
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
-message(STATUS "=======================================")
 if(IncludeIpopt)
     message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
     message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
     message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
 endif()
+message(STATUS "=======================================")
