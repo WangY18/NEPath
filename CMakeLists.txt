@@ -98,6 +98,10 @@ add_executable(demo_underfill
     examples/demo_underfill.cpp
     ${NEPATH_SOURCES}
 )
+add_executable(demo_sharpcorner
+    examples/demo_sharpcorner.cpp
+    ${NEPATH_SOURCES}
+)
 
 # # Link IPOPT libraries
 # target_link_libraries(test_demos

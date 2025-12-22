@@ -45,14 +45,40 @@ int main()
     opts.washdis = 0.2;
 
     paths CP_paths = planner.CP(opts); // all CP paths
-    cout << "CP: There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
+    cout << "There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
+
+    double radius = 1.0;    // radius of the rolling circle
+    double threshold = 0.3; // threshold of area on one side to determine a sharp corner
+
+    // Obtain the results of underfill
+    int num = 0;
+    paths ps_sharpturn;
     for (int i = 0; i < CP_paths.size(); ++i)
     {
-        // CP_paths[i] is the i-th continuous toolpath
-        cout << "Toopath " << i << " has " << CP_paths[i].length << " waypoints." << endl;
+        path p = path();
+        SharpTurnSolution sol = Curve::SharpTurn_Invariant(CP_paths[i], radius, threshold, true, 0.5);
+        for (int j = 0; j < sol.length; ++j)
+        {
+            num += sol.SharpTurn[j];
+        }
+        p.length = sol.length;
+        p.x = new double[p.length];
+        p.y = new double[p.length];
+        for (int j = 0; j < p.length; ++j)
+        {
+            p.x[j] = sol.SharpTurn[j];
+            p.y[j] = sol.AreaPercent[j];
+        }
+        ps_sharpturn.push_back(p);
     }
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP").string().c_str());
-    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP").string().c_str(), ".csv");
+
+    cout << "There exist " << num << " sharp corners." << endl;
+
+    // Output as files
+    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_sharpcorner" / "sharpcorner").string().c_str());
+    FileAgent::write_csv(ps_sharpturn, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_sharpcorner" / "sharpcorner").string().c_str(), ".csv");
+    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_sharpcorner" / "paths").string().c_str());
+    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_sharpcorner" / "paths").string().c_str(), ".csv");
     // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
 
     return 0;

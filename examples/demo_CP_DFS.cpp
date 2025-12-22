@@ -56,4 +56,6 @@ int main()
     FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP_DFS").string().c_str());
     FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP_DFS").string().c_str(), ".csv");
     // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
+
+    return 0;
 }
