@@ -11,16 +11,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(IncludeIpopt "Enable IPOPT support" OFF)
 option(IncludeGurobi "Enable Gurobi support" OFF)
 
-# Find IPOPT
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(IPOPT REQUIRED ipopt)
+# Compiler definitions: IPOPT
+if(IncludeIpopt)
+    add_compile_definitions(IncludeIpopt=1)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(IPOPT REQUIRED ipopt)
+else()
+    add_compile_definitions(IncludeIpopt=0)
+endif()
 
-# Compiler definitions
-add_compile_definitions(
-    # IncludeIpopt=0          # IPOPT support: 0-Disable / 1-Enable
-    # IncludeGurobi=0         # Gurobi support: 0-Disable / 1-Enable
-    ENABLE_DIRECTION_PARALLEL  # Enable Raster/Zigzag support
-)
+# Compiler definitions: Gurobi
+if(IncludeGurobi)
+    add_compile_definitions(IncludeGurobi=1)
+else()
+    add_compile_definitions(IncludeGurobi=0)
+endif()
 
 # Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -31,6 +36,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wno-infinite-recursion # Suppress FileAgent::mkdir warning
         -Wno-null-conversion    # Suppress path.cpp NULL conversion warning
         -Wno-pragma-once-outside-header  # Suppress path.cpp pragma once warning
+        -Wno-sign-compare      # Suppress sign-compare warnings in NEPath sources
     )
 elseif(MSVC)
     add_compile_options(
@@ -66,7 +72,6 @@ set(NEPATH_SOURCES
 set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
     COMPILE_FLAGS "-w"
 )
-add_compile_options(-Wno-sign-compare) # Suppress sign-compare warnings in NEPath sources
 
 # Create test_demos executable
 add_executable(demo_Raster
@@ -102,21 +107,24 @@ add_executable(demo_sharpcorner
     ${NEPATH_SOURCES}
 )
 
-# # Link IPOPT libraries
-# target_link_libraries(test_demos
-#     ${IPOPT_LIBRARIES}
-#     ${CMAKE_DL_LIBS}
-# )
 
-# # Add IPOPT link directories
-# target_link_directories(test_demos PRIVATE
-#     ${IPOPT_LIBRARY_DIRS}
-# )
+
+if(IncludeIpopt)
+    target_link_libraries(test_demos
+        ${IPOPT_LIBRARIES}
+        ${CMAKE_DL_LIBS}
+    ) # Link IPOPT libraries
+    target_link_directories(test_demos PRIVATE
+        ${IPOPT_LIBRARY_DIRS}
+    ) # Add IPOPT link directories
+endif()
 
 message(STATUS "============= Build Configuration =============")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
-# message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
-# message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
-# message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
 message(STATUS "=======================================")
+if(IncludeIpopt)
+    message(STATUS "IPOPT Include Dirs: ${IPOPT_INCLUDE_DIRS}")
+    message(STATUS "IPOPT Library Dirs: ${IPOPT_LIBRARY_DIRS}")
+    message(STATUS "IPOPT Libraries: ${IPOPT_LIBRARIES}")
+endif()
