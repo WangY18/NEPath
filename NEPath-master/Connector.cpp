@@ -31,7 +31,7 @@ path Connector::ConnectedFermatSpiral_MultMinimum(pathnode* root, double dis, do
 		pathnode* child = S_bottom.top();
 		if (child->children.size() > 1) { // Branches.
 			// Stack branches one by one. Note that children with higher ranks will be added to the stack, so in the end, one can directly pop them herefork.
-			for (register int i = 0; i < child->children.size(); ++i) {
+			for (int i = 0; i < child->children.size(); ++i) {
 				pathnode* children = child->children[i];
 				while (children->children.size() == 1) {
 					children = children->children[0];
@@ -326,11 +326,11 @@ path Connector::FermatSpiral_SingleMinimum(pathnode* root, double dis, double in
 				out_forward_in = !out_forward_in;
 				continue;
 			}
-			if (in_run) { // Vary in-point£¬fix out-point.
+			if (in_run) { // Vary in-pointï¿½ï¿½fix out-point.
 				if (out_forward_in) { // outf > out > in
 					double outf = Curve::ForDis(root->data.x, root->data.y, root->data.length, out, dis);
 					int id_in_begin = floor(in);
-					for (register int i = id_in_begin; subset_cycle(out, i, outf, false, false); i = (i + root->data.length - 1) % root->data.length) {
+					for (int i = id_in_begin; subset_cycle(out, i, outf, false, false); i = (i + root->data.length - 1) % root->data.length) {
 						xin.push_back(root->data.x[i]);
 						yin.push_back(root->data.y[i]);
 					}
@@ -340,7 +340,7 @@ path Connector::FermatSpiral_SingleMinimum(pathnode* root, double dis, double in
 				else { // in > out > outb
 					double outb = Curve::BackDis(root->data.x, root->data.y, root->data.length, out, dis);
 					int id_in_begin = int(ceil(in)) % root->data.length;
-					for (register int i = id_in_begin; subset_cycle(i, out, outb, false, false); i = (i + 1) % root->data.length) {
+					for (int i = id_in_begin; subset_cycle(i, out, outb, false, false); i = (i + 1) % root->data.length) {
 						xin.push_back(root->data.x[i]);
 						yin.push_back(root->data.y[i]);
 					}
@@ -348,11 +348,11 @@ path Connector::FermatSpiral_SingleMinimum(pathnode* root, double dis, double in
 					yin.push_back(Curve::interp_id(root->data.y, root->data.length, outb));
 				}
 			}
-			else { // Vary out-point£¬fix in-point.
+			else { // Vary out-pointï¿½ï¿½fix in-point.
 				if (out_forward_in) { // out > in > inb
 					double inb = Curve::BackDis(root->data.x, root->data.y, root->data.length, in, dis);
 					int id_out_begin = int(ceil(out)) % root->data.length;
-					for (register int i = id_out_begin; subset_cycle(i, in, inb, false, false); i = (i + 1) % root->data.length) {
+					for (int i = id_out_begin; subset_cycle(i, in, inb, false, false); i = (i + 1) % root->data.length) {
 						xout.push_back(root->data.x[i]);
 						yout.push_back(root->data.y[i]);
 					}
@@ -362,7 +362,7 @@ path Connector::FermatSpiral_SingleMinimum(pathnode* root, double dis, double in
 				else { // inf > in > out
 					double inf = Curve::ForDis(root->data.x, root->data.y, root->data.length, in, dis);
 					int id_out_begin = floor(out);
-					for (register int i = id_out_begin; subset_cycle(in, i, inf, false, false); i = (i + root->data.length - 1) % root->data.length) {
+					for (int i = id_out_begin; subset_cycle(in, i, inf, false, false); i = (i + root->data.length - 1) % root->data.length) {
 						xout.push_back(root->data.x[i]);
 						yout.push_back(root->data.y[i]);
 					}
@@ -404,7 +404,7 @@ path Connector::FermatSpiral_SingleMinimum(pathnode* root, double dis, double in
 		}
 		first_circle = false;
 	}
-	for (register int i = xout.size() - 1; i >= 0; --i) {
+	for (int i = xout.size() - 1; i >= 0; --i) {
 		xin.push_back(xout[i]);
 		yin.push_back(yout[i]);
 	}

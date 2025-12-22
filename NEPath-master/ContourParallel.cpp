@@ -12,7 +12,7 @@ paths ContourParallel::OffsetClipper(const double* x, const double* y, double di
 	double ymin = y[0];
 	double delta_x = 0.0;
 	double delta_y = 0.0;
-	for (register int i = 1; i < length; ++i) {
+	for (int i = 1; i < length; ++i) {
 		xmax = (std::max)(xmax, x[i]);
 		xmin = (std::min)(xmin, x[i]);
 		ymax = (std::max)(ymax, y[i]);
@@ -23,7 +23,7 @@ paths ContourParallel::OffsetClipper(const double* x, const double* y, double di
 	double scale = ClipperBound / std::max(xmax - xmin, ymax - ymin);
 
 	Path contour;
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		contour << IntPoint(double2cInt(x[i], scale, delta_x), double2cInt(y[i], scale, delta_y));
 	}
 	contour << contour[0];
@@ -39,6 +39,14 @@ paths ContourParallel::OffsetClipper(const double* x, const double* y, double di
 			path p0 = Path2path(solution[i], scale, delta_x, delta_y);
 			double Length = Curve::TotalLength(p0.x, p0.y, p0.length, true);
 			path p = Curve::wash_dis(p0, (std::min)(washdis, Length * 1.0 / num_least));
+			ps.push_back(path());
+			ps[i].steal(p);
+		}
+	}
+	else {
+		// When wash=false, still need to convert clipper paths to NEPath paths
+		for (int i = 0; i < solution.size(); ++i) {
+			path p = Path2path(solution[i], scale, delta_x, delta_y);
 			ps.push_back(path());
 			ps[i].steal(p);
 		}
@@ -62,15 +70,7 @@ paths ContourParallel::OffsetClipper(const path& contour, const paths& holes, do
 	return solution;
 }
 
-// Transform from a double variable to a cInt variable
-inline cInt ContourParallel::double2cInt(const double& d, double scale, double delta_pos/*=0.0*/) {
-	return (d - delta_pos) * scale;
-}
-
-// Transform from a cInt variable to a double variable
-inline double ContourParallel::cInt2double(const cInt& c, double scale, double delta_pos/*=0.0*/) {
-	return c / scale + delta_pos;
-}
+// double2cInt and cInt2double are now defined inline in ContourParallel.h
 
 // Transform from a Paths variable to a paths variable
 paths ContourParallel::Paths2paths(const Paths& Ps, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
@@ -87,7 +87,7 @@ path ContourParallel::Path2path(const Path& P, double scale, double delta_x/*=0.
 	p.length = P.size();
 	p.x = new double[p.length];
 	p.y = new double[p.length];
-	for (register int i = 0; i < p.length; ++i) {
+	for (int i = 0; i < p.length; ++i) {
 		p.x[i] = cInt2double(P[i].X, scale, delta_x);
 		p.y[i] = cInt2double(P[i].Y, scale, delta_y);
 	}
@@ -159,14 +159,14 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 	double ymin = contour.y[0];
 	double delta_x = 0.0;
 	double delta_y = 0.0;
-	for (register int i = 1; i < contour.length; ++i) {
+	for (int i = 1; i < contour.length; ++i) {
 		xmax = (std::max)(xmax, contour.x[i]);
 		xmin = (std::min)(xmin, contour.x[i]);
 		ymax = (std::max)(ymax, contour.y[i]);
 		ymin = (std::min)(ymin, contour.y[i]);
 	}
 	for (int j = 0; j < holes.size(); ++j) {
-		for (register int i = 0; i < holes[j].length; ++i) {
+		for (int i = 0; i < holes[j].length; ++i) {
 			xmax = (std::max)(xmax, holes[j].x[i]);
 			xmin = (std::min)(xmin, holes[j].x[i]);
 			ymax = (std::max)(ymax, holes[j].y[i]);
@@ -179,14 +179,14 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 
 	Path Contour;
 	Paths Holes;
-	for (register int i = 0; i < contour.length; ++i) {
+	for (int i = 0; i < contour.length; ++i) {
 		Contour << IntPoint(double2cInt(contour.x[i], scale, delta_x), double2cInt(contour.y[i], scale, delta_y));
 	}
 	Contour << Contour[0];
 
 	for (int i_hole = 0; i_hole < holes.size(); ++i_hole) {
 		Holes.push_back(Path());
-		for (register int i = 0; i < holes[i_hole].length; ++i) {
+		for (int i = 0; i < holes[i_hole].length; ++i) {
 			Holes[Holes.size() - 1] << IntPoint(double2cInt(holes[i_hole].x[i], scale, delta_x), double2cInt(holes[i_hole].y[i], scale, delta_y));
 		}
 		Holes[Holes.size() - 1] << Holes[Holes.size() - 1][0];
@@ -213,7 +213,7 @@ paths ContourParallel::cut_holes(const path& contour, const paths& holes, bool w
 			solution[solution.size() - 1].length = Solution[i_path].size();
 			solution[solution.size() - 1].x = new double[solution[solution.size() - 1].length];
 			solution[solution.size() - 1].y = new double[solution[solution.size() - 1].length];
-			for (register int i = 0; i < Solution[i_path].size(); ++i) {
+			for (int i = 0; i < Solution[i_path].size(); ++i) {
 				solution[solution.size() - 1].x[i] = cInt2double(Solution[i_path][i].X, scale, delta_x);
 				solution[solution.size() - 1].y[i] = cInt2double(Solution[i_path][i].Y, scale, delta_y);
 			}
@@ -251,14 +251,14 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 	double ymin = contour.y[0];
 	double delta_x = 0.0;
 	double delta_y = 0.0;
-	for (register int i = 1; i < contour.length; ++i) {
+	for (int i = 1; i < contour.length; ++i) {
 		xmax = (std::max)(xmax, contour.x[i]);
 		xmin = (std::min)(xmin, contour.x[i]);
 		ymax = (std::max)(ymax, contour.y[i]);
 		ymin = (std::min)(ymin, contour.y[i]);
 	}
 	for (int j = 0; j < holes.size(); ++j) {
-		for (register int i = 0; i < holes[j].length; ++i) {
+		for (int i = 0; i < holes[j].length; ++i) {
 			xmax = (std::max)(xmax, holes[j].x[i]);
 			xmin = (std::min)(xmin, holes[j].x[i]);
 			ymax = (std::max)(ymax, holes[j].y[i]);
@@ -271,7 +271,7 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 
 	Path Contour;
 	Paths Holes;
-	for (register int i = 0; i < contour.length; ++i) {
+	for (int i = 0; i < contour.length; ++i) {
 		Contour << IntPoint(double2cInt(contour.x[i], scale, delta_x), double2cInt(contour.y[i], scale, delta_y));
 	}
 	Contour << Contour[0];
@@ -279,7 +279,7 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 	Clipper cl_hole;
 	for (int i_hole = 0; i_hole < holes.size(); ++i_hole) {
 		Path Hole;
-		for (register int i = 0; i < holes[i_hole].length; ++i) {
+		for (int i = 0; i < holes[i_hole].length; ++i) {
 			Hole << IntPoint(double2cInt(holes[i_hole].x[i], scale, delta_x), double2cInt(holes[i_hole].y[i], scale, delta_y));
 		}
 		Hole << Hole[0];
@@ -314,7 +314,7 @@ paths ContourParallel::set_minus(const path& contour, const paths& holes, bool o
 		solution[solution.size() - 1].length = Solution[i_path].size();
 		solution[solution.size() - 1].x = new double[solution[solution.size() - 1].length];
 		solution[solution.size() - 1].y = new double[solution[solution.size() - 1].length];
-		for (register int i = 0; i < Solution[i_path].size(); ++i) {
+		for (int i = 0; i < Solution[i_path].size(); ++i) {
 			solution[solution.size() - 1].x[i] = cInt2double(Solution[i_path][i].X, scale, delta_x);
 			solution[solution.size() - 1].y[i] = cInt2double(Solution[i_path][i].Y, scale, delta_y);
 		}
@@ -349,14 +349,14 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 	double ymin = contour.y[0];
 	double delta_x = 0.0;
 	double delta_y = 0.0;
-	for (register int i = 1; i < contour.length; ++i) {
+	for (int i = 1; i < contour.length; ++i) {
 		xmax = (std::max)(xmax, contour.x[i]);
 		xmin = (std::min)(xmin, contour.x[i]);
 		ymax = (std::max)(ymax, contour.y[i]);
 		ymin = (std::min)(ymin, contour.y[i]);
 	}
 	for (int j = 0; j < holes.size(); ++j) {
-		for (register int i = 0; i < holes[j].length; ++i) {
+		for (int i = 0; i < holes[j].length; ++i) {
 			xmax = (std::max)(xmax, holes[j].x[i]);
 			xmin = (std::min)(xmin, holes[j].x[i]);
 			ymax = (std::max)(ymax, holes[j].y[i]);
@@ -368,7 +368,7 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 	double scale = ClipperBound / std::max(xmax - xmin, ymax - ymin);
 
 	Path Contour;
-	for (register int i = 0; i < contour.length; ++i) {
+	for (int i = 0; i < contour.length; ++i) {
 		Contour << IntPoint(double2cInt(contour.x[i], scale, delta_x), double2cInt(contour.y[i], scale, delta_y));
 	}
 	Contour << Contour[0];
@@ -383,7 +383,7 @@ paths ContourParallel::tool_compensate(const path& contour, const paths& holes, 
 	for (int i_hole = 0; i_hole < holes.size(); ++i_hole) {
 		Path Hole;
 		Paths HoleOffset;
-		for (register int i = 0; i < holes[i_hole].length; ++i) {
+		for (int i = 0; i < holes[i_hole].length; ++i) {
 			Hole << IntPoint(double2cInt(holes[i_hole].x[i], scale, delta_x), double2cInt(holes[i_hole].y[i], scale, delta_y));
 		}
 		Hole << Hole[0];
@@ -431,7 +431,7 @@ bool ContourParallel::path_subset(const Path& p1, const Path& p2) {
 // Transform from a path variable to a Path variable
 Path ContourParallel::path2Path(const path& p, double scale, double delta_x/*=0.0*/, double delta_y/*=0.0*/) {
 	Path P;
-	for (register int i = 0; i < p.length; ++i) {
+	for (int i = 0; i < p.length; ++i) {
 		P << IntPoint(double2cInt(p.x[i], scale, delta_x), double2cInt(p.y[i], scale, delta_y));
 	}
 	P << P[0];

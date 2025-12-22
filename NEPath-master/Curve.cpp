@@ -4,8 +4,8 @@
 // If a and b interset each other, then return true.
 // ida is the index of intersection on a, while idb is the index of intersection on b.
 bool Curve::interset_path_id(const path& a, const path& b, double& ida, double& idb) {
-	for (register int i = 0; i < a.length; ++i) {
-		for (register int j = 0; j < b.length; ++j) {
+	for (int i = 0; i < a.length; ++i) {
+		for (int j = 0; j < b.length; ++j) {
 			if (interset(a.x[i], a.y[i],
 				a.x[(i + 1) % a.length], a.y[(i + 1) % a.length],
 				b.x[j], b.y[j],
@@ -36,7 +36,7 @@ path* Curve::rotate(const path& p, double angle) {
 	pr->length = p.length;
 	pr->x = new double[pr->length];
 	pr->y = new double[pr->length];
-	for (register int i = 0; i < pr->length; ++i) {
+	for (int i = 0; i < pr->length; ++i) {
 		pr->x[i] = p.x[i] * cos(angle) - p.y[i] * sin(angle);
 		pr->y[i] = p.x[i] * sin(angle) + p.y[i] * cos(angle);
 	}
@@ -68,7 +68,7 @@ void Curve::Ndir(const double* x, const double* y, int length, double*& nx, doub
 	if (!ny) {
 		ny = new double[length];
 	}
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		double dx = x[(i + 1) % length] - x[(i + length - 1) % length];
 		double dy = y[(i + 1) % length] - y[(i + length - 1) % length];
 		double dl = sqrt(dx * dx + dy * dy);
@@ -80,7 +80,7 @@ void Curve::Ndir(const double* x, const double* y, int length, double*& nx, doub
 // area enclosed by path(x,y,length)
 double Curve::AreaCal(const double* x, const double* y, int length) {
 	double A2 = 0.0;
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		A2 += x[i] * y[(i + 1) % length] - y[i] * x[(i + 1) % length];
 	}
 	return 0.5 * A2;
@@ -94,7 +94,7 @@ void Curve::DiffLength(double*& dl, const double* x, const double* y, int length
 	if (!dl) {
 		dl = new double[length + poly - 1];
 	}
-	for (register int i = 0; i < length - 1; ++i) {
+	for (int i = 0; i < length - 1; ++i) {
 		dl[i] = sqrt((x[i + 1] - x[i]) * (x[i + 1] - x[i]) + (y[i + 1] - y[i]) * (y[i + 1] - y[i]));
 	}
 	if (poly) {
@@ -106,7 +106,7 @@ void Curve::DiffLength(double*& dl, const double* x, const double* y, int length
 // dl[i] is the distance between point (x[i],y[i]) and (x[i+1],y[i+1])
 // poly==true iff the path is closed
 double* Curve::DiffLength(const double* x, const double* y, int length, bool poly/*=true*/) {
-	double* dl;
+	double* dl = nullptr;  // FIX: Initialize to nullptr to avoid undefined behavior
 	DiffLength(dl, x, y, length, poly);
 	return dl;
 }
@@ -115,7 +115,7 @@ double* Curve::DiffLength(const double* x, const double* y, int length, bool pol
 // poly==true iff the path is closed
 double Curve::TotalLength(const double* x, const double* y, int length, bool poly/*=true*/) {
 	double L = 0.0;
-	for (register int i = 0; i < length - 1; ++i) {
+	for (int i = 0; i < length - 1; ++i) {
 		L += sqrt((x[i + 1] - x[i]) * (x[i + 1] - x[i]) + (y[i + 1] - y[i]) * (y[i + 1] - y[i]));
 	}
 	if (poly) {
@@ -130,7 +130,7 @@ double Curve::LengthBetween(const double* x, const double* y, int length, int fr
 		return 0;
 	}
 	double L = 0.0;
-	for (register int i = from; i != to; i = (i + 1) % length) {
+	for (int i = from; i != to; i = (i + 1) % length) {
 		L += sqrt((x[(i + 1) % length] - x[i]) * (x[(i + 1) % length] - x[i]) + (y[(i + 1) % length] - y[i]) * (y[(i + 1) % length] - y[i]));
 	}
 	return L;
@@ -157,7 +157,7 @@ void Curve::OffsetNaive(const double* x, const double* y, const double* delta, i
 	}
 	xnew = new double[length];
 	ynew = new double[length];
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		xnew[i] = x[i] + delta[i] * nx[i];
 		ynew[i] = y[i] + delta[i] * ny[i];
 	}
@@ -176,7 +176,7 @@ void Curve::OffsetNaive(const double* x, const double* y, double delta, int leng
 	if (!ynew) {
 		ynew = new double[length];
 	}
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		xnew[i] = x[i] + delta * nx[i];
 		ynew[i] = y[i] + delta * ny[i];
 	}
@@ -240,14 +240,14 @@ double Curve::BackDis(const double* x, const double* y, int length, double id, d
 		double alpha = dis / sumL;
 		return id_floor * alpha + id * (1.0 - alpha);
 	}
-	for (register int i = (id_floor + length - 1) % length; ; ) {
+	for (int i = (id_floor + length - 1) % length; ; ) {
 		double dl = dis(x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
 		if (sumL + dl <= dis) {
 			sumL += dl;
 			i = (i + length - 1) % length;
 		}
 		else {
-			double alpha = (dis - sumL) / dl; // alphaÔ½Ð¡£¬Ô½¿¿½üi+1
+			double alpha = (dis - sumL) / dl; // alphaÔ½Ð¡ï¿½ï¿½Ô½ï¿½ï¿½ï¿½ï¿½i+1
 			return i + 1.0 - alpha; // i * alpha + (i + 1) * (1.0 - alpha)
 		}
 	}
@@ -266,14 +266,14 @@ double Curve::ForDis(const double* x, const double* y, int length, double id, do
 		double alpha = dis / sumL;
 		return int(ceil(id)) * alpha + id * (1.0 - alpha);
 	}
-	for (register int i = id_ceil; ; ) {
+	for (int i = id_ceil; ; ) {
 		double dl = dis(x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
 		if (sumL + dl <= dis) {
 			sumL += dl;
 			i = (i + 1) % length;
 		}
 		else {
-			double alpha = (dis - sumL) / dl; // alphaÔ½Ð¡£¬Ô½¿¿½üi+1
+			double alpha = (dis - sumL) / dl; // alphaÔ½Ð¡ï¿½ï¿½Ô½ï¿½ï¿½ï¿½ï¿½i+1
 			return i + alpha; // i * (1.0 - alpha) + (i + 1) * alpha
 		}
 	}
@@ -298,7 +298,7 @@ double Curve::distance_point2path(const double* x, const double* y, int length, 
 double Curve::nearest_id(const double* x, const double* y, int length, double x0, double y0) {
 	double idm = 0.0;
 	double dism = dis(x[0], y[0], x0, y0);
-	for (register int i = 0; i < length; ++i) {
+	for (int i = 0; i < length; ++i) {
 		double alpha = whereneast_point2segment(x0, y0, x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
 		double xnow = linear_combine(x[i], x[(i + 1) % length], alpha);
 		double ynow = linear_combine(y[i], y[(i + 1) % length], alpha);
@@ -315,7 +315,7 @@ double Curve::nearest_id(const double* x, const double* y, int length, double x0
 double Curve::furthest_id(const double* x, const double* y, int length, double x0, double y0) {
 	int idm = 0;
 	double dism = dis(x[0], y[0], x0, y0);
-	for (register int i = 1; i < length; ++i) {
+	for (int i = 1; i < length; ++i) {
 		double disnow = dis(x[i], y[i], x0, y0);
 		if (disnow < dism) {
 			dism = disnow;
@@ -335,7 +335,7 @@ double Curve::curves_nearest(const path& p, const path& q, double& idp, double& 
 	int id = 0;
 	double id_ = 0;
 	double dism1 = dis(p.x[0], p.y[0], q.x[0], q.y[0]);
-	for (register int i = 0; i < p.length; ++i) {
+	for (int i = 0; i < p.length; ++i) {
 		double id2 = nearest_id(q.x, q.y, q.length, p.x[i], p.y[i]);
 		double disnow = dis(p.x[i], p.y[i],
 			interp_id(q.x, q.length, id2),
@@ -352,7 +352,7 @@ double Curve::curves_nearest(const path& p, const path& q, double& idp, double& 
 	id = 0;
 	id_ = 0;
 	double dism2 = dis(p.x[0], p.y[0], q.x[0], q.y[0]);
-	for (register int i = 0; i < q.length; ++i) {
+	for (int i = 0; i < q.length; ++i) {
 		double id2 = nearest_id(p.x, p.y, p.length, q.x[i], q.y[i]);
 		double disnow = dis(q.x[i], q.y[i],
 			interp_id(p.x, p.length, id2),
@@ -425,13 +425,13 @@ UnderFillSolution Curve::UnderFill(const path& contour, const paths& holes, cons
 	all_contours[holes.size()] = &contour;
 	vector<point> intersection;
 	for (int i = 0; i <= holes.size(); ++i) {
-		for (int j = 0; j < all_contours[i]->length; ++j) { // ÑØxÇÐ¸î£¬¸÷Ïß¶Î°üº¬Æðµã¡¢²»°üº¬ÖÕµã
+		for (int j = 0; j < all_contours[i]->length; ++j) { // ï¿½ï¿½xï¿½Ð¸î£¬ï¿½ï¿½ï¿½ß¶Î°ï¿½ï¿½ï¿½ï¿½ï¿½ã¡¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½
 			if (all_contours[i]->x[j] == all_contours[i]->x[(j + 1) % all_contours[i]->length]) {
 				continue;
 			}
 			else if (all_contours[i]->x[j] < all_contours[i]->x[(j + 1) % all_contours[i]->length]) {
 				for (int k = ceil((all_contours[i]->x[j] - sol.xs[0]) / reratio) - 1; k < sol.nx && sol.xs[k] < all_contours[i]->x[(j + 1) % all_contours[i]->length]; ++k) {
-					if (k < 0 || sol.xs[k] < all_contours[i]->x[j]) { // ·ÀÖ¹ÊýÖµÎó²î£¨³ÝÂÖ°¸Àý£©
+					if (k < 0 || sol.xs[k] < all_contours[i]->x[j]) { // ï¿½ï¿½Ö¹ï¿½ï¿½Öµï¿½ï¿½î£¨ï¿½ï¿½ï¿½Ö°ï¿½ï¿½ï¿½ï¿½ï¿½
 						continue;
 					}
 					double alpha = (sol.xs[k] - all_contours[i]->x[j]) / (all_contours[i]->x[(j + 1) % all_contours[i]->length] - all_contours[i]->x[j]);
@@ -562,11 +562,11 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 	double idminus = -1;
 	double idplus = -1;
 
-	// Ê×ÏÈÕÒµ½½»µã
-	if (!close) { // ²»±ÕºÏ
-		for (int i = id + 1; i < p.length; ++i) { // ËÑË÷plus
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½
+	if (!close) { // ï¿½ï¿½ï¿½Õºï¿½
+		for (int i = id + 1; i < p.length; ++i) { // ï¿½ï¿½ï¿½ï¿½plus
 			if (dis(xstar, ystar, p.x[i], p.y[i]) >= radius) {
-				double h = abs(cropro(xstar - p.x[i - 1], ystar - p.y[i - 1], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[i - 1], p.y[i - 1]); // Èý½ÇÐÎµÄ¸ß
+				double h = abs(cropro(xstar - p.x[i - 1], ystar - p.y[i - 1], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[i - 1], p.y[i - 1]); // ï¿½ï¿½ï¿½ï¿½ï¿½ÎµÄ¸ï¿½
 				double lstar = sqrt(radius * radius - h * h);
 				double l1 = sqrt(dis_square(xstar, ystar, p.x[i - 1], p.y[i - 1]) - h * h); // < lstar
 				double l2 = sqrt(dis_square(xstar, ystar, p.x[i], p.y[i]) - h * h); // > lstar
@@ -577,12 +577,12 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 				break;
 			}
 		}
-		if (idplus < 0) { // Î´Ïà½»
+		if (idplus < 0) { // Î´ï¿½à½»
 			return -pi * radius * radius;
 		}
-		for (int i = id - 1; i >= 0; --i) { // ËÑË÷minus
+		for (int i = id - 1; i >= 0; --i) { // ï¿½ï¿½ï¿½ï¿½minus
 			if (dis(xstar, ystar, p.x[i], p.y[i]) >= radius) {
-				double h = abs(cropro(xstar - p.x[i + 1], ystar - p.y[i + 1], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[i + 1], p.y[i + 1]); // Èý½ÇÐÎµÄ¸ß
+				double h = abs(cropro(xstar - p.x[i + 1], ystar - p.y[i + 1], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[i + 1], p.y[i + 1]); // ï¿½ï¿½ï¿½ï¿½ï¿½ÎµÄ¸ï¿½
 				double lstar = sqrt(radius * radius - h * h);
 				double l1 = sqrt(dis_square(xstar, ystar, p.x[i + 1], p.y[i + 1]) - h * h); // < lstar
 				double l2 = sqrt(dis_square(xstar, ystar, p.x[i], p.y[i]) - h * h); // > lstar
@@ -593,15 +593,15 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 				break;
 			}
 		}
-		if (idminus < 0) { // Î´Ïà½»
+		if (idminus < 0) { // Î´ï¿½à½»
 			return -pi * radius * radius;
 		}
 	}
-	else { // ±ÕºÏ
-		for (int i = (id + 1) % p.length; subset_cycle((id + 1) % p.length, id, i, true, false); i = (i + 1) % p.length) { // ËÑË÷plus
+	else { // ï¿½Õºï¿½
+		for (int i = (id + 1) % p.length; subset_cycle((id + 1) % p.length, id, i, true, false); i = (i + 1) % p.length) { // ï¿½ï¿½ï¿½ï¿½plus
 			if (dis(xstar, ystar, p.x[i], p.y[i]) >= radius) {
 				int j = (i + p.length - 1) % p.length;
-				double h = abs(cropro(xstar - p.x[j], ystar - p.y[j], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[j], p.y[j]); // Èý½ÇÐÎµÄ¸ß
+				double h = abs(cropro(xstar - p.x[j], ystar - p.y[j], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[j], p.y[j]); // ï¿½ï¿½ï¿½ï¿½ï¿½ÎµÄ¸ï¿½
 				double lstar = sqrt(radius * radius - h * h);
 				double l1 = sqrt(dis_square(xstar, ystar, p.x[j], p.y[j]) - h * h); // < lstar
 				double l2 = sqrt(dis_square(xstar, ystar, p.x[i], p.y[i]) - h * h); // > lstar
@@ -615,13 +615,13 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 				break;
 			}
 		}
-		if (idplus < 0) { // Î´Ïà½»
+		if (idplus < 0) { // Î´ï¿½à½»
 			return -pi * radius * radius;
 		}
-		for (int i = (id + p.length - 1) % p.length; subset_cycle(id, (id + p.length - 1) % p.length, i, false, true); i = (i + p.length - 1) % p.length) { // ËÑË÷minus
+		for (int i = (id + p.length - 1) % p.length; subset_cycle(id, (id + p.length - 1) % p.length, i, false, true); i = (i + p.length - 1) % p.length) { // ï¿½ï¿½ï¿½ï¿½minus
 			if (dis(xstar, ystar, p.x[i], p.y[i]) >= radius) {
 				int j = (i + 1) % p.length;
-				double h = abs(cropro(xstar - p.x[j], ystar - p.y[j], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[j], p.y[j]); // Èý½ÇÐÎµÄ¸ß
+				double h = abs(cropro(xstar - p.x[j], ystar - p.y[j], xstar - p.x[i], ystar - p.y[i])) / dis(p.x[i], p.y[i], p.x[j], p.y[j]); // ï¿½ï¿½ï¿½ï¿½ï¿½ÎµÄ¸ï¿½
 				double lstar = sqrt(radius * radius - h * h);
 				double l1 = sqrt(dis_square(xstar, ystar, p.x[j], p.y[j]) - h * h); // < lstar
 				double l2 = sqrt(dis_square(xstar, ystar, p.x[i], p.y[i]) - h * h); // > lstar
@@ -635,13 +635,13 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 				break;
 			}
 		}
-		if (idminus < 0) { // Î´Ïà½»
+		if (idminus < 0) { // Î´ï¿½à½»
 			return -pi * radius * radius;
 		}
 	}
 	
-	// idplus, idminus²»»á¹ý½ü£¬ÆäÖÐ¼äÖÁÉÙ¼ä¸ôÒ»¸öid
-	// ÇóÃæ»ýA1
+	// idplus, idminusï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½Ù¼ï¿½ï¿½Ò»ï¿½ï¿½id
+	// ï¿½ï¿½ï¿½ï¿½ï¿½A1
 	double Area1 = 0.0;
 	for (int i = (int)ceil(idminus) % p.length; subset_cycle_int((int)ceil(idminus) % p.length, (int)floor(idplus), i, true, false); i = (i + 1) % p.length) {
 		Area1 += cropro(p.x[i], p.y[i], p.x[(i + 1) % p.length], p.y[(i + 1) % p.length]);
@@ -652,7 +652,7 @@ double Curve::AreaInvariant_OnePoint(const path& p, double radius, int id, bool 
 	Area1 += cropro(xstar, ystar, xminus, yminus);
 	Area1 *= 0.5;
 
-	// ÇóÃæ»ýA2
+	// ï¿½ï¿½ï¿½ï¿½ï¿½A2
 	double thetaplus = atan2(yplus - ystar, xplus - xstar);
 	double thetaminus = atan2(yminus - ystar, xminus - xstar);
 	if (thetaminus < thetaplus) {
