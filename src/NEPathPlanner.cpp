@@ -105,8 +105,6 @@ paths NEPathPlanner::IQOP(const NonEquidistantOptions &opts, bool log /*=true*/)
 }
 #endif
 
-// DirectionParallel methods temporarily disabled - needs InterPoint operator< fix
-#ifdef ENABLE_DIRECTION_PARALLEL
 // Generate Raster toolpath
 paths NEPathPlanner::Raster(const DirectParallelOptions &opts)
 {
@@ -118,7 +116,6 @@ paths NEPathPlanner::Zigzag(const DirectParallelOptions &opts)
 {
     return DirectionParalle::Zigzag(contour, holes, opts.delta, opts.angle);
 }
-#endif
 
 // Generate CP toolpath
 paths NEPathPlanner::CP(const ContourParallelOptions &opts)

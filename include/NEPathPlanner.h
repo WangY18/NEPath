@@ -3,9 +3,7 @@
 #include "Curve.h"
 #include "ContourParallel.h"
 #include "PlanningOptions.h"
-#ifdef ENABLE_DIRECTION_PARALLEL
 #include "DirectionParallel.h"
-#endif
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
 #include "NonEquidistant.h"
 #endif
@@ -24,11 +22,9 @@ public:
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
     paths IQOP(const NonEquidistantOptions &opts, bool log = true); // Generate IQOP toolpath
 #endif
-#ifdef ENABLE_DIRECTION_PARALLEL
     paths Raster(const DirectParallelOptions &opts); // Generate Raster toolpath
     paths Zigzag(const DirectParallelOptions &opts); // Generate Zigzag toolpath
-#endif
-    paths CP(const ContourParallelOptions &opts); // Generate CP toolpath
+    paths CP(const ContourParallelOptions &opts);    // Generate CP toolpath
 public:
 public:
     path contour;

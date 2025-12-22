@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Options to enable optional dependencies
+option(IncludeIpopt "Enable IPOPT support" OFF)
+option(IncludeGurobi "Enable Gurobi support" OFF)
+
 # Find IPOPT
 # find_package(PkgConfig REQUIRED)
 # pkg_check_modules(IPOPT REQUIRED ipopt)
@@ -63,11 +67,6 @@ set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
     COMPILE_FLAGS "-w"
 )
 add_compile_options(-Wno-sign-compare) # Suppress sign-compare warnings in NEPath sources
-
-# # Demo sources
-# set(DEMO_SOURCES
-#     demos.cpp
-# )
 
 # Create test_demos executable
 add_executable(demo_Raster
