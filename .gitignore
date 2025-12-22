@@ -34,3 +34,107 @@
 # visual studio
 .vs/
 x64/
+
+# =========================
+# CMake / Build
+# =========================
+# Out-of-source build directories
+/build/
+/build-*/
+**/build/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+CTestTestfile.cmake
+
+# =========================
+# Compiled Object files
+# =========================
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# =========================
+# Compiled Dynamic libraries
+# =========================
+*.so
+*.dylib
+*.dll
+
+# =========================
+# Fortran module files
+# =========================
+*.mod
+*.smod
+
+# =========================
+# Compiled Static libraries
+# =========================
+*.lai
+*.la
+*.a
+*.lib
+
+# =========================
+# Executables
+# =========================
+*.exe
+*.out
+*.app
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+x64/
+*.VC.db
+*.VC.VC.opendb
+*.suo
+*.user
+*.ncb
+*.opensdf
+*.sdf
+*.ipch
+
+# =========================
+# Temporary / Backup files
+# =========================
+*~
+*.swp
+*.bak
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# =========================
+# Python / Conda (if any)
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.egg-info/
+*.conda
+*.ipynb_checkpoints/
+
+# =========================
+# Archives / IDE projects
+# =========================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.idea/
+*.vscode/

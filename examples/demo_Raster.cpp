@@ -29,7 +29,7 @@ int main()
     // Set the toolpath parameters
     DirectParallelOptions opts;
     opts.delta = 1.0;       // the line width of toolpaths
-    opts.angle = -pi / 3.0; // the angle of raster toolpaths, unit: rad
+    opts.angle = -pi / 2.0; // the angle of raster toolpaths, unit: rad
 
     paths raster_paths = planner.Raster(opts); // all raster paths
     cout << "There are " << raster_paths.size() << " continuous toolpaths in total." << endl;
