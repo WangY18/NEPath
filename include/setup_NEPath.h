@@ -5,6 +5,6 @@
 #endif
 
 // Legacy Gurobi support (deprecated, use IPOPT instead)
-// #ifndef IncludeGurobi
-// #define IncludeGurobi 0
-// #endif
+#ifndef IncludeGurobi
+#define IncludeGurobi 1
+#endif

@@ -7,18 +7,14 @@
 
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
 
-// using namespace Ipopt;
-
 namespace nepath
 {
     // ============================================================================
     // IQOP_NLP Implementation - IPOPT Nonlinear Problem Definition
     // ============================================================================
-
     IQOP_NLP::IQOP_NLP(const path &p, const NonEquidistantOptions &opts)
         : p_(p), opts_(opts), n_vars_(p.length), solution_deltas(nullptr)
     {
-
         // Initialize solution storage
         solution_deltas = new double[n_vars_];
         deltas_pre_ = new double[n_vars_];

@@ -12,7 +12,7 @@ message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
 
 # Options to enable optional dependencies
 option(IncludeIpopt "Enable IPOPT support" ON) # IPOPT: ON / OFF
-option(IncludeGurobi "Enable Gurobi support" OFF) # Gurobi: ON / OFF
+option(IncludeGurobi "Enable Gurobi support" ON) # Gurobi: ON / OFF
 
 # Compiler definitions: IPOPT
 if(IncludeIpopt)
@@ -56,8 +56,54 @@ endif()
 
 # Compiler definitions: Gurobi
 if(IncludeGurobi)
+    message(STATUS "Enable Gurobi support")
     add_compile_definitions(IncludeGurobi=1)
+
+    find_package(PkgConfig) # Apply PkgConfig to find Gurobi
+    if(PkgConfig_FOUND)
+        pkg_check_modules(Gurobi gurobi)
+    endif()
+
+    if(DEFINED GUROBI_PKG_FOUND AND GUROBI_PKG_FOUND)
+        message(STATUS "Found Gurobi via pkg-config")
+    else()
+        # Fallback to environment variable or user-provided path
+        if(NOT DEFINED GUROBI_HOME)
+            if(DEFINED ENV{GUROBI_HOME})
+                message(STATUS "Using GUROBI_HOME from environment: $ENV{GUROBI_HOME}")
+                set(GUROBI_HOME "$ENV{GUROBI_HOME}")
+            else()
+                message(FATAL_ERROR "IncludeGurobi=ON but Gurobi not found. Please set GUROBI_HOME environment variable or pass -DGUROBI_HOME=/path/to/gurobi")
+            endif()
+        endif()
+        set(GUROBI_INCLUDE_DIRS "${GUROBI_HOME}/include")
+        set(GUROBI_LIBRARY_DIRS "${GUROBI_HOME}/lib")
+
+        if(DEFINED GUROBI_VERSION)
+            # First use the version defined in CMake
+            message(STATUS "Using GUROBI_VERSION from CMake: ${GUROBI_VERSION}")
+            set(GUROBI_VERSION "${GUROBI_VERSION}")
+        elseif(DEFINED ENV{GUROBI_VERSION})
+            # If not defined, use the version from environment variable
+            set(GUROBI_VERSION "$ENV{GUROBI_VERSION}")
+            message(STATUS "Using GUROBI_VERSION from environment: ${GUROBI_VERSION}")
+        else()
+            message(FATAL_ERROR "GUROBI_VERSION not defined. Please set GUROBI_VERSION environment variable or pass -DGUROBI_VERSION=x (e.g., if you are using Gurobi 13.0, set GUROBI_VERSION=130)")
+        endif()
+
+        set(GUROBI_LIBRARIES gurobi_c++ gurobi${GUROBI_VERSION})
+    endif()
+    
+    set(GUROBI_INCLUDE_DIRS ${GUROBI_INCLUDE_DIRS})
+    set(GUROBI_LIBRARY_DIRS ${GUROBI_LIBRARY_DIRS})
+    set(GUROBI_LIBRARIES ${GUROBI_LIBRARIES})
+    message(STATUS "GUROBI Include Dirs: ${GUROBI_INCLUDE_DIRS}")
+    message(STATUS "GUROBI Library Dirs: ${GUROBI_LIBRARY_DIRS}")
+    message(STATUS "GUROBI Libraries: ${GUROBI_LIBRARIES}")
+    include_directories("${GUROBI_INCLUDE_DIRS}")
+    link_directories("${GUROBI_LIBRARY_DIRS}")
 else()
+    message(STATUS "Disable Gurobi support")
     add_compile_definitions(IncludeGurobi=0)
 endif()
 
@@ -107,17 +153,18 @@ set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
 )
 
 set(DEMO_LIST
-    demo_Raster
-    demo_Zigzag
-    demo_CP
-    demo_CP_CFS
-    demo_CP_DFS
-    demo_tool_compensate
-    demo_underfill
-    demo_sharpcorner
-    demo_IQOP_Ipopt
-    demo_IQOP_Ipopt_CFS
-    demo_IQOP_Ipopt_DFS
+    # demo_Raster
+    # demo_Zigzag
+    # demo_CP
+    # demo_CP_CFS
+    # demo_CP_DFS
+    # demo_tool_compensate
+    # demo_underfill
+    # demo_sharpcorner
+    # demo_IQOP_Ipopt
+    # demo_IQOP_Ipopt_CFS
+    # demo_IQOP_Ipopt_DFS
+    demo_IQOP_gurobi
 )
 
 foreach(demo ${DEMO_LIST})
@@ -127,13 +174,21 @@ foreach(demo ${DEMO_LIST})
         ${NEPATH_SOURCES}
     ) # Create test_demos executable
     if(IncludeIpopt)
+        target_link_directories(${demo} PRIVATE
+            ${IPOPT_LIBRARY_DIRS}
+        ) # Add IPOPT link directories
         target_link_libraries(${demo}
             ${IPOPT_LIBRARIES}
             ${CMAKE_DL_LIBS}
         ) # Link IPOPT libraries
+    endif()
+    if(IncludeGurobi)
         target_link_directories(${demo} PRIVATE
-            ${IPOPT_LIBRARY_DIRS}
-        ) # Add IPOPT link directories
+            ${GUROBI_LIBRARY_DIRS}
+        ) # Add Gurobi link directories
+        target_link_libraries(${demo}
+            ${GUROBI_LIBRARIES}
+        ) # Link Gurobi libraries
     endif()
 endforeach()
 
