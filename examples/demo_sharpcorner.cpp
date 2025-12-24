@@ -1,7 +1,5 @@
 #include "NEPathPlanner.h"
-#include "setup_NEPath.h"
 #include "FileAgent.h"
-#include <cmath>
 #include <iostream>
 #include <filesystem>
 namespace fs = std::filesystem;
