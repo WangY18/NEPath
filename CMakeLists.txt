@@ -166,6 +166,7 @@ set(DEMO_LIST
     demo_IQOP_Ipopt_DFS
     demo_IQOP_gurobi
     demo_IQOP_gurobi_CFS
+    demo_IQOP_gurobi_DFS
 )
 
 foreach(demo ${DEMO_LIST})
