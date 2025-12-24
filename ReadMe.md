@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)]([3D printing - Wikipedia](https://en.wikipedia.org/wiki/3D_printing)) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths: (See [here](##what-can-nepath-library-do?) for visualized examples.)
+The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)](https://en.wikipedia.org/wiki/3D_printing) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths: (See [here](##what-can-nepath-library-do) for visualized examples.)
 
 + Optimization-based non-equidistant toolpath:
 	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**. (Recommended)
