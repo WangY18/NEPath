@@ -1,6 +1,6 @@
-#include "DirectionParallel.h"
-#include "Basic.h"
-#include "ContourParallel.h"
+#include <NEPath/DirectionParallel.h>
+#include <NEPath/Basic.h>
+#include <NEPath/ContourParallel.h>
 
 namespace nepath
 {

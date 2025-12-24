@@ -1,5 +1,5 @@
 #pragma once
-#include "Curve.h"
+#include <NEPath/Curve.h>
 #include "clipper.hpp"
 // using namespace ClipperLib;
 // DirectionParalle is a class to plan Raster and Zigzag toolpaths.

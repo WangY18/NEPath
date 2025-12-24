@@ -1,6 +1,6 @@
-#include "Connector.h"
-#include "Basic.h"
-#include "Curve.h"
+#include <NEPath/Connector.h>
+#include <NEPath/Basic.h>
+#include <NEPath/Curve.h>
 
 namespace nepath
 {

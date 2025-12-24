@@ -1,7 +1,7 @@
-#include "NonEquidistant.h"
-#include "Basic.h"
-#include "ContourParallel.h"
-#include "Connector.h"
+#include <NEPath/NonEquidistant.h>
+#include <NEPath/Basic.h>
+#include <NEPath/ContourParallel.h>
+#include <NEPath/Connector.h>
 #include <cmath>
 #include <iostream>
 
@@ -223,7 +223,7 @@ namespace nepath
         }
         // constants
         double *deltas_pre = new double[p.length]();
-        for (register int i = 0; i < p.length; ++i)
+        for (int i = 0; i < p.length; ++i)
         {
             deltas_pre[i] = 0.5 * (1.0 + opts.alpha) * opts.delta;
         }
@@ -244,25 +244,25 @@ namespace nepath
 
         double *c_A = new double[p.length];
         double *c_N = new double[p.length];
-        for (register int i = 0; i < p.length; ++i)
+        for (int i = 0; i < p.length; ++i)
         {
             c_A[i] = 0.5 * ((p.y[(i + 1) % p.length] - p.y[(i + p.length - 1) % p.length]) * nx[i] - (p.x[(i + 1) % p.length] - p.x[(i + p.length - 1) % p.length]) * ny[i]);
             c_N[i] = 0.5 * (ny[(i + 1) % p.length] * nx[i] - nx[(i + 1) % p.length] * ny[i]);
         }
 
         double *ub_deltas = new double[p.length];
-        for (register int i = 0; i < p.length; ++i)
+        for (int i = 0; i < p.length; ++i)
         {
             ub_deltas[i] = opts.delta;
         }
         double *ub_inf = new double[p.length];
-        for (register int i = 0; i < p.length; ++i)
+        for (int i = 0; i < p.length; ++i)
         {
             ub_inf[i] = GRB_INFINITY;
         }
         double *one_coeffs = new double[p.length];
         double *alpha_coeffs = new double[p.length];
-        for (register int i = 0; i < p.length; ++i)
+        for (int i = 0; i < p.length; ++i)
         {
             one_coeffs[i] = 1.0;
             alpha_coeffs[i] = opts.alpha * opts.delta;
@@ -274,7 +274,7 @@ namespace nepath
             GRBModel model = GRBModel(*gurobi_);
             GRBVar *deltas = model.addVars(alpha_coeffs, ub_deltas, NULL, NULL, NULL, NULL, p.length);
             Curve::DiffLength(dl, p.x, p.y, p.length, true);
-            for (register int i = 0; i < p.length; ++i)
+            for (int i = 0; i < p.length; ++i)
             {
                 model.addConstr(-dl[i] * dl[i] * deltas[(i + p.length - 1) % p.length] + (dl[i] * dl[i] - dl[(i + p.length - 1) % p.length] * dl[(i + p.length - 1) % p.length]) * deltas[i] + dl[(i + p.length - 1) % p.length] * dl[(i + p.length - 1) % p.length] * deltas[(i + 1) % p.length] <= opts.dot_delta * dl[(i + p.length - 1) % p.length] * dl[i] * (dl[(i + p.length - 1) % p.length] + dl[i]));
                 model.addConstr(-dl[i] * dl[i] * deltas[(i + p.length - 1) % p.length] + (dl[i] * dl[i] - dl[(i + p.length - 1) % p.length] * dl[(i + p.length - 1) % p.length]) * deltas[i] + dl[(i + p.length - 1) % p.length] * dl[(i + p.length - 1) % p.length] * deltas[(i + 1) % p.length] >= -opts.dot_delta * dl[(i + p.length - 1) % p.length] * dl[i] * (dl[(i + p.length - 1) % p.length] + dl[i]));
@@ -284,7 +284,7 @@ namespace nepath
 
             GRBQuadExpr A_plus_linear = A0;
             GRBQuadExpr A_minus_linear = A0;
-            for (register int i = 0; i < p.length; ++i)
+            for (int i = 0; i < p.length; ++i)
             {
                 if (c_N[i] >= 0)
                 {
@@ -325,7 +325,7 @@ namespace nepath
             GRBVar *Dx = model.addVars(NULL, ub_inf, NULL, NULL, NULL, NULL, p.length);
             GRBVar *Dy = model.addVars(NULL, ub_inf, NULL, NULL, NULL, NULL, p.length);
             GRBVar *Dl = model.addVars(NULL, ub_inf, NULL, NULL, NULL, NULL, p.length);
-            for (register int i = 0; i < p.length; ++i)
+            for (int i = 0; i < p.length; ++i)
             {
                 model.addConstr(Dx[i] >= p.x[i] + nx[i] * deltas[i] - p.x[(i + 1) % p.length] - nx[(i + 1) % p.length] * deltas[(i + 1) % p.length]);
                 model.addConstr(Dx[i] >= -p.x[i] - nx[i] * deltas[i] + p.x[(i + 1) % p.length] + nx[(i + 1) % p.length] * deltas[(i + 1) % p.length]);
@@ -364,7 +364,7 @@ namespace nepath
 
             double Delta_delta = abs(deltas[0].get(GRB_DoubleAttr_X) - deltas_pre[0]);
 
-            for (register int i = 0; i < p.length; ++i)
+            for (int i = 0; i < p.length; ++i)
             {
                 Delta_delta = std::max(Delta_delta, fabs(deltas[i].get(GRB_DoubleAttr_X) - deltas_pre[i]));
                 deltas_pre[i] = deltas[i].get(GRB_DoubleAttr_X);
@@ -507,8 +507,8 @@ namespace nepath
     }
 
     bool IQOP_NLP::get_starting_point(Ipopt::Index n, bool init_x, Ipopt::Number *x,
-                                      bool init_z, Ipopt::Number *z_L, Ipopt::Number *z_U,
-                                      Ipopt::Index m, bool init_lambda, Ipopt::Number *lambda)
+                                      bool /*init_z*/, Ipopt::Number * /*z_L*/, Ipopt::Number * /*z_U*/,
+                                      Ipopt::Index /*m*/, bool /*init_lambda*/, Ipopt::Number * /*lambda*/)
     {
         // Initialize primal variables
         if (init_x)
@@ -523,7 +523,7 @@ namespace nepath
         return true;
     }
 
-    bool IQOP_NLP::eval_f(Ipopt::Index n, const Ipopt::Number *x, bool new_x, Ipopt::Number &obj_value)
+    bool IQOP_NLP::eval_f(Ipopt::Index /*n*/, const Ipopt::Number *x, bool /*new_x*/, Ipopt::Number &obj_value)
     {
         // Compute objective function
         obj_value = 0.0;
@@ -585,8 +585,8 @@ namespace nepath
         return true;
     }
 
-    bool IQOP_NLP::eval_g(Ipopt::Index n, const Ipopt::Number *x, bool new_x,
-                          Ipopt::Index m, Ipopt::Number *g)
+    bool IQOP_NLP::eval_g(Ipopt::Index /*n*/, const Ipopt::Number *x, bool /*new_x*/,
+                          Ipopt::Index /*m*/, Ipopt::Number *g)
     {
         // Evaluate constraints
         int con_idx = 0;
@@ -636,8 +636,8 @@ namespace nepath
         return true;
     }
 
-    bool IQOP_NLP::eval_jac_g(Ipopt::Index n, const Ipopt::Number *x, bool new_x,
-                              Ipopt::Index m, Ipopt::Index nele_jac, Ipopt::Index *iRow,
+    bool IQOP_NLP::eval_jac_g(Ipopt::Index /*n*/, const Ipopt::Number * /*x*/, bool /*new_x*/,
+                              Ipopt::Index /*m*/, Ipopt::Index /*nele_jac*/, Ipopt::Index *iRow,
                               Ipopt::Index *jCol, Ipopt::Number *values)
     {
         if (values == nullptr)
@@ -759,10 +759,10 @@ namespace nepath
         return true;
     }
 
-    bool IQOP_NLP::eval_h(Ipopt::Index n, const Ipopt::Number *x, bool new_x,
-                          Ipopt::Number obj_factor, Ipopt::Index m, const Ipopt::Number *lambda,
-                          bool new_lambda, Ipopt::Index nele_hess, Ipopt::Index *iRow,
-                          Ipopt::Index *jCol, Ipopt::Number *values)
+    bool IQOP_NLP::eval_h(Ipopt::Index /*n*/, const Ipopt::Number * /*x*/, bool /*new_x*/,
+                          Ipopt::Number /*obj_factor*/, Ipopt::Index /*m*/, const Ipopt::Number * /*lambda*/,
+                          bool /*new_lambda*/, Ipopt::Index /*nele_hess*/, Ipopt::Index * /*iRow*/,
+                          Ipopt::Index * /*jCol*/, Ipopt::Number *values)
     {
         if (values == nullptr)
         {
@@ -774,13 +774,13 @@ namespace nepath
         return false; // Let IPOPT use quasi-Newton
     }
 
-    void IQOP_NLP::finalize_solution(Ipopt::SolverReturn status, Ipopt::Index n,
-                                     const Ipopt::Number *x, const Ipopt::Number *z_L,
-                                     const Ipopt::Number *z_U, Ipopt::Index m,
-                                     const Ipopt::Number *g, const Ipopt::Number *lambda,
-                                     Ipopt::Number obj_value,
-                                     const Ipopt::IpoptData *ip_data,
-                                     Ipopt::IpoptCalculatedQuantities *ip_cq)
+    void IQOP_NLP::finalize_solution(Ipopt::SolverReturn /*status*/, Ipopt::Index n,
+                                     const Ipopt::Number *x, const Ipopt::Number * /*z_L*/,
+                                     const Ipopt::Number * /*z_U*/, Ipopt::Index /*m*/,
+                                     const Ipopt::Number * /*g*/, const Ipopt::Number * /*lambda*/,
+                                     Ipopt::Number /*obj_value*/,
+                                     const Ipopt::IpoptData * /*ip_data*/,
+                                     Ipopt::IpoptCalculatedQuantities * /*ip_cq*/)
     {
         // Copy solution
         for (Ipopt::Index i = 0; i < n; ++i)

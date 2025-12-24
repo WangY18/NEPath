@@ -1,4 +1,4 @@
-#include "path.h"
+#include <NEPath/path.h>
 #include <stack>
 
 namespace nepath

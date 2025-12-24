@@ -1,4 +1,4 @@
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 
 namespace nepath
 {

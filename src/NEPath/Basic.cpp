@@ -1,4 +1,4 @@
-#include "Basic.h"
+#include <NEPath/Basic.h>
 
 namespace nepath
 {

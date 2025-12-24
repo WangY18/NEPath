@@ -1,5 +1,5 @@
 #pragma once
-#include "Curve.h"
+#include <NEPath/Curve.h>
 // FileAgent is a class to read and write files.
 
 namespace nepath

@@ -1,11 +1,11 @@
 #pragma once
-#include "setup_NEPath.h"
-#include "Curve.h"
-#include "ContourParallel.h"
-#include "PlanningOptions.h"
-#include "DirectionParallel.h"
+#include <NEPath/setup_NEPath.h>
+#include <NEPath/Curve.h>
+#include <NEPath/ContourParallel.h>
+#include <NEPath/PlanningOptions.h>
+#include <NEPath/DirectionParallel.h>
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
-#include "NonEquidistant.h"
+#include <NEPath/NonEquidistant.h>
 #endif
 // NEPathPlanner is a class to plan toolpaths, connect toolpaths, and perform tool compensating.
 

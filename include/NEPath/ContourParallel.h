@@ -1,5 +1,5 @@
 #pragma once
-#include "Curve.h"
+#include <NEPath/Curve.h>
 #include "clipper.hpp"
 // ContourParallel is a class to plan CP toolpaths.
 

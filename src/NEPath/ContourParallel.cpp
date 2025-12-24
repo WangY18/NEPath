@@ -1,5 +1,5 @@
-#include "ContourParallel.h"
-#include "Connector.h"
+#include <NEPath/ContourParallel.h>
+#include <NEPath/Connector.h>
 
 namespace nepath
 {
@@ -68,7 +68,7 @@ namespace nepath
     // If wash==true, the output paths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
     paths ContourParallel::OffsetClipper(const path &contour, const paths &holes, double dis, bool wash /*=true*/, double washdis /*=0.5*/, int num_least /*=50*/)
     {
-        paths ps_offset = OffsetClipper(contour.x, contour.y, dis, contour.length, wash, washdis);
+        paths ps_offset = OffsetClipper(contour.x, contour.y, dis, contour.length, wash, washdis, num_least);
         paths solution;
         for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
         {
@@ -124,10 +124,10 @@ namespace nepath
         {
             pathnode *pn_parent = S.top();
             S.pop();
-            paths ps_offset = OffsetClipper(pn_parent->data.x, pn_parent->data.y, dis, pn_parent->data.length, wash, washdis);
+            paths ps_offset = OffsetClipper(pn_parent->data.x, pn_parent->data.y, dis, pn_parent->data.length, wash, washdis, num_least);
             for (int i_offset = 0; i_offset < ps_offset.size(); ++i_offset)
             {
-                paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis);
+                paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, wash, washdis, num_least);
                 for (int i_clip = 0; i_clip < ps_clip.size(); ++i_clip)
                 {
                     pathnode *pn_child = new pathnode(ps_clip[i_clip]);

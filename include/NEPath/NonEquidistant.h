@@ -1,7 +1,7 @@
 #pragma once
-#include "setup_NEPath.h"
-#include "Curve.h"
-#include "PlanningOptions.h"
+#include <NEPath/setup_NEPath.h>
+#include <NEPath/Curve.h>
+#include <NEPath/PlanningOptions.h>
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
 #include "IpTNLP.hpp"
 #include "IpIpoptApplication.hpp"

@@ -3,8 +3,8 @@
 #include <fstream>
 #include <stack>
 #include <algorithm>
-#include "Basic.h"
-#include "path.h"
+#include <NEPath/Basic.h>
+#include <NEPath/path.h>
 // UnderFillSolution is a struct to store information of underfill.
 // SharpTurnSolution is a struct to store information of sharp corners.
 // Curve is a class to perform basic 2D geometric operations.

@@ -1,4 +1,4 @@
-#include "Curve.h"
+#include <NEPath/Curve.h>
 
 namespace nepath
 {
