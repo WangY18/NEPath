@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.15)
 project(NEPath_Demos LANGUAGES CXX)
 
 # Build configuration
-set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
