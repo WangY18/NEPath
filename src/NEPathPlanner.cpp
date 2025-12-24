@@ -90,16 +90,16 @@ namespace nepath
     paths NEPathPlanner::IQOP(const NonEquidistantOptions &opts, bool log /*=true*/)
     {
         NonEquidistant NE(log);
-        if (opts.connect == none)
+        if (opts.connector == ConnectAlgorithm::none)
         {
             return NE.NEpaths(contour, holes, opts);
         }
         paths ps;
-        if (opts.connect == cfs)
+        if (opts.connector == ConnectAlgorithm::cfs)
         {
             ps.push_back(NE.NEpaths_CFS(contour, holes, opts));
         }
-        else if (opts.connect == dfs)
+        else if (opts.connector == ConnectAlgorithm::dfs)
         {
             ps.push_back(NE.NEpaths_DFS(contour, holes, opts));
         }
@@ -122,16 +122,16 @@ namespace nepath
     // Generate CP toolpath
     paths NEPathPlanner::CP(const ContourParallelOptions &opts)
     {
-        if (opts.connect == none)
+        if (opts.connector == ConnectAlgorithm::none)
         {
             return ContourParallel::Contour_Parallel(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least);
         }
         paths ps;
-        if (opts.connect == cfs)
+        if (opts.connector == ConnectAlgorithm::cfs)
         {
             ps.push_back(ContourParallel::Contour_Parallel_CFS(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least));
         }
-        else if (opts.connect == dfs)
+        else if (opts.connector == ConnectAlgorithm::dfs)
         {
             ps.push_back(ContourParallel::Contour_Parallel_DFS(contour, holes, opts.delta, opts.wash, opts.washdis, opts.num_least));
         }

@@ -36,9 +36,9 @@ int main()
     paths raster_paths = planner.Raster(opts); // all raster paths
     cout << "Raster: There are " << raster_paths.size() << " continuous toolpaths in total." << endl;
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_raster").string().c_str());
-    FileAgent::write_csv(raster_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_raster").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
+    FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_raster").string().c_str(), true);
+    FileAgent::write_csv(raster_paths, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_raster" / "").string().c_str(), ".csv");
+    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_raster" / "contour.csv").string().c_str());
 
     return 0;
 }

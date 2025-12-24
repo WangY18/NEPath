@@ -4,15 +4,16 @@
 
 namespace nepath
 {
-    enum ConnectAlgorithm
+    enum class ConnectAlgorithm
     {
         none,
         cfs, // Connector::ConnectedFermatSpiral_MultMinimum
         dfs  // Connector::ConnectedDFS
     };
 
-    enum OptimizationAlgorithm
+    enum class OptimizationAlgorithm
     {
+        none,  // No solver
         ipopt, // IPOPT solver
         gurobi // Gurobi solver
     };
@@ -31,7 +32,7 @@ namespace nepath
         int num_least = 50;
         // If wash==true, the toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 
-        ConnectAlgorithm connect = ConnectAlgorithm::none;
+        ConnectAlgorithm connector = ConnectAlgorithm::none;
     };
 
     struct NonEquidistantOptions
@@ -56,6 +57,7 @@ namespace nepath
         int num_least = 50;
         // If wash==true, the toolpaths would be resampled with a uniformly-distributed distance no more than wash_dis, and the number of waypoints are no less than num_least.
 
-        ConnectAlgorithm connect = ConnectAlgorithm::none;
+        ConnectAlgorithm connector = ConnectAlgorithm::none;
+        OptimizationAlgorithm optimizer = OptimizationAlgorithm::none;
     };
 }

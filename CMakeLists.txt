@@ -153,18 +153,19 @@ set_source_files_properties(external/clipper/clipper.cpp PROPERTIES
 )
 
 set(DEMO_LIST
-    # demo_Raster
-    # demo_Zigzag
-    # demo_CP
-    # demo_CP_CFS
-    # demo_CP_DFS
-    # demo_tool_compensate
-    # demo_underfill
-    # demo_sharpcorner
-    # demo_IQOP_Ipopt
-    # demo_IQOP_Ipopt_CFS
-    # demo_IQOP_Ipopt_DFS
+    demo_Raster
+    demo_Zigzag
+    demo_CP
+    demo_CP_CFS
+    demo_CP_DFS
+    demo_tool_compensate
+    demo_underfill
+    demo_sharpcorner
+    demo_IQOP_Ipopt
+    demo_IQOP_Ipopt_CFS
+    demo_IQOP_Ipopt_DFS
     demo_IQOP_gurobi
+    demo_IQOP_gurobi_CFS
 )
 
 foreach(demo ${DEMO_LIST})

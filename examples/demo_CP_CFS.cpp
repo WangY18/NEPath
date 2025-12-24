@@ -45,7 +45,7 @@ int main()
     opts.wash = true; // it is recommended to set opt.wash=true
     // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
     opts.washdis = 0.2;
-    opts.connect = cfs; // select cfs as the connecting method
+    opts.connector = ConnectAlgorithm::cfs; // select cfs as the connecting method
 
     paths CP_paths = planner.CP(opts); // all CP paths
     cout << "CP-CFS: There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
@@ -55,9 +55,9 @@ int main()
         cout << "Toopath " << i << " has " << CP_paths[i].length << " waypoints." << endl;
     }
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP_CFS").string().c_str());
-    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP_CFS").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
+    FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_CP_CFS").string().c_str(), true);
+    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_CP_CFS" / "").string().c_str(), ".csv");
+    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "contour.csv").string().c_str());
 
     return 0;
 }

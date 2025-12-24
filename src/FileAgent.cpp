@@ -1,6 +1,7 @@
 #include "FileAgent.h"
 #include <string>
 #include <cstring>
+#include <filesystem>
 
 // Platform-specific headers
 #ifdef _WIN32
@@ -10,8 +11,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#define _mkdir(path) mkdir(path, 0755)
-#define _rmdir(path) rmdir(path)
+// #define _mkdir(path) mkdir(path, 0755)
+// #define _rmdir(path) rmdir(path)
 
 namespace nepath
 {
@@ -182,48 +183,67 @@ std::vector<std::string> FileAgent::get_AllFiles(char const *path, bool folder /
 }
 
 // delete all files in the folder
-void FileAgent::delete_AllFiles(const char *path)
-{
-    std::string dir(path);
-    std::string newDir = dir + "\\*.*";
-    intptr_t handle;
-    struct _finddata_t fileinfo;
-    handle = _findfirst(newDir.c_str(), &fileinfo);
+// void FileAgent::delete_AllFiles(const char *path)
+// {
+// std::filesystem::remove_all(path);
+// std::filesystem::create_directory(path);
 
-    if (handle == -1)
-    { // empty folder
-        return;
-    }
+// std::string dir(path);
+// std::string searchPath = dir + "\\*.*";
 
-    do
-    {
-        if (fileinfo.attrib & _A_SUBDIR)
-        {
-            if (strcmp(fileinfo.name, ".") == 0 || strcmp(fileinfo.name, "..") == 0)
-                continue;
+// intptr_t handle;
+// struct _finddata_t fileinfo;
+// handle = _findfirst(searchPath.c_str(), &fileinfo);
 
-            newDir = dir + "\\" + fileinfo.name;
-            delete_AllFiles(newDir.c_str());
-            _rmdir(newDir.c_str());
-        }
-        else
-        {
-            std::string file_path = dir + "\\" + fileinfo.name;
-            remove(file_path.c_str());
-        }
-    } while (!_findnext(handle, &fileinfo));
+// if (handle == -1)
+//     return; // empty folder
 
-    _findclose(handle);
-    return;
-}
+// do
+// {
+//     std::string fileName = fileinfo.name;
+
+//     if (fileinfo.attrib & _A_SUBDIR)
+//     {
+//         if (fileName == "." || fileName == "..")
+//             continue;
+
+//         std::string subdir = dir + "\\" + fileName;
+//         delete_AllFiles(subdir.c_str());
+//         _rmdir(subdir.c_str());
+//     }
+//     else
+//     {
+//         std::string filePath = dir + "\\" + fileName;
+//         remove(filePath.c_str());
+//     }
+
+// } while (_findnext(handle, &fileinfo) == 0);
+
+// _findclose(handle);
+// }
 
 // create a directory
 void FileAgent::mkdir(const char *path, bool clear /*=false*/)
 {
-    if (clear)
+    std::filesystem::path dir(path);
+
+    if (clear && std::filesystem::exists(dir))
     {
-        delete_AllFiles(path);
+        // std::cout << "Deleting directory contents: " << dir << std::endl;
+        std::filesystem::remove_all(dir); // Delete directory and its contents
     }
-    _mkdir(path);
+
+    // Ensure parent directory exists
+    if (!std::filesystem::exists(dir.parent_path()))
+    {
+        std::filesystem::create_directories(dir.parent_path()); // Recursively create parent directories
+    }
+
+    // Create target directory, no error if it already exists
+    if (!std::filesystem::exists(dir))
+    {
+        // std::cout << "Creating directory: " << dir << std::endl;
+        std::filesystem::create_directory(dir);
+    }
 }
 }

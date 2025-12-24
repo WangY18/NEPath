@@ -47,10 +47,10 @@ int main()
         cout << "Toopath " << i << " has " << ps_toolcompensate[i].length << " waypoints." << endl;
     }
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_toolcompensate").string().c_str());
-    FileAgent::write_csv(ps_toolcompensate, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_toolcompensate").string().c_str(), ".csv");
-    // // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
-    FileAgent::write_csv(planner.holes[0], (fs::path(__FILE__).parent_path() / "data_examples" / "hole.csv").string().c_str());
+    FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_toolcompensate").string().c_str(), true);
+    FileAgent::write_csv(ps_toolcompensate, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_toolcompensate" / "").string().c_str(), ".csv");
+    // // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "contour.csv").string().c_str());
+    FileAgent::write_csv(planner.holes[0], (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "hole.csv").string().c_str());
 
     return 0;
 }

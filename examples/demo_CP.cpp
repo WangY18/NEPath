@@ -53,9 +53,9 @@ int main()
         // CP_paths[i] is the i-th continuous toolpath
         cout << "Toopath " << i << " has " << CP_paths[i].length << " waypoints." << endl;
     }
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP").string().c_str());
-    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_CP").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "contour.csv").string().c_str());
+    FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_CP").string().c_str(), true);
+    FileAgent::write_csv(CP_paths, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_CP" / "").string().c_str(), ".csv");
+    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "contour.csv").string().c_str());
 
     return 0;
 }

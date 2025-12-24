@@ -54,14 +54,15 @@ int main()
     opts.wash = true; // it is recommended to set opt.wash=true
     // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
     opts.washdis = 0.2;
-    opts.connect = cfs; // select cfs as the connecting method
+    opts.connector = ConnectAlgorithm::cfs;        // select cfs as the connecting method
+    opts.optimizer = OptimizationAlgorithm::ipopt; // use IPOPT solver
 
     paths IQOP_paths = planner.IQOP(opts, false); // IQOP with CFS
     cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
 
-    FileAgent::delete_AllFiles((fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "paths_IQ").string().c_str());
-    FileAgent::write_csv(IQOP_paths, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "paths_IQ").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP" / "contour.csv").string().c_str());
+    FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "paths_IQ").string().c_str(), true);
+    FileAgent::write_csv(IQOP_paths, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "paths_IQ" / "").string().c_str(), ".csv");
+    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Ipopt_CFS" / "contour.csv").string().c_str());
 
     return 0;
 }

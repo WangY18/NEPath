@@ -1,20 +1,49 @@
 #pragma once
 #include "setup_NEPath.h"
-// NonEquidistant is a class to plan non-equidistant toolpaths.
-
+#include "Curve.h"
+#include "PlanningOptions.h"
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
 #include "IpTNLP.hpp"
 #include "IpIpoptApplication.hpp"
-#include "Curve.h"
-#include "PlanningOptions.h"
+#endif
+#if defined(IncludeGurobi) && (IncludeGurobi != 0)
+#include "gurobi_c++.h"
+#endif
 
 namespace nepath
 {
-    // IPOPT NLP problem definition for IQOP optimization
+    // NonEquidistant is a class to plan non-equidistant toolpaths.
+    class NonEquidistant
+    {
+    public:
+        NonEquidistant(bool debug = false);
+        ~NonEquidistant();
+        paths NEpaths(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
+        path NEpaths_CFS(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
+        path NEpaths_DFS(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
+
+    private:
+        double *Optimize_QSL(path p, const NonEquidistantOptions &opts);
+        paths do1offset(const path &contour, const NonEquidistantOptions &opts);
+        pathnode *root_offset(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
+        double *optimize_by_ipopt(const path &p, const NonEquidistantOptions &opts);
+        double *optimize_by_gurobi(const path &p, const NonEquidistantOptions &opts);
+
+    private:
+        bool debug_;
+#if defined(IncludeGurobi) && (IncludeGurobi != 0)
+        GRBEnv *gurobi_ = nullptr;
+#endif
+    };
+}
+
+// IPOPT NLP problem definition for IQOP optimization
+namespace nepath
+{
     class IQOP_NLP : public Ipopt::TNLP
     {
     public:
-        IQOP_NLP(const path &p, const NonEquidistantOptions &opts);
+        IQOP_NLP(const path &p, const NonEquidistantOptions &opts, bool output_debug = false);
         virtual ~IQOP_NLP();
 
         // IPOPT required methods
@@ -73,24 +102,6 @@ namespace nepath
         double *deltas_pre_; // Previous iteration deltas
 
         double *solution_deltas; // Final solution
-    };
-
-    class NonEquidistant
-    {
-    public:
-        NonEquidistant(bool debug = false);
-        paths NEpaths(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
-        path NEpaths_CFS(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
-        path NEpaths_DFS(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
-
-    private:
-        double *Optimize_QSL(path p, const NonEquidistantOptions &opts);
-        paths do1offset(const path &contour, const NonEquidistantOptions &opts);
-        pathnode *root_offset(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
-
-    private:
         bool debug_;
     };
 }
-
-#endif
