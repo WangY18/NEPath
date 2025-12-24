@@ -1,4 +1,4 @@
-#include <NEPath/NEPathPlanner.h>
+#include <NEPath/NEPath.h>
 #include <NEPath/FileAgent.h>
 #include <cmath>
 #include <iostream>
