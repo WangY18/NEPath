@@ -63,6 +63,6 @@ int main()
 
     FileAgent::mkdir((fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Gurobi_CFS" / "paths_IQ").string().c_str(), true);
     FileAgent::write_csv(IQOP_paths, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Gurobi_CFS" / "paths_IQ" / "").string().c_str(), ".csv");
-    // FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path() / "data_examples" / "demo_IQOP_Gurobi" / "contour.csv").string().c_str());
+    FileAgent::write_csv(contour, (fs::path(__FILE__).parent_path().parent_path() / "data_examples" / "demo_IQOP_Gurobi_CFS" / "contour.csv").string().c_str());
     return 0;
 }
