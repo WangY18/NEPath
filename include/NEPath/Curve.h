@@ -78,7 +78,7 @@ namespace nepath
         static double BackDis(const double *x, const double *y, int length, double id, double dis); // the point on path(x,y,length) back (x[id],y[id]) with a length of dis along the path
         static double ForDis(const double *x, const double *y, int length, double id, double dis);  // the point on path(x,y,length) forward (x[id],y[id]) with a length of dis along the path
     public:
-        static path wash_dis(const path &p, double dis);                                                          // resample the path p with a distance approximately equal to dis
-        static path wash_dis(const double *x, const double *y, int length, double dis, bool output_poly = false); // resample the path p with a distance approximately equal to dis
+        static path wash_dis(const path &p, double dis, int num_least = -1);                                                          // resample the path p with a distance approximately equal to dis
+        static path wash_dis(const double *x, const double *y, int length, double dis, int num_least = -1, bool output_poly = false); // resample the path p with a distance approximately equal to dis
     };
 }

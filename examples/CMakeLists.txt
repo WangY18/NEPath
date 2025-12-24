@@ -4,9 +4,19 @@ project(NEPath_Examples LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 假设用户在 examples/build 里执行 cmake ..
-# add_subdirectory(..) 会先构建顶层 NEPath 库
-add_subdirectory(.. ${CMAKE_CURRENT_BINARY_DIR}/NEPath_build)
+# -------------------------------
+# 判断是否已安装 NEPath
+# -------------------------------
+# 用户可以通过 CMAKE_PREFIX_PATH 指定安装路径
+find_package(NEPath QUIET)
+
+if(NOT NEPath_FOUND)
+    message(STATUS "NEPath not found via find_package, building from source...")
+    # 假设 examples/CMakeLists.txt 在 examples/ 下，NEPath 源码在上一级
+    add_subdirectory(.. ${CMAKE_CURRENT_BINARY_DIR}/NEPath_build)
+else()
+    message(STATUS "Found installed NEPath: ${NEPath_VERSION}")
+endif()
 
 # demo 列表
 set(DEMO_LIST
@@ -27,5 +37,8 @@ set(DEMO_LIST
 
 foreach(demo ${DEMO_LIST})
     add_executable(${demo} ${CMAKE_CURRENT_SOURCE_DIR}/${demo}.cpp)
+        target_include_directories(${demo} PRIVATE
+        ${CMAKE_SOURCE_DIR}/../include
+    )
     target_link_libraries(${demo} PRIVATE NEPath)
 endforeach()

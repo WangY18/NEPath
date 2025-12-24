@@ -1,5 +1,5 @@
-#include "NEPathPlanner.h"
-#include "FileAgent.h"
+#include <NEPath/NEPathPlanner.h>
+#include <NEPath/FileAgent.h>
 #include <cmath>
 #include <iostream>
 #include <filesystem>

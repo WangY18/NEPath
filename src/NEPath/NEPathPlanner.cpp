@@ -9,7 +9,7 @@ namespace nepath
         contour.clear_with_delete();
         if (wash)
         {
-            path p = Curve::wash_dis(x, y, length, washdis);
+            path p = Curve::wash_dis(x, y, length, washdis, num_least);
             contour.steal(p);
         }
         else
@@ -25,7 +25,7 @@ namespace nepath
         contour.clear_with_delete();
         if (wash)
         {
-            path p = Curve::wash_dis(contour_new, washdis);
+            path p = Curve::wash_dis(contour_new, washdis, num_least);
             contour.steal(p);
         }
         else
@@ -41,7 +41,7 @@ namespace nepath
         holes.push_back(path());
         if (wash)
         {
-            path p = Curve::wash_dis(x, y, length, washdis);
+            path p = Curve::wash_dis(x, y, length, washdis, num_least);
             holes[holes.size() - 1].steal(p);
         }
         else
@@ -57,7 +57,7 @@ namespace nepath
         holes.push_back(path());
         if (wash)
         {
-            path p = Curve::wash_dis(hole_new, washdis);
+            path p = Curve::wash_dis(hole_new, washdis, num_least);
             holes[holes.size() - 1].steal(p);
         }
         else
@@ -75,7 +75,7 @@ namespace nepath
             holes.push_back(path());
             if (wash)
             {
-                path p = Curve::wash_dis(holes_new[i], washdis);
+                path p = Curve::wash_dis(holes_new[i], washdis, num_least);
                 holes[holes.size() - 1].steal(p);
             }
             else

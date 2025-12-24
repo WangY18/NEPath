@@ -58,7 +58,7 @@ namespace nepath
                 paths ps_clip = ContourParallel::cut_holes(ps_offset[i_offset], holes, true, 0.1);
                 for (int i_clip = 0; i_clip < ps_clip.size(); ++i_clip)
                 {
-                    path p = opts.wash ? Curve::wash_dis(ps_clip[i_clip], opts.washdis) : ps_clip[i_clip];
+                    path p = opts.wash ? Curve::wash_dis(ps_clip[i_clip], opts.washdis, opts.num_least) : ps_clip[i_clip];
                     pathnode *pn_child = new pathnode(p);
                     pn_parent->children.push_back(pn_child);
                     pn_child->parent = pn_parent;
@@ -148,7 +148,7 @@ namespace nepath
         pathnode *root = root_offset(contour, holes, opts);
         path p = Connector::ConnectedDFS(root);
         delete root;
-        return opts.wash ? p : Curve::wash_dis(p, opts.washdis);
+        return opts.wash ? p : Curve::wash_dis(p, opts.washdis, opts.num_least);
     }
 
     double *NonEquidistant::optimize_by_ipopt(const path &p, const NonEquidistantOptions &opts)

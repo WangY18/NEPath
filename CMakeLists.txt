@@ -174,3 +174,59 @@ else()
 endif()
 
 message(STATUS "=======================================")
+
+# ============================================================
+# Install NEPath library and headers
+# ============================================================
+
+# 1. Headers
+install(DIRECTORY include/ 
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY external/clipper/
+    DESTINATION include/clipper
+    FILES_MATCHING PATTERN "*.hpp"
+) # Install Clipper headers
+
+# 2. Library
+install(TARGETS NEPath
+    EXPORT NEPathTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+# 3. Export CMake package config
+install(EXPORT NEPathTargets
+    FILE NEPathTargets.cmake
+    NAMESPACE NEPath::
+    DESTINATION lib/cmake/NEPath
+)
+
+if(NEPATH_ENABLE_IPOPT)
+    install(TARGETS IPOPT
+        EXPORT NEPathTargets
+    )
+endif()
+
+if(NEPATH_ENABLE_GUROBI)
+    install(TARGETS GUROBI
+        EXPORT NEPathTargets
+    )
+endif()
+
+# 4. Package version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfigVersion.cmake"
+    DESTINATION lib/cmake/NEPath
+)

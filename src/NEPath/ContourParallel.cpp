@@ -44,8 +44,7 @@ namespace nepath
             for (int i = 0; i < solution.size(); ++i)
             {
                 path p0 = Path2path(solution[i], scale, delta_x, delta_y);
-                double Length = Curve::TotalLength(p0.x, p0.y, p0.length, true);
-                path p = Curve::wash_dis(p0, (std::min)(washdis, Length * 1.0 / num_least));
+                path p = Curve::wash_dis(p0, washdis, num_least);
                 ps.push_back(path());
                 ps[i].steal(p);
             }
@@ -147,7 +146,7 @@ namespace nepath
     // The output is the CP toolpaths
     paths ContourParallel::Contour_Parallel(const path &contour, const paths &holes, double dis, bool wash /*=true*/, double washdis /*=0.5*/, int num_least /*=50*/)
     {
-        pathnode *root = root_offset(contour, holes, dis, wash, washdis);
+        pathnode *root = root_offset(contour, holes, dis, wash, washdis, num_least);
         std::vector<pathnode *> *dfs = pathnode::DFS_root(root);
         paths solution;
         for (int i = 0; i < dfs->size(); ++i)
@@ -575,7 +574,7 @@ namespace nepath
     // The output is the CP toolpaths
     path ContourParallel::Contour_Parallel_CFS(const path &contour, const paths &holes, double dis, bool wash /*=true*/, double washdis /*=0.5*/, int num_least /*=50*/)
     {
-        pathnode *root = root_offset(contour, holes, dis, wash, washdis);
+        pathnode *root = root_offset(contour, holes, dis, wash, washdis, num_least);
         ContourParallel::clearvoid(root, holes, dis, pi * dis * dis * 0.09, 0.02);
         return Connector::ConnectedFermatSpiral_MultMinimum(root, dis);
     }
@@ -590,6 +589,6 @@ namespace nepath
         pathnode *root = root_offset(contour, holes, dis, wash, washdis);
         path p = Connector::ConnectedDFS(root);
         delete root;
-        return wash ? p : Curve::wash_dis(p, washdis);
+        return wash ? p : Curve::wash_dis(p, washdis, num_least);
     }
 }

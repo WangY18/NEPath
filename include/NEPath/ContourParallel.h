@@ -1,6 +1,6 @@
 #pragma once
 #include <NEPath/Curve.h>
-#include "clipper.hpp"
+#include <clipper/clipper.hpp>
 // ContourParallel is a class to plan CP toolpaths.
 
 namespace nepath

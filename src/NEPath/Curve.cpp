@@ -221,13 +221,13 @@ namespace nepath
     }
 
     // resample the path p with a distance approximately equal to dis
-    path Curve::wash_dis(const path &p, double dis)
+    path Curve::wash_dis(const path &p, double dis, int num_least /*=-1*/)
     {
-        return wash_dis(p.x, p.y, p.length, dis);
+        return wash_dis(p.x, p.y, p.length, dis, num_least);
     }
 
     // resample the path p(x,y,length) with a distance approximately equal to dis
-    path Curve::wash_dis(const double *x, const double *y, int length, double dis, bool output_poly /*=false*/)
+    path Curve::wash_dis(const double *x, const double *y, int length, double dis, int num_least /*=-1*/, bool output_poly /*=false*/)
     {
         double *dl = new double[length];
         double sumL = 0;
@@ -235,6 +235,10 @@ namespace nepath
         {
             dl[i] = dis(x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
             sumL += dl[i];
+        }
+        if (num_least > 0)
+        {
+            dis = std::min(dis, sumL / num_least);
         }
         double Lnow = 0;
         path pnew;

@@ -472,7 +472,7 @@ namespace nepath
             xin.push_back(xout[i]);
             yin.push_back(yout[i]);
         }
-        return Curve::wash_dis(xin.data(), yin.data(), xin.size(), dis * 0.2, false);
+        return Curve::wash_dis(xin.data(), yin.data(), xin.size(), dis * 0.2, -1, false);
     }
 
     // Connect based on Depth First Search.
