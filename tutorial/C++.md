@@ -1,118 +1,105 @@
-# NEPath
+# NEPath: C++ Tutorial
 
-## A Classical Toolpath and Optimization-Based Non-Equidistant Toolpath Planning Library (In C++)
+## Setup and Install
 
-[![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
+### Step 1. Environment Variables
 
-The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)]([3D printing - Wikipedia](https://en.wikipedia.org/wiki/3D_printing)) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths:
+Please set the following environment variables (global or ipopt at the cmake-terminal)
 
-+ Optimization-based non-equidistant toolpath:
-	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**. (Recommended)
-	+ Variants of IQOP, like toolpaths that minimizing the perimeter, the isoperimetric quotient, and the area.
-+ Classical toolpath:
-	+ **Contour-Parallel Toolpath (CP)**.
-	+ **Zigzag Toolpath**.
-	+ Raster Toolpath.
-+ Toolpath connection:
-    + **Connected Fermat Spiral (CFS)**. (Recommended)
-    + Depth First Search (DFS).
-+ Other functions:
-	+ Tool Compensating.
-	+ Calculating underfill rate.
-	+ Determining sharp corners.
+| Required when enabling: | Key              | Value (Example, Linux)                  |
+| --------------------- | ---------------- | --------------------------------------- |
+| Gurobi-based IQOP     | `GUROBI_HOME`    | `/home/usr/software/gurobi1300/linux64` |
+| Gurobi-based IQOP     | `GUROBI_VERSION` | `130`                                   |
+| Ipopt-based IQOP      | `IPOPT_ROOT`     | `/home/usr/miniconda3/envs/env-NEPath`  |
 
-Among them, the IQOP is proposed by Wang et al., with a journal article, i.e., 
++ The environment variable `IPOPT_ROOT` does not need to be set if IPOPT can be located via `pkg-config`.
++ For Ipopt, you can check the environment variable `IPOPT_ROOT` if the folder `$IPOPT_ROOT/include/coin` exists.
++ For gurobi, you can check the environment variable `GUROBI_HOME` if the file `$GUROBI_HOME/include/gurobi_c++.h` exists. You can check the environment variable `GUROBI_VERSION` if `$GUROBI_HOME/lib/gurobi$GUROBI_VERSION.*` exists. For example, if you use gurobi v13.0.0, please set `GUROBI_VERSION` by `130`.
 
-```
-Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. Robotics and Computer-Integrated Manufacturing, 2023, 84: 102599.
-```
+### Step 2. Install NEPath
 
-or in BiBTeX:
+Open the Terminal and run:
 
-```
-@article{wang2023optimization,
-  title={Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation},
-  author={Wang, Yunan and Hu, Chuxiong and Wang, Ze and Lin, Shize and Zhao, Ziyan and Zhao, Wenxiang and Hu, Kehui and Huang, Zhongyi and Zhu, Yu and Lu, Zhigang},
-  journal={Robotics and Computer-Integrated Manufacturing},
-  volume={84},
-  pages={102599},
-  year={2023},
-  publisher={Elsevier}
-}
+```shell
+git clone https://github.com/WangY18/NEPath.git
+cd NEPath
+mkdir build
+cd build
 ```
 
-### Complier
+#### Step 2.a. Install NEPath in Linux / macOS
 
-C++17
+Open the Terminal and run:
 
-### Statement and Dependence
+```shell
+cmake ..
+cmake --build . 
+cmake --install .
+```
 
-+ This project cites [AngusJohnson/Clipper1](https://sourceforge.net/projects/polyclipping/) as a dependent package.
+If you want to disable Gurobi and Ipopt support, replace the above code `cmake ..` by
 
-+ This project depends on [Gurobi](https://www.gurobi.com/) optimizer for solving [quadratically constrained quadratic program](https://en.wikipedia.org/wiki/Quadratically_constrained_quadratic_program) with [second-order cone constraints](https://en.wikipedia.org/wiki/Second-order_cone_programming). If you need to use another optimizer, you can rewrite the method in the `MyOptimization` function (Temporarily unavailable). If you don't need IQOP and other optimization-based toolpaths, you can comment out `#define IncludeGurobi` in `NEPath-master/setup_NEPath.h` to avoid the dependence on [Gurobi](https://www.gurobi.com/).
+```shell
+cmake .. -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
+```
 
-+ The authors would like to sincerely thank <mark>[Jelle Feringa](https://github.com/jf---)</mark> for his significant contribution, providing a Python wrapper and a version that generates non-equidistant paths using [IPOPT](https://github.com/coin-or/Ipopt.git). We plan to refactor and properly repackage this library in the near future.
+If you want to install the NEPath library at another directory `example_path`, replace the above code `cmake --install .` by
 
-### About Citing
+```shell
+cmake --install . --prefix example_path
+```
 
-If you need to use the **NEPath** project, please cite  "Wang Y, Hu C, Wang Z, et al. Optimization-based non-equidistant toolpath planning for robotic additive manufacturing with non-underfill orientation[J]. *Robotics and Computer-Integrated Manufacturing*, 2023, 84: 102599."
+#### Step 2.b.a Install NEPath in Windows with MSVC
 
-## Introduction to IQOP
+Open PowerShell or CMD and run:
 
-### Framework
+```shell
+cmake .. -G "Visual Studio 17 2022" -A x64  # Replace with your VS version
+cmake --build . --config Release
+cmake --install . --config Release
+```
 
-IQOP is an optimization-based non-equidistant toolpath planning method for AM and CNC milling. IQOP tries to optimize the smoothness and material cost of the child toolpath from a parent toolpath. IQOP has the following advantages:
+If you want to disable Gurobi and Ipopt support, replace the above code `cmake ..` by
 
-+ Compared with the equidistant toolpath, i.e., CP, IQOP can generate smooth toolpaths. Specially, toolpaths insides tends to transform into a smooth circle.
-+ IQOP can be applied for slices with arbitrary shapes and topological holes. Extra toolpaths would be added if underfill with large area exists.
-+ IQOP achieves obviously lower underfill rates, higher printing efficiency, and higher toolpath smoothness than CP.
-+ A general framework of non-equidistant toolpath planning for complex slices is provided.
+```shell
+cmake .. -G "Visual Studio 17 2022" -A x64 -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
+```
 
-<p align="center">
-	<img src="https://user-images.githubusercontent.com/75420225/229330834-c5703971-8983-416b-af8d-ca3f9a1ab629.png" alt="gallery" />
-</p>
-<p align="center">
-	<b>Figure.</b> Some demos of IQOP.
-</p>
-<p align="center">
-	<img src="https://user-images.githubusercontent.com/75420225/229330954-a3efbecf-21c8-4343-8951-ee5c9c322d86.png" alt="different_object_functions" width="500" />
-</p>
-<p align="center">
-	<b>Figure.</b> Toolpaths generated by different object functions.
-</p>
-<p align="center">
-	<img src="https://user-images.githubusercontent.com/75420225/229330959-f6500987-c805-4bfe-b291-896692b17eaf.png" alt="different_weight" width="500" />
-</p>
-<p align="center">
-	<b>Figure.</b> Toolpaths generated by different weighting coefficient.
-</p>
-More details of IQOP would be provided after the article is published.
+If you want to install the NEPath library at another directory like `C:/Path/To/Install/NEPath`, replace the above code `cmake --install . --config Release` by
 
-### Optimization Problem of IQOP
+```shell
+cmake --install . --config Release --prefix "C:/Path/To/Install/NEPath"
+```
 
-The toolpaths can be planned by offsetting non-equidistantly. The offsetting distances $(\delta_i)_{i=1}^n$ can be seen as optimization variables. $\delta_i$ is the offsetting distance at $(x_i,y_i)$.
 
-<p align="center">
-	<img src="https://github.com/WangY18/NEPath/assets/75420225/169ab971-35b6-42b3-a1ce-8fa356532902" alt="Underfill" height="200" />
-</p>
-<p align="center">
-    <b>Figure.</b> Optimization variables.
-</p>
-Given $l$, the optimization problem for generating $\tilde{l}$ can be written as:
-<p align="center">
-	<img src="https://github.com/user-attachments/assets/e617e046-9342-4383-b8e7-39a21c01881e" alt="optimization_problem" height="220" />
-</p>
+#### Step 2.b.b Install NEPath in Windows with GNU
 
-In our paper `Optimization-Based Non-Equidistant Toolpath Planning for Robotic Additive Manufacturing with Non-Underfill Orientation`, the above optimization problem is convexified, and the problem of self-intersection is solved. The above method can be applied for slices with arbitrary shapes and topological structures.
+Open your MinGW/MSYS2 shell or WSL terminal, and run
+
+```shell
+cmake .. -G "MinGW Makefiles" # or: cmake .. -G "Ninja"
+```
+
+If you want to disable Gurobi and Ipopt support, replace the above code `cmake ..` by
+
+```shell
+cmake .. -G "MinGW Makefiles" -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
+```
+
+If you want to install the NEPath library at another directory like `C:/Path/To/Install/NEPath`, replace the above code `cmake --install . --config Release` by
+
+```shell
+cmake --install . --prefix "C:/Path/To/Install/NEPath"
+```
 
 ## API
 
-#### `NEPath-master/path.h`
+#### `NEPath/src/path.h`
 
 + `(struct)path` is a struct to store information of toolpaths. `(double*)path::x` and `(double*)path::y` are waypoints of a toolpath.
 + `paths` is a `vector` of `path`, i.e., `typedef vector<path> paths;`
 
-#### `NEPath-master/NEPathPlanner.h`
+#### `NEPath/src/NEPathPlanner.h`
 
 The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPathPlanner`. All operations on toolpath planning is based on `NEPathPlanner`. The API of `NEPathPlanner` is as follows:
 
@@ -188,6 +175,8 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 	  + `(bool)washdis`: sharp corners would be determined with a uniformly-distributed distance no more than `washdis`.
 	+ `(struct)SharpTurnSolution` is a struct to store information of sharp corners for a toolpath `p`.
 		+ `(int)length`: length of the toolpath.
+
+
 		+ `(double)radius`: the radius of the rolling circle.
 		+ `(double)threshold`: the threshold to determine a sharp corner.
 		+ `(double*)AreaPercent`: `AreaPercent[i]` is the percent of area on one side of the toolpath at `(p.x[i],p.y[i])`.
@@ -204,7 +193,7 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -287,7 +276,7 @@ int main() {
 
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -355,7 +344,7 @@ int main() {
 #### CP (Contour-Parallel)
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -418,7 +407,7 @@ int main() {
 #### Zigzag
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -468,7 +457,7 @@ int main() {
 #### Raster
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -518,7 +507,7 @@ int main() {
 CP can be connected by CFS in the same way.
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -587,7 +576,7 @@ int main() {
 CP can be connected by DFS in the same way.
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -655,7 +644,7 @@ int main() {
 #### Tool  compensate
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -711,7 +700,7 @@ int main() {
 #### Underfill
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
@@ -776,7 +765,7 @@ int main() {
 #### Sharp corner
 
 ```c++
-#include "NEPathPlanner.h"
+#include <NEPath/NEPathPlanner.h>
 #include <iostream>
 using namespace std;
 using namespace nepath; // the namspace of the NEPath package
