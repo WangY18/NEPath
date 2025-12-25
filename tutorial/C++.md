@@ -120,7 +120,7 @@ cmake --build .
 cmake .. -G "Visual Studio 17 2022" -A x64  # Replace with your VS version
 cmake --build . --config Release
 # You can run the demo like this:
-# .\Release\demo_Raster
+# .\Release\demo_Raster.exe
 ```
 
 ## API

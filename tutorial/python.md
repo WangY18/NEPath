@@ -16,18 +16,24 @@ Please set the following environment variables (global or ipopt at the cmake-ter
 + For Ipopt, you can check the environment variable `IPOPT_ROOT` if the folder `$IPOPT_ROOT/include/coin` exists.
 + For gurobi, you can check the environment variable `GUROBI_HOME` if the file `$GUROBI_HOME/include/gurobi_c++.h` exists. You can check the environment variable `GUROBI_VERSION` if `$GUROBI_HOME/lib/gurobi$GUROBI_VERSION.*` exists. For example, if you use gurobi v13.0.0, please set `GUROBI_VERSION` by `130`.
 
-### Step 2. Install NEPath (from source code)
+### Step 2. PIP Install NEPath (from Pypi)
+
+TODO
+
+### Step 3. Install NEPath (from source code)
 
 Open the Terminal and run:
 
 ```shell
 git clone https://github.com/WangY18/NEPath.git
-cd NEPath./bindings/python
+cd NEPath
+cd bindings
+cd python
 mkdir build
 cd build
 ```
 
-#### Step 2.a. Install NEPath in Linux / macOS
+#### Step 3.a. Install NEPath in Linux / macOS
 
 Open the Terminal and run:
 
@@ -50,7 +56,7 @@ make --install . --prefix example_path
 # e.g. make --install . --prefix $CONDA_PREFIX
 ```
 
-#### Step 2.b.a Install NEPath in Windows with MSVC
+#### Step 3.b.a Install NEPath in Windows with MSVC
 
 Open PowerShell or CMD and run:
 
@@ -73,7 +79,7 @@ cmake --install . --config Release --prefix "C:/Path/To/Install/NEPath"
 ```
 
 
-#### Step 2.b.b Install NEPath in Windows with GNU
+#### Step 3.b.b Install NEPath in Windows with GNU
 
 Open your MinGW/MSYS2 shell or WSL terminal, and run
 

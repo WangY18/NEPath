@@ -335,8 +335,8 @@ namespace nepath
             }
             else
             {
-                double alpha = (dis - sumL) / dl; // alphaԽС��Խ����i+1
-                return i + alpha;                 // i * (1.0 - alpha) + (i + 1) * alpha
+                double alpha = (dis - sumL) / dl;
+                return i + alpha; // i * (1.0 - alpha) + (i + 1) * alpha
             }
         }
     }

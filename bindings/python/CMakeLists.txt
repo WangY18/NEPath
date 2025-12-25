@@ -63,7 +63,7 @@ nanobind_add_module(nepath_py
 
 target_include_directories(nepath_py PRIVATE
     ../../src
-    ../../external/clipper
+    ../../external
     ${CMAKE_SOURCE_DIR}/../../include
     ${nanobind_DIR}/../include
     ${Python_INCLUDE_DIRS}
@@ -139,10 +139,42 @@ if(NEPATH_ENABLE_GUROBI)
     target_link_directories(GUROBI INTERFACE
         ${GUROBI_HOME}/lib
     )
-    target_link_libraries(GUROBI INTERFACE
-        gurobi_c++
-        gurobi${GUROBI_VERSION}
-    )
+    if(MSVC)
+        # Windows MSVC
+        # Find all gurobi_c++ libs
+        file(GLOB GUROBI_CPP_LIBS "${GUROBI_HOME}/lib/gurobi_c++*.lib")
+        set(GUROBI_CPP_LIB "")
+        # Determine the unique library based on the current configuration
+        foreach(lib ${GUROBI_CPP_LIBS})
+            get_filename_component(libname ${lib} NAME)
+            if("$<CONFIG:Debug>" STREQUAL "Debug")
+                if(libname MATCHES "mdd[0-9]+\\.lib$")
+                    set(GUROBI_CPP_LIB ${lib})
+                    break()
+                endif()
+            else() # Release
+                if(libname MATCHES "md[0-9]+\\.lib$")
+                    set(GUROBI_CPP_LIB ${lib})
+                    break()
+                endif()
+            endif()
+        endforeach()
+        if(NOT GUROBI_CPP_LIB)
+            message(FATAL_ERROR "Cannot find matching Gurobi C++ library for ${CMAKE_BUILD_TYPE}")
+        else()
+            message(STATUS "Using Gurobi C++ library: ${GUROBI_CPP_LIB}")
+        endif()
+        target_link_libraries(GUROBI INTERFACE
+            ${GUROBI_CPP_LIB}
+            "${GUROBI_HOME}/lib/gurobi${GUROBI_VERSION}.lib"
+        )
+    else()
+        # Linux / macOS
+        target_link_libraries(GUROBI INTERFACE
+            gurobi_c++
+            gurobi${GUROBI_VERSION}
+        )
+    endif()
 
     message(STATUS "Using Gurobi ${GUROBI_VERSION} from ${GUROBI_HOME}")
 endif()
