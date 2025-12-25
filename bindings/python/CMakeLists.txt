@@ -152,16 +152,21 @@ if(NEPATH_ENABLE_IPOPT)
     target_compile_definitions(nepath_py PUBLIC IncludeIpopt=1)
     # target_link_libraries(nepath_py PUBLIC IPOPT)
     target_link_libraries(nepath_py PRIVATE $<$<BOOL:${NEPATH_ENABLE_IPOPT}>:IPOPT>)
+    set(NEPATH_ENABLE_IPOPT_BOOL True)
+
 else()
     target_compile_definitions(nepath_py PUBLIC IncludeIpopt=0)
+    set(NEPATH_ENABLE_IPOPT_BOOL False)
 endif()
 
 if(NEPATH_ENABLE_GUROBI)
     target_compile_definitions(nepath_py PUBLIC IncludeGurobi=1)
     # target_link_libraries(nepath_py PUBLIC GUROBI)
     target_link_libraries(nepath_py PRIVATE  $<$<BOOL:${NEPATH_ENABLE_GUROBI}>:GUROBI>)
+    set(NEPATH_ENABLE_GUROBI_BOOL True)
 else()
     target_compile_definitions(nepath_py PUBLIC IncludeGurobi=0)
+    set(NEPATH_ENABLE_GUROBI_BOOL False)
 endif()
 
 # Remove default 'lib' prefix (so Python can import the module)
@@ -185,3 +190,13 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/NEPath/_nepath.pyi
     DESTINATION
     ${Python_SITEARCH}/NEPath)
+
+# Add config file for IncludeIpopt and IncludeGurobi
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NEPathConfig.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfig.py"
+    @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfig.py"
+        DESTINATION 
+        ${Python_SITEARCH}/NEPath)

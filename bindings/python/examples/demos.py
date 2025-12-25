@@ -8,7 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 import NEPath as nepath
-from NEPath import Path, SharpTurnSolution, UnderFillSolution
+from NEPath import Path, SharpTurnSolution, UnderFillSolution, IncludeIpopt, IncludeGurobi
 
 import pathlib
 import shutil
@@ -596,7 +596,7 @@ def demo_sharpcorner(
 try:
     # Test if IQOP is available
     test_planner = nepath.NEPathPlanner()
-    if hasattr(test_planner, "IQOP"):
+    if IncludeIpopt:
 
         def demo_IQOP_Ipopt(
             delta: float = 1.0,
@@ -807,6 +807,8 @@ try:
             write_csv_batch(IQOP_paths, output_dir / "path_IQOP_Ipopt_DFS/", ".csv")
 
             return IQOP_paths
+
+    if IncludeGurobi:
 
         def demo_IQOP_gurobi(
             delta: float = 1.0,

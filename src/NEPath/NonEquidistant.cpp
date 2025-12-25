@@ -205,6 +205,8 @@ namespace nepath
             return nullptr;
         }
 #else
+        (void)p;
+        (void)opts;
         std::cout << "IPOPT support is disabled!" << std::endl;
         return nullptr;
 #endif
@@ -400,6 +402,8 @@ namespace nepath
 
         return deltas_pre;
 #else
+        (void)p;
+        (void)opts;
         std::cout << "Gurobi support is disabled!" << std::endl;
         return nullptr;
 #endif

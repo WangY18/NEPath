@@ -39,6 +39,7 @@ namespace nepath
     };
 }
 
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
 // IPOPT NLP problem definition for IQOP optimization
 namespace nepath
 {
@@ -107,3 +108,4 @@ namespace nepath
         bool debug_;
     };
 }
+#endif

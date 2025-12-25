@@ -85,7 +85,6 @@ namespace nepath
         }
     }
 
-#if defined(IncludeIpopt) && (IncludeIpopt != 0)
     // Generate IQOP toolpath
     paths NEPathPlanner::IQOP(const NonEquidistantOptions &opts, bool log /*=true*/)
     {
@@ -105,7 +104,6 @@ namespace nepath
         }
         return ps;
     }
-#endif
 
     // Generate Raster toolpath
     paths NEPathPlanner::Raster(const DirectParallelOptions &opts)
