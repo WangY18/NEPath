@@ -74,7 +74,7 @@ namespace nepath
     paths NonEquidistant::NEpaths(const path &contour, const paths &holes, const NonEquidistantOptions &opts)
     {
         pathnode *root = root_offset(contour, holes, opts);
-        ContourParallel::clearvoid(root, holes, opts.delta, M_PI * opts.delta * opts.delta * 0.05, 0.02);
+        ContourParallel::clearvoid(root, holes, opts.delta, pi * opts.delta * opts.delta * 0.05, 0.02);
         std::vector<pathnode *> *dfs = pathnode::DFS_root(root);
         paths solution;
         for (int i = 0; i < dfs->size(); ++i)
@@ -141,7 +141,7 @@ namespace nepath
     path NonEquidistant::NEpaths_CFS(const path &contour, const paths &holes, const NonEquidistantOptions &opts)
     {
         pathnode *root = root_offset(contour, holes, opts);
-        ContourParallel::clearvoid(root, holes, opts.delta, M_PI * opts.delta * opts.delta * 0.09, 0.02);
+        ContourParallel::clearvoid(root, holes, opts.delta, pi * opts.delta * opts.delta * 0.09, 0.02);
         return Connector::ConnectedFermatSpiral_MultMinimum(root, opts.delta);
     }
 
@@ -541,7 +541,7 @@ namespace nepath
 
         double L_now = Curve::TotalLength(xtilde, ytilde, p_.length, true);
         double A_now = Curve::AreaCal(xtilde, ytilde, p_.length);
-        double Q_now = (A_now > 1e-10) ? (L_now * L_now / (4.0 * M_PI * A_now)) : 1e10;
+        double Q_now = (A_now > 1e-10) ? (L_now * L_now / (4.0 * pi * A_now)) : 1e10;
 
         // Objective: weighted sum of Q, S, L
         if (opts_.optimize_Q)
@@ -802,7 +802,7 @@ namespace nepath
             Curve::OffsetNaive(p_.x, p_.y, x, p_.length, xtilde, ytilde, nx_, ny_);
             double L_now = Curve::TotalLength(xtilde, ytilde, p_.length, true);
             double A_now = Curve::AreaCal(xtilde, ytilde, p_.length);
-            double Q_now = (A_now > 1e-10) ? (L_now * L_now / (4.0 * M_PI * A_now)) : 1e10;
+            double Q_now = (A_now > 1e-10) ? (L_now * L_now / (4.0 * pi * A_now)) : 1e10;
             std::cout << "IPOPT Solution: Q = " << Q_now
                       << ", A = " << A_now
                       << ", L = " << L_now << std::endl;

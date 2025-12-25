@@ -5,20 +5,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -------------------------------
-# 判断是否已安装 NEPath
+# Determine whether NEPath is installed
 # -------------------------------
-# 用户可以通过 CMAKE_PREFIX_PATH 指定安装路径
-find_package(NEPath QUIET)
+# Users can specify the installation path via CMAKE_PREFIX_PATH
+find_package(NEPath REQUIRED)
+message(STATUS "Found installed NEPath: ${NEPath_VERSION}")
 
-if(NOT NEPath_FOUND)
-    message(STATUS "NEPath not found via find_package, building from source...")
-    # 假设 examples/CMakeLists.txt 在 examples/ 下，NEPath 源码在上一级
-    add_subdirectory(.. ${CMAKE_CURRENT_BINARY_DIR}/NEPath_build)
-else()
-    message(STATUS "Found installed NEPath: ${NEPath_VERSION}")
-endif()
+# if(NOT NEPath_FOUND)    
+#     message(STATUS "NEPath not found via find_package, building from source... ${CMAKE_CURRENT_BINARY_DIR}/NEPath_build")
+#     # Assume examples/CMakeLists.txt is in examples/ and NEPath source is in the parent directory
+#     add_subdirectory(.. ${CMAKE_CURRENT_BINARY_DIR}/NEPath_build)
+# else()
+#     message(STATUS "Found installed NEPath: ${NEPath_VERSION}")
+# endif()
 
-# demo 列表
+# List of demos
 set(DEMO_LIST
     demo_Raster
     demo_Zigzag
@@ -40,5 +41,5 @@ foreach(demo ${DEMO_LIST})
         target_include_directories(${demo} PRIVATE
         ${CMAKE_SOURCE_DIR}/../include
     )
-    target_link_libraries(${demo} PRIVATE NEPath)
+    target_link_libraries(${demo} PRIVATE NEPath::NEPath)
 endforeach()

@@ -9,13 +9,14 @@ project(
 # ============================================================
 # Build type (default: Release, do not override user choice)
 # ============================================================
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING
-        "Build type (default: Release)" FORCE)
-endif()
+if(NOT DEFINED CMAKE_CONFIGURATION_TYPES)
+    if(NOT DEFINED CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type (default: Release)" FORCE)
+    endif()
 
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+        "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+endif()
 
 # ============================================================
 # Options
@@ -42,7 +43,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Wno-sign-compare
     )
 elseif(MSVC)
-    add_compile_options(/W4 /wd4996)
+    add_compile_options(
+        /W4
+        /wd4996
+        /wd4251
+    )
 endif()
 
 # ============================================================
@@ -116,10 +121,42 @@ if(NEPATH_ENABLE_GUROBI)
     target_link_directories(GUROBI INTERFACE
         ${GUROBI_HOME}/lib
     )
-    target_link_libraries(GUROBI INTERFACE
-        gurobi_c++
-        gurobi${GUROBI_VERSION}
-    )
+    if(MSVC)
+        # Windows MSVC
+        # Find all gurobi_c++ libs
+        file(GLOB GUROBI_CPP_LIBS "${GUROBI_HOME}/lib/gurobi_c++*.lib")
+        set(GUROBI_CPP_LIB "")
+        # Determine the unique library based on the current configuration
+        foreach(lib ${GUROBI_CPP_LIBS})
+            get_filename_component(libname ${lib} NAME)
+            if("$<CONFIG:Debug>" STREQUAL "Debug")
+                if(libname MATCHES "mdd[0-9]+\\.lib$")
+                    set(GUROBI_CPP_LIB ${lib})
+                    break()
+                endif()
+            else() # Release
+                if(libname MATCHES "md[0-9]+\\.lib$")
+                    set(GUROBI_CPP_LIB ${lib})
+                    break()
+                endif()
+            endif()
+        endforeach()
+        if(NOT GUROBI_CPP_LIB)
+            message(FATAL_ERROR "Cannot find matching Gurobi C++ library for ${CMAKE_BUILD_TYPE}")
+        else()
+            message(STATUS "Using Gurobi C++ library: ${GUROBI_CPP_LIB}")
+        endif()
+        target_link_libraries(GUROBI INTERFACE
+            ${GUROBI_CPP_LIB}
+            "${GUROBI_HOME}/lib/gurobi${GUROBI_VERSION}.lib"
+        )
+    else()
+        # Linux / macOS
+        target_link_libraries(GUROBI INTERFACE
+            gurobi_c++
+            gurobi${GUROBI_VERSION}
+        )
+    endif()
 
     message(STATUS "Using Gurobi ${GUROBI_VERSION} from ${GUROBI_HOME}")
 endif()
@@ -149,7 +186,7 @@ target_include_directories(NEPath
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/external/clipper
+        ${CMAKE_SOURCE_DIR}/external
 )
 
 # Suppress warnings from Clipper
@@ -191,6 +228,11 @@ install(DIRECTORY external/clipper/
 ) # Install Clipper headers
 
 # 2. Library
+set_target_properties(NEPath PROPERTIES
+    EXPORT_NAME NEPath
+    PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/NEPath/NEPath.h"
+)
+
 install(TARGETS NEPath
     EXPORT NEPathTargets
     ARCHIVE DESTINATION lib
@@ -228,5 +270,16 @@ write_basic_package_version_file(
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfigVersion.cmake"
+    DESTINATION lib/cmake/NEPath
+)
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NEPathConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfig.cmake"
+    @ONLY
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfig.cmake"
     DESTINATION lib/cmake/NEPath
 )

@@ -1,4 +1,4 @@
-# NEPath: C++ Tutorial
+# NEPath: Python Tutorial
 
 ## Setup and Install
 
@@ -15,15 +15,14 @@ Please set the following environment variables (global or ipopt at the cmake-ter
 + The environment variable `IPOPT_ROOT` does not need to be set if IPOPT can be located via `pkg-config`.
 + For Ipopt, you can check the environment variable `IPOPT_ROOT` if the folder `$IPOPT_ROOT/include/coin` exists.
 + For gurobi, you can check the environment variable `GUROBI_HOME` if the file `$GUROBI_HOME/include/gurobi_c++.h` exists. You can check the environment variable `GUROBI_VERSION` if `$GUROBI_HOME/lib/gurobi$GUROBI_VERSION.*` exists. For example, if you use gurobi v13.0.0, please set `GUROBI_VERSION` by `130`.
-+ You need to add `GUROBI_HOME` and `IPOPT_ROOT` to the system environment `Path` in Windows if the `.exe` file is not run in the powershell.
 
-### Step 2. Install NEPath
+### Step 2. Install NEPath (from source code)
 
 Open the Terminal and run:
 
 ```shell
 git clone https://github.com/WangY18/NEPath.git
-cd NEPath
+cd NEPath./bindings/python
 mkdir build
 cd build
 ```
@@ -34,8 +33,8 @@ Open the Terminal and run:
 
 ```shell
 cmake ..
-cmake --build . 
-sudo cmake --install .
+cmake --build .
+cmake --install .
 ```
 
 If you want to disable Gurobi and Ipopt support, replace the above code `cmake ..` by
@@ -47,11 +46,11 @@ sudo cmake .. -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
 If you want to install the NEPath library at another directory `example_path`, replace the above code `cmake --install .` by
 
 ```shell
-cmake --install . --prefix example_path
-# e.g. cmake --install . --prefix $CONDA_PREFIX
+make --install . --prefix example_path
+# e.g. make --install . --prefix $CONDA_PREFIX
 ```
 
-#### Step 2.b. Install NEPath in Windows with MSVC
+#### Step 2.b.a Install NEPath in Windows with MSVC
 
 Open PowerShell or CMD and run:
 
@@ -67,14 +66,14 @@ If you want to disable Gurobi and Ipopt support, replace the above code `cmake .
 cmake .. -G "Visual Studio 17 2022" -A x64 -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
 ```
 
-If you want to install the NEPath library at another directory like `C:/Path/To/Install/NEPath`, replace the above code `cmake --install . --config Release` by
+If you want to install the NEPath library at another directory like `C:/Path/To/Install/NEPath`, replace the above code `make --install . --config Release` by
 
 ```shell
 cmake --install . --config Release --prefix "C:/Path/To/Install/NEPath"
 ```
 
 
-#### Step 2.c. Install NEPath in Windows with GNU
+#### Step 2.b.b Install NEPath in Windows with GNU
 
 Open your MinGW/MSYS2 shell or WSL terminal, and run
 
@@ -92,35 +91,6 @@ If you want to install the NEPath library at another directory like `C:/Path/To/
 
 ```shell
 cmake --install . --prefix "C:/Path/To/Install/NEPath"
-```
-
-### Step 3. (Optional) Run Examples
-
-Open Terminal in `NEPath\` and run
-
-```shell
-mkdir data_examples
-cd examples
-mkdir build
-cd build
-```
-
-#### Step 3.a. Run Examples in Linux / macOS
-
-```shell
-cmake ..
-cmake --build . 
-# You can run the demo like this:
-# ./demo_Raster
-```
-
-#### Step 3.b. Run Examples in Windows with MSVC
-
-```shell
-cmake .. -G "Visual Studio 17 2022" -A x64  # Replace with your VS version
-cmake --build . --config Release
-# You can run the demo like this:
-# .\Release\demo_Raster
 ```
 
 ## API

@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)](https://en.wikipedia.org/wiki/3D_printing) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths: (See [here](##what-can-nepath-library-do) for visualized examples.)
+The **NEPath** library plans toolpaths for [additive manufacturing (AM, 3D printing)](https://en.wikipedia.org/wiki/3D_printing) and [CNC milling](https://en.wikipedia.org/wiki/Numerical_control). Toolpath planning is to generate some 1D toolpaths to filling given 2D slices. The **NEPath** library is able to plan the following toolpaths: (See the end of the document for visualized examples.)
 
 + Optimization-based non-equidistant toolpath:
 	+ **Isoperimetric-Quotient-Optimal Toolpath (IQOP)**. (Recommended)
@@ -55,8 +55,8 @@ or in BiBTeX:
 
 The source of `NEPath` is achieved in C++. Based on some bindings, the supported languages include:
 
-+ **C++**. Tutorial in [C++ tutorial document](tutorial/C++.md).
-+ **Python**. Coming very soon.
++ **C++**. Please refer to [C++ tutorial document](tutorial/C++.md).
++ **Python**. Please refer to [Python tutorial document](tutorial/Python.md).
 + **Matlab**. Coming very soon.
 
 ## Introduction to IQOP
