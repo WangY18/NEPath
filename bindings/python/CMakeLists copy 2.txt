@@ -26,11 +26,26 @@ message(STATUS "Found Python ${Python_VERSION_STRING} at ${Python_INCLUDE_DIRS}"
 find_package(nanobind CONFIG REQUIRED)
 if(NOT nanobind_FOUND)
     message(FATAL_ERROR "Nanobind not found via CMake, please set nanobind_DIR or use system install.")
+#     message(STATUS "Nanobind not found, downloading and building automatically...")
+#     ExternalProject_Add(
+#         nanobind_download
+#         GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+#         GIT_TAG master
+#         PREFIX ${NANOBIND_DIR}
+#         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/external/nanobind_install
+#         UPDATE_COMMAND ""
+#         PATCH_COMMAND ""
+#     )
+#     set(nanobind_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/external/nanobind_install/include)
+#     add_dependencies(nepath_py nanobind_download)
+#     message(STATUS "Nanobind is built and installed to ${nanobind_INCLUDE_DIRS}")
 else()
     message(STATUS "nanobind_FOUND: ${nanobind_FOUND}")
     message(STATUS "nanobind_INCLUDE_DIRS: ${nanobind_INCLUDE_DIRS}")
     message(STATUS "nanobind_LIBRARIES: ${nanobind_LIBRARIES}")
     message(STATUS "nanobind_DIR: ${nanobind_DIR}")
+#     message(STATUS "Nanobind is found at nanobind_INCLUDE_DIRS=${nanobind_INCLUDE_DIRS}")
+#     message(STATUS )
 endif()
 
 # ============================================================
@@ -44,9 +59,7 @@ include_directories(
 # ============================================================
 # Build Python extension module
 # ============================================================
-nanobind_add_module(nepath_py
-    STABLE_ABI 
-    NB_STATIC
+add_library(nepath_py MODULE 
     NEPath/nepath_py.cpp
     ../../src/NEPath/Basic.cpp
     ../../src/NEPath/Connector.cpp
@@ -60,7 +73,6 @@ nanobind_add_module(nepath_py
     ../../external/clipper/clipper.cpp
 )
 
-
 target_include_directories(nepath_py PRIVATE
     ../../src
     ../../external/clipper
@@ -69,7 +81,8 @@ target_include_directories(nepath_py PRIVATE
     ${Python_INCLUDE_DIRS}
 )
 
-# target_link_libraries(nepath_py PRIVATE nanobind)
+# Link nanobind
+# target_link_libraries(nepath_py PRIVATE nanobind::nanobind)
 
 
 # ---------- IPOPT ----------
@@ -180,8 +193,4 @@ install(TARGETS nepath_py
 
 # Install __init__.py to allow 'import NEPath'
 install(TARGETS nepath_py LIBRARY DESTINATION ${Python_SITEARCH}/NEPath)
-install(FILES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/NEPath/__init__.py
-    ${CMAKE_CURRENT_SOURCE_DIR}/NEPath/_nepath.pyi
-    DESTINATION
-    ${Python_SITEARCH}/NEPath)
+install(FILES __init__.py DESTINATION ${Python_SITEARCH}/NEPath)

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <iostream>
 
+// The authors would like to sincerely thank Jelle Feringa for his significant contribution to the Ipopt optimization part of NEPath.
+
 namespace nepath
 {
     // ============================================================================

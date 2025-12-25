@@ -10,6 +10,8 @@
 #include "gurobi_c++.h"
 #endif
 
+// The authors would like to sincerely thank Jelle Feringa for his significant contribution to the Ipopt optimization part of NEPath.
+
 namespace nepath
 {
     // NonEquidistant is a class to plan non-equidistant toolpaths.

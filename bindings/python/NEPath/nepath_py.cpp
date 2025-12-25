@@ -1,9 +1,11 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/ndarray.h>
-#include <nanobind/eigen/dense.h>
+// #include <nanobind/eigen/dense.h>
 #include <NEPath/NEPath.h>
-// // Include NEPath headers
+// Include NEPath headers
+
+// The authors would like to sincerely thank Jelle Feringa for his significant contribution to python wrappers of NEPath.
 
 using namespace nepath;
 namespace nb = nanobind;
@@ -61,6 +63,13 @@ NB_MODULE(_nepath, m)
         .value("none", ConnectAlgorithm::none)
         .value("cfs", ConnectAlgorithm::cfs, "Connected Fermat Spiral")
         .value("dfs", ConnectAlgorithm::dfs, "Connected DFS")
+        .export_values();
+
+    // Bind OptimizationAlgorithm enum
+    nb::enum_<OptimizationAlgorithm>(m, "OptimizationAlgorithm")
+        .value("none", OptimizationAlgorithm::none, "No solver")
+        .value("ipopt", OptimizationAlgorithm::ipopt, "IPOPT solver")
+        .value("gurobi", OptimizationAlgorithm::gurobi, "Gurobi solver")
         .export_values();
 
     // Bind path struct
@@ -228,8 +237,8 @@ NB_MODULE(_nepath, m)
                     "Calculate the number of sharp corners")
         .def_static("wash_dis",
                     nb::overload_cast<const path &, double, int>(&Curve::wash_dis),
-                    "p"_a, "dis"_a,
-                    "Resample the path with a distance approximately equal to dis")
+                    "p"_a, "dis"_a, "num_least"_a = 50,
+                    "Resample the path with a distance approximately equal to dis, where the minimum number of waypoints is num_least")
         .def_static("AreaCal", &Curve::AreaCal,
                     "x"_a, "y"_a, "length"_a,
                     "Calculate area enclosed by path")

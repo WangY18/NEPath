@@ -11,7 +11,9 @@ dependencies = [
     "numpy>=1.21.0",
 ]
 authors = [
-    { name = "Jelle", email = "" },
+    { name = "Yunan Wang", email = "wang-yn22@mails.tsinghua.edu.cn"},
+    { name = "Chuxiong Hu", email = "cxhu@tsinghua.edu.cn"},
+    { name = "Jelle Feringa (ipopt and python bindings)", email = ""}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -135,7 +137,7 @@ docstring-code-line-length = "dynamic"
 # ============================================================================
 
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "1.0.0"
 message = "Bump version to {new_version}"
 commit = true
 tag = true
