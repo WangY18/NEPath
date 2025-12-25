@@ -144,3 +144,7 @@ venv/
 # Local env file with paths, do not commit
 set_env.sh
 myreadme.md
+
+# Ignore data files
+data_examples/
+plot_outputs/
