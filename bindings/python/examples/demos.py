@@ -21,18 +21,18 @@ def clear_mkdir(path: str, clear: bool = False) -> None:
 
     if clear and dir_path.exists():
         # Delete directory and its contents
-        print(f"Clearing existing directory: {dir_path}")
+        # print(f"Clearing existing directory: {dir_path}")
         shutil.rmtree(dir_path)
 
     # Ensure parent directory exists
     parent = dir_path.parent
     if not parent.exists():
-        print(f"Creating parent directory: {parent}")
+        # print(f"Creating parent directory: {parent}")
         parent.mkdir(parents=True, exist_ok=True)
 
     # Create target directory, no error if it already exists
     if not dir_path.exists():
-        print(f"Creating directory: {dir_path}")
+        # print(f"Creating directory: {dir_path}")
         dir_path.mkdir()
 
 
@@ -60,9 +60,9 @@ def write_csv(p: nepath.Path, filename: str) -> None:
     file_path = pathlib.Path(filename)
 
     x, y = p.get_arrays()
-    print(f"Writing CSV file: {file_path}")
-    print(["x.len=", len(x), "y.len=", len(y)])
-    print([(x[0], y[0])])
+    # print(f"Writing CSV file: {file_path}")
+    # print(["x.len=", len(x), "y.len=", len(y)])
+    # print([(x[0], y[0])])
 
     # Write CSV file
     with open(file_path, "w", newline="") as out_file:
@@ -218,7 +218,7 @@ def demo_Zigzag(
 
     # Write contour
     contour_path = nepath.Path.from_arrays(x, y)
-    write_csv(contour_path, "./data_examples/contour.csv")
+    write_csv(contour_path, output_dir / "contour.csv")
     return zigzag_paths
 
 
@@ -442,7 +442,7 @@ def demo_tool_compensate(
     # Write output files
     clear_mkdir(output_dir, clear=True)
     write_csv_batch(ps_toolcompensate, output_dir, ".csv")
-    write_csv(planner.holes[0], "./data_examples/hole.csv")
+    write_csv(planner.holes[0], output_dir / "contour.csv")
 
     return ps_toolcompensate
 

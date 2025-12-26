@@ -1,8 +1,8 @@
 # NEPath: Python Tutorial
 
-## Setup and Install
+## Setup
 
-### Step 1. Environment Variables
+###  Environment Variables
 
 Please set the following environment variables (global or ipopt at the cmake-terminal)
 
@@ -16,11 +16,85 @@ Please set the following environment variables (global or ipopt at the cmake-ter
 + For Ipopt, you can check the environment variable `IPOPT_ROOT` if the folder `$IPOPT_ROOT/include/coin` exists.
 + For gurobi, you can check the environment variable `GUROBI_HOME` if the file `$GUROBI_HOME/include/gurobi_c++.h` exists. You can check the environment variable `GUROBI_VERSION` if `$GUROBI_HOME/lib/gurobi$GUROBI_VERSION.*` exists. For example, if you use gurobi v13.0.0, please set `GUROBI_VERSION` by `130`.
 
-### Step 2. PIP Install NEPath (from Pypi)
+### Requirements
+
+- Python >= 3.9
+- CMake >= 3.15
+- C++20 compatible compiler
+- nanobind >= 1.3.2
+- numpy >= 1.21.0
+
+### Project Structure
+
+```shell
+.
+├── cmake
+│   └── NEPathConfig.py.in
+├── CMakeLists.txt
+├── examples
+│   ├── demos.py
+│   ├── plot_utils.py
+│   ├── test_config.py
+│   └── test_demos.py
+├── NEPath
+│   ├── __init__.py
+│   ├── nepath_py.cpp
+│   └── _nepath.pyi
+├── pyproject.toml
+└── README.md
+```
+
+## Install
+
+### Choice 1. PIP Install NEPath (from Pypi)
 
 TODO
 
-### Step 3. Install NEPath (from source code)
+### Choice 2. PIP Install NEPath (from source code)
+
+
+Open the Terminal and run:
+
+```shell
+git clone https://github.com/WangY18/NEPath.git
+cd NEPath
+cd bindings
+cd python
+```
+
+#### Choice 2.a. Install NEPath in Linux / macOS
+
+```shell
+export NEPATH_ENABLE_IPOPT=OFF # (Optional: disable Ipopt)
+export NEPATH_ENABLE_GUROBI=OFF # (Optional: disable gurobi) 
+pip install .
+```
+
+#### Choice 2.b. Install NEPath in Windows
+
+In Powershell:
+
+```shell
+$env:NEPATH_ENABLE_IPOPT="OFF" # (Optional: disable Ipopt)
+$env:NEPATH_ENABLE_GUROBI="OFF" # (Optional: disable gurobi) 
+pip install .
+```
+
+Or in cmd:
+
+```shell
+setx NEPATH_ENABLE_IPOPT OFF # (Optional: disable Ipopt)
+setx NEPATH_ENABLE_GUROBI OFF # (Optional: disable gurobi) 
+pip install .
+```
+
+#### Uninstall
+
+```shell
+pip uninstall nepath-py
+```
+
+### Choice 3. CMAKE Install NEPath (from source code)
 
 Open the Terminal and run:
 
@@ -33,7 +107,7 @@ mkdir build
 cd build
 ```
 
-#### Step 3.a. Install NEPath in Linux / macOS
+#### Choice 3.a. Install NEPath in Linux / macOS
 
 Open the Terminal and run:
 
@@ -46,7 +120,7 @@ cmake --install .
 If you want to disable Gurobi and Ipopt support, replace the above code `cmake ..` by
 
 ```shell
-sudo cmake .. -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
+cmake .. -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_ENABLE_IPOPT=OFF
 ```
 
 If you want to install the NEPath library at another directory `example_path`, replace the above code `cmake --install .` by
@@ -56,7 +130,16 @@ make --install . --prefix example_path
 # e.g. make --install . --prefix $CONDA_PREFIX
 ```
 
-#### Step 3.b.a Install NEPath in Windows with MSVC
+
+You can uninstall the NEPath library like this
+
+```shell
+# replace by your dir
+rm -f /home/robot/miniconda3/envs/yunan-NEPath/lib/python3.13/site-packages/_nepath.cpython-313-x86_64-linux-gnu.so
+rm -rf /home/robot/miniconda3/envs/yunan-NEPath/lib/python3.13/site-packages/NEPath
+```
+
+#### Choice 3.b Install NEPath in Windows with MSVC
 
 Open PowerShell or CMD and run:
 
@@ -78,8 +161,15 @@ If you want to install the NEPath library at another directory like `C:/Path/To/
 cmake --install . --config Release --prefix "C:/Path/To/Install/NEPath"
 ```
 
+You can uninstall the NEPath library like this
 
-#### Step 3.b.b Install NEPath in Windows with GNU
+```shell
+# replace by your dir
+del "C:/ProgramData/anaconda3/envs/NEPath/Lib/site-packages/_nepath.cp311-win_amd64.pyd"
+Remove-Item "C:\ProgramData\anaconda3\envs\NEPath\Lib\site-packages\NEPath" -Recurse -Force
+```
+
+#### Choice 3.c Install NEPath in Windows with GNU
 
 Open your MinGW/MSYS2 shell or WSL terminal, and run
 
@@ -99,96 +189,62 @@ If you want to install the NEPath library at another directory like `C:/Path/To/
 cmake --install . --prefix "C:/Path/To/Install/NEPath"
 ```
 
+## Testing
+
+```shell
+# Assume that you are now in the NEPath/bindings/python/examples path
+mkdir data_examples
+mkdir plot_outputs
+python test_demos.py
+```
+
 ## API
 
-#### `NEPath/src/path.h`
+Please refer to `_nepath.h`
 
-+ `(struct)path` is a struct to store information of toolpaths. `(double*)path::x` and `(double*)path::y` are waypoints of a toolpath.
-+ `paths` is a `vector` of `path`, i.e., `typedef vector<path> paths;`
+### Main Classes
 
-#### `NEPath/src/NEPathPlanner.h`
+- **NEPathPlanner**: Main class for toolpath planning
+    - `set_contour(x, y)`: Set the outer boundary
+    - `addhole(x, y)`: Add an inner boundary (hole)
+    - `Raster(opts)`: Generate raster toolpaths
+    - `Zigzag(opts)`: Generate zigzag toolpaths
+    - `CP(opts)`: Generate contour parallel toolpaths
+    - `IQOP(opts)`: Generate optimized toolpaths (requires Ipopt / Gurobi)
+    - `tool_compensate(opts)`: Offset contours
+- **FileAgent**: Utilities for reading/writing CSV files
+    - `write_csv(path, filename)`: Write a single path
+    - `write_csv(paths, prefix, suffix)`: Write multiple paths
+    - `read_csv(filename)`: Read a path from file
+- **Curve**: Geometric operations and analysis
+    - `UnderFill(contour, holes, paths, delta, reratio)`: Calculate underfill
+    - `SharpTurn_Invariant(path, radius, threshold)`: Detect sharp corners
+    - `wash_dis(path, distance)`: Resample path with uniform spacing
 
-The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPathPlanner`. All operations on toolpath planning is based on `NEPathPlanner`. The API of `NEPathPlanner` is as follows:
+### Options
 
-+ `(void)NEPathPlanner::set_contour()`: Set the contour, i.e., the outer boundary, of the slice. Every slice only have one closed contour. The start point and the end point of the contour are connected by default. If you want to set the outmost toolpath has a distance from the actual outer boundary, you can call `NEPathPlanner::tool_compensate()` with a **negative** distance to obtain the outmost toolpath firstly, and set the obtained outmost toolpath as the boundary of a new slice. See the example of Zigzag and CP for details.
-	+ `(const double*)x`, `(const double*)y`, `(int)length`: The number of waypoints is  `length`. The `i`-th waypoint is `(x[i],y[i])`. It can be substituted as `(const path&)contour_new`.
-	+ `(bool)wash`, `(double)wash_dis`, `(int)num_least`: If `wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `wash_dis`, and the number of waypoints are no less than `num_least`. By default, `wash=true, washdis=0.2, num_least=50  `.
-	+ The contour is stored in a public member variable `(path)contour`.
-+ `(void)NEPathPlanner::addhole()`: Add a new hole, i.e., the inner boundaries, onto the slice. The start point and the end point of every hole are connected by default. A slice is allowed to have no holes. The same as `(void)NEPathPlanner::set_contour()`, you can call `NEPathPlanner::tool_compensate()` to offset the added hole.
-	+ `(const double*)x`, `(const double*)y`, `(int)length`: The number of waypoints is  `length`. The `i`-th waypoint is `(x[i],y[i])`. It can be substituted as `(const path&)hole_new`.
-	+ `(bool)wash`, `(double)wash_dis`, `(int)num_least`: If `wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `wash_dis`, and the number of waypoints are no less than `num_least`. By default, `wash=true, washdis=0.2, num_least=50  `.
-	+ The holes are stored in a public member variable `(paths)holes`.
-+ `(void)NEPathPlanner::addholes()`: Add some new holes, i.e., the inner boundaries, onto the slice. The start point and the end point of every hole are connected by default. A slice is allowed to have no holes. The same as `(void)NEPathPlanner::set_contour()`, you can call `NEPathPlanner::tool_compensate()` to offset the added hole.
-	+ `(const paths&)holes_new`: Add `path`s in `holes_new` onto the slice.
-	+ `(bool)wash`, `(double)wash_dis`, `(int)num_least`: If `wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `wash_dis`, and the number of waypoints are no less than `num_least`. By default, `wash=true, washdis=0.2, num_least=50  `.
-	+ The holes are stored in a public member variable `(paths)holes`.
-+ `(paths)NEPathPlanner::tool_compensate()`: Offset the contour and holes of the slice with a distance, i.e., tool compensating.
-	+ `(const ContourParallelOptions&)opts`:
-		+ The offsetting distance is `opts.delta`. If `opts.delta>0`, the contour will be offset outside and the holes will be offset inside. If `opts.delta<0`, the contour will be offset inside and the holes will be offset outside.
-		+ If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
-	+ The order of outputs is the offsetting results of `contour`, `holes[0]`, `holes[1]`, ..., `holes[holes.size()-1]`. Note that the offsetting results of each toolpath can be one, serval, or even zero toolpath.
-	+  `(paths)NEPathPlanner::tool_compensate()` is achieved based on [AngusJohnson/Clipper2](https://github.com/AngusJohnson/Clipper2).
-+ `(paths)NEPathPlanner::IQOP()`: Generate the **IQOP** toolpath of a slice. The optimization problem of IQOP is provided above. If you don't need IQOP and other optimization-based toolpaths, you can comment out `#define IncludeGurobi` in `NEPath-master/setup_NEPath.h` to avoid the dependence on [Gurobi](https://www.gurobi.com/).
-  + `(const NonEquidistantOptions&)opts`: 
-    + `opts.delta` is the maximum distance between toolpaths. `opts.alpha` the scale of the minimum distance. The distances between toolpaths at every point are between `opts.alpha*opts.delta` and `opts.delta`, i.e., $\forall i,\delta_i\in$ (`opts.alpha*opts.delta`, `opts.delta`).  `opts.dot_delta` is $\dot\delta_\mathrm{m}$, i.e., the upper bound of $\frac{\mathrm{d}\delta}{\mathrm{d}s}$. `opts.dot_delta` is $\ddot\delta_\mathrm{m}$, i.e., the upper bound of $\frac{\mathrm{d}^2\delta}{\mathrm{d}s^2}$.
-    + `opts.optimize_Q` is true if $Q$ is in the objective function. `opts.optimize_S` is true if $S$ is in the objective function. `opts.optimize_L` is true if $L$ is in the objective function.  `opts.lambda_Q`,  `opts.lambda_S`, and `opts.lambda_L` are $\lambda_Q,\lambda_S,\lambda_L$, respectively.
-    + `opts.epsilon` is the upper bound of error in $\left\|\cdot\right\|_\infty$. `opts.set_max` is the maximum iteration steps.
-    + If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
-    + If `opts.connect` is `none`, then toolpaths are not connected. If `opts.connect` is `cfs`/`dfs`, then toolpaths are connected into a continuous one based on CFS/DFS. 
-+ `(paths)NEPathPlanner::Raster()`: Generate the **Raster** toolpath of a slice.
-	+ `(const DirectParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. `opts.angle` is the angle between Raster toolpaths and the $x$-axis. The unit of `opts.angle` is rad, and you can use `acos(-1.0)` to obtain a accurate $\pi=3.1415926\cdots$.
-	+ Every Raster toolpath has two waypoints, i.e., the start point and the end point.
-+ `(paths)NEPathPlanner::Zigzag()`: Generate the **Zigzag** toolpath of a slice.
-	+ `(const DirectParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. `opts.angle` is the angle between Zigzag toolpaths and the $x$-axis. The unit of `opts.angle` is rad, and you can use `acos(-1.0)` to obtain a accurate $\pi=3.1415926\cdots$.
-	+ Every Zigzag toolpath has an even numbers of waypoints.
-+ `(paths)NEPathPlanner::CP()`: Generate the **CP** toolpath of a slice.
-	+ `(const ContourParallelOptions&)opts`: `opts.delta` is the distance between toolpaths. If `opts.wash==true`, the contour would be resampled with a uniformly-distributed distance no more than `opts.wash_dis`, and the number of waypoints are no less than `opts.num_least`.
-	+ `(paths)NEPathPlanner::CP()` is achieved based on [AngusJohnson/Clipper2](https://github.com/AngusJohnson/Clipper2).
-	+ If `opts.connect` is `none`, then toolpaths are not connected. If `opts.connect` is `cfs`/`dfs`, then toolpaths are connected into a continuous one based on CFS/DFS. 
-+ Other toolpath generation algorithms and toolpath connection algorithm will be added into `NEPathPlanner` latter.
+- **DirectParallelOptions**: Options for Raster/Zigzag
+    - `delta`: Line width
+    - `angle`: Angle in radians
 
-#### `NEPath-master/Curve.h`
+- **ContourParallelOptions**: Options for CP toolpaths
+    - `delta`: Line width
+    - `wash`: Enable resampling
+    - `washdis`: Resampling distance
+    - `connect`: Connection algorithm (none, cfs, dfs)
 
-`Curve.h` has some fundamental  methods on geometry.
+- **NonEquidistantOptions**: Options for IQOP (requires Gurobi)
+    - `delta`: Upper bound of line width
+    - `alpha`: Lower bound scale
+    - `optimize_Q`(bool): Optimize isoperimetric quotient
+    - `optimize_S`(bool): Optimize area
+    - `optimize_L`(bool): Optimize length
+    - `lambda_Q`: Weighting coefficient for isoperimetric quotient
+    - `lambda_S`: Weighting coefficient for area
+    - `lambda_L`: Weighting coefficient for length
+    - `connector`(`ConnectAlgorithm`): Enum of connection algorithms, including `none`, `cfs`, `dfs`.
+    - `optimizer`(`OptimizationAlgorithm`): Connection algorithm, including `none`, `ipopt`, `gurobi`.
 
-+ **Underfill**. For a slice $D\subset\mathbb{R}^2$ and some toolpaths $\left\{l_i\right\}_{i=1}^N$, underfill is defined as $D\bigcap\left(\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)\right)^C$, where $\delta>0$ is the line width.	
-	
-	+ `(static UnderFillSolution)Curve::UnderFill()`: API of calculate underfill. Return a `UnderFillSolution`.
-	
-		+ `(const path&)contour`: the contour of slice.
-		+ `(const paths&)holes`: the holes of slice. If the slice has no hole, you can input `paths()` as an empty set of holes.
-		+ `(const paths&)ps`: the toolpaths planned before.
-		+ `(double)delta`: the line width $\delta$. Note that for every toolpath, only a width of $\frac\delta2$ on each side is determined as fill.
-		+ `(double)reratio`: the resolution ratio. `xs` and `ys` are sampled with a distance of `reratio` between 2 points.
-	
-	+ `(struct)UnderFillSolution` is a struct to store information of underfill.
-		
-		+ `(double*)xs` and `(double*)ys` are discrete points on $x$-axis and $y$-axis.
-		+ `(int)nx` and  `(int)ny` are the lengths of `xs` and `ys`.
-		+ `(bool**)map_slice` stores information of slice $D$. `map_slice[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in D$.
-		+ `(bool**)map_delta` stores information of neighborhood of toolpaths $\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$. `map_delta[i][j]==true` if and only if the point `(xs[i],ys[j])`$\in\bigcup\limits_{i=1}^n B_{\frac{\delta}2}\left(l_i\right)$.
-		+ `(double)underfillrate` is the underfill rate, i.e.,
-<p align="center">
-	<img src="https://github.com/user-attachments/assets/794ee62e-5d2c-4a19-9837-51e30517e343" alt="optimization_problem" height="80" />
-</p>
-
-
-+ **Sharp corner.** To avoid computational sensitivity, sharp corners are determined by [area invariant](https://doi.org/10.1016/j.cagd.2008.01.002) (Helmut Pottmann, et al. 2009).
-+ `(static SharpTurnSolution)Curve::SharpTurn_Invariant()`: determine sharp corners on a toolpath:
-	  + `(const path&)p`: the input toolpath.
-	  + `(double)radius`: the radius of the rolling circle.
-	  + `(double)threshold`: the threshold to determine a sharp corner.
-	  + `(bool)close`: `close` is true if and only if the toolpath is closed.
-	  + `(bool)washdis`: sharp corners would be determined with a uniformly-distributed distance no more than `washdis`.
-	+ `(struct)SharpTurnSolution` is a struct to store information of sharp corners for a toolpath `p`.
-		+ `(int)length`: length of the toolpath.
-
-
-		+ `(double)radius`: the radius of the rolling circle.
-		+ `(double)threshold`: the threshold to determine a sharp corner.
-		+ `(double*)AreaPercent`: `AreaPercent[i]` is the percent of area on one side of the toolpath at `(p.x[i],p.y[i])`.
-		+ `(bool*)SharpTurn`: `SharpTurn[i]==ture` if and only if `AreaPercent[i]>threshold`.
-		+ `(bool)close`: `close` is true if and only if the toolpath is closed.
 
 ## Examples
 
@@ -199,63 +255,52 @@ The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPath
 ##### Based on Gurobi
 
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-   	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
+    # Set parameters
+    delta = 1.0
+    alpha = 0.5
+    washdis = 0.2
 
-	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
-	NEPathPlanner planner_toolcompensate;
-	planner_toolcompensate.set_contour(contour);
-	ContourParallelOptions opts_toolcompensate;
-	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts_toolcompensate.washdis = 0.2;
-	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-	planner.set_contour(path_outmost[0]);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-	// Set the toolpath parameters
-	NonEquidistantOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.alpha = 0.5; // the scale of minimum distance
-	opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
-	opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+    # Set toolpath parameters
+    opts = nepath.NonEquidistantOptions()
+    opts.delta = delta
+    opts.alpha = alpha
+    opts.dot_delta = 1.0
+    opts.ddot_delta = 0.1
+    opts.optimize_Q = True
+    opts.optimize_S = False
+    opts.optimize_L = False
+    opts.lambda_Q = 1.0
+    opts.wash = True
+    opts.washdis = washdis
+    opts.optimizer = nepath.OptimizationAlgorithm.gurobi  # Use gurobi solver
 
-	opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
-	opts.optimize_S = false; // the area is not in the objective function
-	opts.optimize_L = false; // the length is not in the objective function
-	opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
-
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
-    opts.connector = ConnectAlgorithm::none; // don't connect in this example
-    opts.optimizer = OptimizationAlgorithm::gurobi; // use Gurobi solver
-
-	paths IQOP_paths = planner.IQOP(opts, true); // all IQOP paths
-	cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
-	return 0;
-}
+    # Generate IQOP paths
+    IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+    print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
 ```
 
 <p align="center">
@@ -282,63 +327,53 @@ int main() {
 ##### Based on Ipopt
 
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-   	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
+    # Set parameters
+    delta = 1.0
+    alpha = 0.5
+    washdis = 0.2
 
-	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
-	NEPathPlanner planner_toolcompensate;
-	planner_toolcompensate.set_contour(contour);
-	ContourParallelOptions opts_toolcompensate;
-	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts_toolcompensate.washdis = 0.2;
-	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-	planner.set_contour(path_outmost[0]);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-	// Set the toolpath parameters
-	NonEquidistantOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.alpha = 0.5; // the scale of minimum distance
-	opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
-	opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+    # Set toolpath parameters
+    opts = nepath.NonEquidistantOptions()
+    opts.delta = delta
+    opts.alpha = alpha
+    opts.dot_delta = 1.0
+    opts.ddot_delta = 0.1
+    opts.optimize_Q = True
+    opts.optimize_S = False
+    opts.optimize_L = False
+    opts.lambda_Q = 1.0
+    opts.wash = True
+    opts.washdis = washdis
+    opts.connector = nepath.ConnectAlgorithm.none  # none / cfs / dfs
+    opts.optimizer = nepath.OptimizationAlgorithm.ipopt  # Use ipopt solver
 
-	opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
-	opts.optimize_S = false; // the area is not in the objective function
-	opts.optimize_L = false; // the length is not in the objective function
-	opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
-
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
-    opts.connector = ConnectAlgorithm::none; // don't connect in this example
-    opts.optimizer = OptimizationAlgorithm::ipopt; // use Ipopt solver
-
-	paths IQOP_paths = planner.IQOP(opts, true); // all IQOP paths
-	cout << "There are " << IQOP_paths.size() << " continuous toolpaths in total." << endl;
-	return 0;
-}
+    # Generate IQOP paths
+    IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+    print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
 ```
 
 <p align="center">
@@ -350,57 +385,45 @@ int main() {
 
 #### CP (Contour-Parallel)
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
+    # Set parameters
+    delta = 1.0
+    washdis = 0.2
 
-	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
-	NEPathPlanner planner_toolcompensate;
-	planner_toolcompensate.set_contour(contour);
-	ContourParallelOptions opts_toolcompensate;
-	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts_toolcompensate.washdis = 0.2;
-	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-	planner.set_contour(path_outmost[0]);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-	// Set the toolpath parameters
-	ContourParallelOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
+    # Set toolpath parameters
+    opts = nepath.ContourParallelOptions()
+    opts.delta = delta
+    opts.wash = True
+    opts.washdis = washdis
 
-	paths CP_paths = planner.CP(opts); // all CP paths
-	cout << "There are " << CP_paths.size() << " continuous toolpaths in total." << endl;
-	for (int i = 0; i < CP_paths.size(); ++i) {
-		// CP_paths[i] is the i-th continuous toolpath
-		cout << "Toopath " << i << " has " << CP_paths[i].length << " waypoints." << endl;
-	}
-	
-	return 0;
-}
+    # Generate CP paths
+    CP_paths = planner.CP(opts)
+    print(f"There are {len(CP_paths)} continuous toolpaths in total.")
+    for i, path in enumerate(CP_paths):
+        print(f"Toolpath {i} has {path.length} waypoints.")
 ```
 
 <p align="center">
@@ -413,44 +436,35 @@ int main() {
 
 #### Zigzag
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Set the contour
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
-	planner.set_contour(contour);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Set parameters
+    delta = 1.0
+    angle = np.pi / 3.0
 
-	// Set the toolpath parameters
-	DirectParallelOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.angle = pi / 3.0; // the angle of Zigzag toolpaths, unit: rad
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(x, y)
 
-	paths zigzag_paths = planner.Zigzag(opts); // all zigzag paths
-	cout << "There are " << zigzag_paths.size() << " continuous toolpaths in total." << endl;
-	for (int i = 0; i < zigzag_paths.size(); ++i) {
-		// zigzag_paths[i] is the i-th continuous toolpath
-		cout << "Toopath " << i << " has " << zigzag_paths[i].length << " waypoints." << endl;
-	}
-	
-	return 0;
-}
+    # Set toolpath parameters
+    opts = nepath.DirectParallelOptions()
+    opts.delta = delta
+    opts.angle = angle
+
+    # Generate zigzag paths
+    zigzag_paths = planner.Zigzag(opts)
+    print(f"There are {len(zigzag_paths)} continuous toolpaths in total.")
+    for i, path in enumerate(zigzag_paths):
+        print(f"Toolpath {i} has {path.length} waypoints.")
 ```
 
 <p align="center">
@@ -463,40 +477,35 @@ int main() {
 
 #### Raster
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Set the contour
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
-	planner.set_contour(contour);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Set parameters
+    delta = 1.0
+    angle = np.pi / 3.0
 
-	// Set the toolpath parameters
-	DirectParallelOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.angle = - pi / 3.0; // the angle of raster toolpaths, unit: rad
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(x, y)
 
-	paths raster_paths = planner.Raster(opts); // all raster paths
-	cout << "There are " << raster_paths.size() << " continuous toolpaths in total." << endl;
-	
-	return 0;
-}
+    # Set toolpath parameters
+    opts = nepath.DirectParallelOptions()
+    opts.delta = delta
+    opts.angle = angle
+
+    # Generate raster paths
+    raster_paths = planner.Raster(opts)
+    print(f"There are {len(raster_paths)} continuous toolpaths in total.")
+    for i, path in enumerate(raster_paths):
+        print(f"Toolpath {i} has {path.length} waypoints.")
 ```
 
 <p align="center">
@@ -513,62 +522,53 @@ int main() {
 
 CP can be connected by CFS in the same way.
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-    NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-    // Obtain the contour of the outer boundary of slices
-    path contour;
-    contour.length = 1000; // the number of waypoints
-    contour.x = new double[contour.length](); // x-coordinate of waypoints
-    contour.y = new double[contour.length](); // y-coordinate of waypoints
-    const double pi = acos(-1.0); // pi == 3.1415926...
-    for (int i = 0; i < contour.length; ++i) {
-        double theta = 2.0 * pi * i / contour.length;
-        double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
-        contour.x[i] = r * cos(theta);
-        contour.y[i] = r * sin(theta);
-    }
+    # Set parameters
+    delta = 1.0
+    alpha = 0.5
+    washdis = 0.2
 
-    // The out boundary should be offset with half of the line width to obtain the outmost toolpath
-    NEPathPlanner planner_toolcompensate;
-    planner_toolcompensate.set_contour(contour);
-    ContourParallelOptions opts_toolcompensate;
-    opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-    opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-    opts_toolcompensate.washdis = 0.2;
-    paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-    planner.set_contour(path_outmost[0]);
-    // or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-    // Set the toolpath parameters
-    NonEquidistantOptions opts;
-    opts.delta = 1.0; // the line width of toolpaths
-    opts.alpha = 0.5; // the scale of minimum distance
-    opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
-    opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+    # Set toolpath parameters
+    opts = nepath.NonEquidistantOptions()
+    opts.delta = delta
+    opts.alpha = alpha
+    opts.dot_delta = 1.0
+    opts.ddot_delta = 0.1
+    opts.optimize_Q = True
+    opts.optimize_S = False
+    opts.optimize_L = False
+    opts.lambda_Q = 1.0
+    opts.wash = True
+    opts.washdis = washdis
+    opts.connector = nepath.ConnectAlgorithm.cfs  # none / cfs / dfs
+    opts.optimizer = nepath.OptimizationAlgorithm.gurobi  # Use gurobi solver
 
-    opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
-    opts.optimize_S = false; // the area is not in the objective function
-    opts.optimize_L = false; // the length is not in the objective function
-    opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
-
-    opts.wash = true; // it is recommended to set opt.wash=true
-    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-    opts.washdis = 0.2;
-    opts.connect = ConnectAlgorithm::cfs; // select cfs as the connecting method
-    opts.optimizer = OptimizationAlgorithm::gurobi; // use Gurobi solver
-
-    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with CFS
-	return 0;
-}
+    # Generate IQOP paths
+    IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+    print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
 ```
 
 <p align="center">
@@ -582,62 +582,53 @@ int main() {
 
 CP can be connected by DFS in the same way.
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-    NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-    // Obtain the contour of the outer boundary of slices
-    path contour;
-    contour.length = 1000; // the number of waypoints
-    contour.x = new double[contour.length](); // x-coordinate of waypoints
-    contour.y = new double[contour.length](); // y-coordinate of waypoints
-    const double pi = acos(-1.0); // pi == 3.1415926...
-    for (int i = 0; i < contour.length; ++i) {
-        double theta = 2.0 * pi * i / contour.length;
-        double r = 15.0 * (1.0 + 0.1 * cos(10.0 * theta));
-        contour.x[i] = r * cos(theta);
-        contour.y[i] = r * sin(theta);
-    }
+    # Set parameters
+    delta = 1.0
+    alpha = 0.5
+    washdis = 0.2
 
-    // The out boundary should be offset with half of the line width to obtain the outmost toolpath
-    NEPathPlanner planner_toolcompensate;
-    planner_toolcompensate.set_contour(contour);
-    ContourParallelOptions opts_toolcompensate;
-    opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-    opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-    opts_toolcompensate.washdis = 0.2;
-    paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-    planner.set_contour(path_outmost[0]);
-    // or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-    // Set the toolpath parameters
-    NonEquidistantOptions opts;
-    opts.delta = 1.0; // the line width of toolpaths
-    opts.alpha = 0.5; // the scale of minimum distance
-    opts.dot_delta = 1.0; // the upper bound of \dot{delta_i}
-    opts.ddot_delta = 0.1; // the upper bound of \ddot{delta_i}
+    # Set toolpath parameters
+    opts = nepath.NonEquidistantOptions()
+    opts.delta = delta
+    opts.alpha = alpha
+    opts.dot_delta = 1.0
+    opts.ddot_delta = 0.1
+    opts.optimize_Q = True
+    opts.optimize_S = False
+    opts.optimize_L = False
+    opts.lambda_Q = 1.0
+    opts.wash = True
+    opts.washdis = washdis
+    opts.connector = nepath.ConnectAlgorithm.dfs  # none / cfs / dfs
+    opts.optimizer = nepath.OptimizationAlgorithm.gurobi  # Use gurobi solver
 
-    opts.optimize_Q = true; // the isoperimetric quotient is in the objective function
-    opts.optimize_S = false; // the area is not in the objective function
-    opts.optimize_L = false; // the length is not in the objective function
-    opts.lambda_Q = 1.0; // the weighting coefficient of the isoperimetric quotient
-
-    opts.wash = true; // it is recommended to set opt.wash=true
-    // if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-    opts.washdis = 0.2;
-    opts.connect = ConnectAlgorithm::dfs; // select dfs as the connecting method
-    opts.optimizer = OptimizationAlgorithm::gurobi; // use Gurobi solver
-
-    paths IQOP_paths = planner.IQOP(opts, true); // IQOP with DFS
-	return 0;
-}
+    # Generate IQOP paths
+    IQOP_paths = planner.IQOP(opts, False)  # log=False for cleaner output
+    print(f"There are {len(IQOP_paths)} continuous toolpaths in total.")
 ```
 
 <p align="center">
@@ -650,50 +641,40 @@ int main() {
 
 #### Tool  compensate
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
-	planner.set_contour(contour);
+    # Add a hole
+    x_hole = np.array([-5, 5, 5, 0, -5], dtype=float)
+    y_hole = np.array([-5, -5, 5, 0, 5], dtype=float)
 
-	// Obtain the hole
-	double x_hole[] = { -5,5,5,0,-5 };
-	double y_hole[] = { -5,-5,5,0,5 };
-	planner.addhole(x_hole, y_hole, 5);
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(x, y)
+    planner.addhole(x_hole, y_hole)
 
-	// Tool compensate
-	ContourParallelOptions opts;
-	opts.delta = -1.5; // the offset distance
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
-	paths ps_toolcompensate = planner.tool_compensate(opts); // Tool compensate
+    # Set toolpath parameters
+    delta_offset = -1.5
+    washdis = 0.2
 
-	cout << "There are " << ps_toolcompensate.size() << " continuous toolpaths in total." << endl;
-	for (int i = 0; i < ps_toolcompensate.size(); ++i) {
-		// ps_toolcompensate[i] is the i-th continuous toolpath
-		cout << "Toopath " << i << " has " << ps_toolcompensate[i].length << " waypoints." << endl;
-	}
-	
-	return 0;
-}
+    # Tool compensate
+    opts = nepath.ContourParallelOptions()
+    opts.delta = delta_offset
+    opts.wash = True
+    opts.washdis = washdis
+    ps_toolcompensate = planner.tool_compensate(opts)
+
+    print(f"There are {len(ps_toolcompensate)} continuous toolpaths in total.")
+    for i, path in enumerate(ps_toolcompensate):
+        print(f"Toolpath {i} has {path.length} waypoints.")
 ```
 
 <p align="center">
@@ -706,59 +687,49 @@ int main() {
 
 #### Underfill
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
+    # Set parameters
+    delta = 1.0
+    washdis = 0.2
+    reratio = 0.03
 
-	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
-	NEPathPlanner planner_toolcompensate;
-	planner_toolcompensate.set_contour(contour);
-	ContourParallelOptions opts_toolcompensate;
-	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts_toolcompensate.washdis = 0.2;
-	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-	planner.set_contour(path_outmost[0]);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-	// Set the toolpath parameters
-	ContourParallelOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
+    # Set toolpath parameters
+    opts = nepath.ContourParallelOptions()
+    opts.delta = delta
+    opts.wash = True
+    opts.washdis = washdis
 
-	paths CP_paths = planner.CP(opts); // all CP paths
+    # Generate CP paths
+    CP_paths = planner.CP(opts)
+    print(f"There are {len(CP_paths)} continuous toolpaths in total.")
 
-	double delta_underfill = opts.delta; // the line width for underfill computation
-	double reratio = 0.03; // resolution ratio for underfill computation
-
-	UnderFillSolution ufs = Curve::UnderFill(contour, paths(), CP_paths, delta_underfill, reratio); // Obtain the results of underfill
-
-	cout << "The underfill rate is " << ufs.underfillrate * 100 << "%." << endl;
-	
-	return 0;
-}
+    # Calculate underfill
+    contour_path = nepath.Path.from_arrays(x, y)
+    ufs = nepath.Curve.UnderFill(contour_path, [], CP_paths, delta, reratio)
+    print(f"The underfill rate is {ufs.underfillrate * 100:.2f}%.")
 ```
 
 <p align="center">
@@ -771,66 +742,61 @@ int main() {
 
 #### Sharp corner
 
-```c++
-#include <NEPath/NEPath.h>
-#include <iostream>
-using namespace std;
-using namespace nepath; // the namspace of the NEPath package
+```python
+import numpy as np
+import NEPath as nepath
 
-int main() {
-	NEPathPlanner planner;
+if __name__ == "__main__":
+    # Create contour (slightly different for IQOP)
+    theta = np.linspace(0, 2 * np.pi, 1000)
+    r = 15.0 * (1.0 + 0.1 * np.cos(10.0 * theta))
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
-	// Obtain the contour of the outer boundary of slices
-	path contour;
-	contour.length = 1000; // the number of waypoints
-	contour.x = new double[contour.length](); // x-coordinate of waypoints
-	contour.y = new double[contour.length](); // y-coordinate of waypoints
-	const double pi = acos(-1.0); // pi == 3.1415926...
-	for (int i = 0; i < contour.length; ++i) {
-		double theta = 2.0 * pi * i / contour.length;
-		double r = 15.0 * (1.0 + 0.15 * cos(10.0 * theta));
-		contour.x[i] = r * cos(theta);
-		contour.y[i] = r * sin(theta);
-	}
+    # Set parameters
+    delta = 1.0
+    washdis = 0.2
+    radius = 1.0
+    threshold = 0.3
 
-	// The out boundary should be offset with half of the line width to obtain the outmost toolpath
-	NEPathPlanner planner_toolcompensate;
-	planner_toolcompensate.set_contour(contour);
-	ContourParallelOptions opts_toolcompensate;
-	opts_toolcompensate.delta = -1.0 * 0.5; // half of the line width of toolpaths
-	opts_toolcompensate.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts_toolcompensate.washdis = 0.2;
-	paths path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate);
+    # Tool compensate to get the outmost toolpath
+    planner_toolcompensate = nepath.NEPathPlanner()
+    planner_toolcompensate.set_contour(x, y)
+    opts_toolcompensate = nepath.ContourParallelOptions()
+    opts_toolcompensate.delta = -0.5 * delta
+    opts_toolcompensate.wash = True
+    opts_toolcompensate.washdis = washdis
+    path_outmost = planner_toolcompensate.tool_compensate(opts_toolcompensate)
 
-	planner.set_contour(path_outmost[0]);
-	// or `planner.set_contour(contour.x, contour.y, contour.length)`
+    # Initialize NEPath planner and set contour
+    planner = nepath.NEPathPlanner()
+    planner.set_contour(path_outmost[0])
 
-	// Set the toolpath parameters
-	ContourParallelOptions opts;
-	opts.delta = 1.0; // the line width of toolpaths
-	opts.wash = true; // it is recommended to set opt.wash=true
-	// if wash==true, then all toolpaths would have yniformly distributed waypoints, with a distance near opts.washdis
-	opts.washdis = 0.2;
+    # Set toolpath parameters
+    opts = nepath.ContourParallelOptions()
+    opts.delta = delta
+    opts.wash = True
+    opts.washdis = washdis
 
-	paths CP_paths = planner.CP(opts); // all CP paths
+    # Generate CP paths
+    CP_paths = planner.CP(opts)
+    print(f"There are {len(CP_paths)} continuous toolpaths in total.")
 
-	double radius = 1.0; // radius of the rolling circle
-	double threshold = 0.3; // threshold of area on one side to determine a sharp corner
+    # Detect sharp corners
+    num = 0
+    ps_sharpturn = []
+    for path in CP_paths:
+        sol = nepath.Curve.SharpTurn_Invariant(path, radius, threshold, True, 0.5)
+        sharp_turn = sol.get_sharp_turn()
+        num += sum(sharp_turn)
 
-	// Obtain the results of underfill
-	int num = 0;
-	for (int i = 0; i < CP_paths.size(); ++i) {
-		SharpTurnSolution sol = Curve::SharpTurn_Invariant(CP_paths[i], radius, threshold, true, 0.5);
-		for (int j = 0; j < sol.length; ++j) {
-			num += sol.SharpTurn[j];
-		}
-	}
+        # Store results (SharpTurn values as x, AreaPercent as y)
+        area_percent = sol.get_area_percent()
+        sharp_path = nepath.Path()
+        sharp_path.set_arrays(np.array([float(st) for st in sharp_turn], dtype=float), np.array(area_percent, dtype=float))
+        ps_sharpturn.append(sharp_path)
 
-	cout << "There exist " << num << " sharp corners." << endl;
-	
-	return 0;
-}
+    print(f"There exist {num} sharp corners.")
 ```
 
 <p align="center">
@@ -839,3 +805,15 @@ int main() {
 <p align="center">
     <b>Figure.</b> Sharp corners. There exist 44 sharp corners in this example.
 </p>
+### Others
+
+#### Test Config
+
+```python
+from NEPath import IncludeIpopt, IncludeGurobi
+
+if __name__ == "__main__":
+    print(f"IncludeIpopt: {IncludeIpopt}")
+    print(f"IncludeGurobi: {IncludeGurobi}")
+```
+

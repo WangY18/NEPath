@@ -1,8 +1,6 @@
 # NEPath: C++ Tutorial
 
-## Setup and Install
-
-### Step 1. Environment Variables
+## Setup Environment Variables
 
 Please set the following environment variables (global or ipopt at the cmake-terminal)
 
@@ -17,7 +15,7 @@ Please set the following environment variables (global or ipopt at the cmake-ter
 + For gurobi, you can check the environment variable `GUROBI_HOME` if the file `$GUROBI_HOME/include/gurobi_c++.h` exists. You can check the environment variable `GUROBI_VERSION` if `$GUROBI_HOME/lib/gurobi$GUROBI_VERSION.*` exists. For example, if you use gurobi v13.0.0, please set `GUROBI_VERSION` by `130`.
 + You need to add `GUROBI_HOME` and `IPOPT_ROOT` to the system environment `Path` in Windows if the `.exe` file is not run in the powershell.
 
-### Step 2. Install NEPath
+## Install NEPath by CMAKE
 
 Open the Terminal and run:
 
@@ -28,7 +26,7 @@ mkdir build
 cd build
 ```
 
-#### Step 2.a. Install NEPath in Linux / macOS
+### Choice 1. Install NEPath in Linux / macOS
 
 Open the Terminal and run:
 
@@ -51,7 +49,7 @@ cmake --install . --prefix example_path
 # e.g. cmake --install . --prefix $CONDA_PREFIX
 ```
 
-#### Step 2.b. Install NEPath in Windows with MSVC
+### Choice 2. Install NEPath in Windows with MSVC
 
 Open PowerShell or CMD and run:
 
@@ -74,7 +72,7 @@ cmake --install . --config Release --prefix "C:/Path/To/Install/NEPath"
 ```
 
 
-#### Step 2.c. Install NEPath in Windows with GNU
+### Choice 3. Install NEPath in Windows with GNU
 
 Open your MinGW/MSYS2 shell or WSL terminal, and run
 
@@ -94,7 +92,7 @@ If you want to install the NEPath library at another directory like `C:/Path/To/
 cmake --install . --prefix "C:/Path/To/Install/NEPath"
 ```
 
-### Step 3. (Optional) Run Examples
+### (Optional) Run Examples
 
 Open Terminal in `NEPath\` and run
 
@@ -105,7 +103,7 @@ mkdir build
 cd build
 ```
 
-#### Step 3.a. Run Examples in Linux / macOS
+#### Choice 1. Run Examples in Linux / macOS
 
 ```shell
 cmake ..
@@ -114,7 +112,7 @@ cmake --build .
 # ./demo_Raster
 ```
 
-#### Step 3.b. Run Examples in Windows with MSVC
+#### Choice 2. Run Examples in Windows with MSVC
 
 ```shell
 cmake .. -G "Visual Studio 17 2022" -A x64  # Replace with your VS version
@@ -125,12 +123,12 @@ cmake --build . --config Release
 
 ## API
 
-#### `NEPath/src/path.h`
+#### `NEPath/include/NEPathpath.h`
 
 + `(struct)path` is a struct to store information of toolpaths. `(double*)path::x` and `(double*)path::y` are waypoints of a toolpath.
 + `paths` is a `vector` of `path`, i.e., `typedef vector<path> paths;`
 
-#### `NEPath/src/NEPathPlanner.h`
+#### `NEPath/include/NEPathNEPathPlanner.h`
 
 The package `NEPathPlanner.h` include the key class of **NEPath**, i.e., `NEPathPlanner`. All operations on toolpath planning is based on `NEPathPlanner`. The API of `NEPathPlanner` is as follows:
 

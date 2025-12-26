@@ -11,7 +11,7 @@ conda install -c conda-forge ipopt
 ### Compile
 
 ```shell
-# Example for windows
+# Example for windows, Powershell
 $env:IPOPT_ROOT="C:\ProgramData\anaconda3\envs\NEPath\Library"
 $env:GUROBI_VERSION="120"
 # Example for linux / macOS

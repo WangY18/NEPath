@@ -53,7 +53,7 @@ class TestDemoInvocation:
     def test_demo_CP_CFS(self, data_output_dir, plot_output_dir):
         """Test CP with Connected Fermat Spiral."""
         output_dir = Path(data_output_dir) / "demo_CP_CFS/"
-        paths = demos.demo_CP_CFS(delta=1.0, washdis=0.2, output_dir=output_dir)
+        paths = demos.demo_CP_CFS(delta=1.1, washdis=0.2, output_dir=output_dir)
 
         assert paths is not None
         assert len(paths) > 0, "CP_CFS should generate at least one path"
