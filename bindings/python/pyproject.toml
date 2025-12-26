@@ -5,7 +5,6 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "nepath-py"
 description = "Python bindings for NEPath C++ code"
-readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.21.0",
