@@ -24,6 +24,14 @@ endif()
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
 option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
 
+if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
+    set(NEPATH_ENABLE_IPOPT ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable")
+endif()
+
+if(DEFINED ENV{NEPATH_ENABLE_GUROBI})
+    set(NEPATH_ENABLE_GUROBI ENV{NEPATH_ENABLE_GUROBI} CACHE BOOL "Enable Gurobi support from environment variable")
+endif()
+
 message(STATUS "========== NEPath Configuration ==========")
 message(STATUS "Build type        : ${CMAKE_BUILD_TYPE}")
 message(STATUS "IPOPT support     : ${NEPATH_ENABLE_IPOPT}")

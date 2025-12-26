@@ -36,6 +36,24 @@ pip install .
 ## Project Structure
 
 ```
+.
+├── cmake
+│   └── NEPathConfig.py.in
+├── CMakeLists.txt
+├── examples
+│   ├── demos.py
+│   ├── plot_utils.py
+│   ├── test_config.py
+│   └── test_demos.py
+├── NEPath
+│   ├── __init__.py
+│   ├── nepath_py.cpp
+│   └── _nepath.pyi
+├── pyproject.toml
+└── README.md
+```
+
+```
 bindings/
 ├── CMakeLists.txt          # CMake build configuration
 ├── pyproject.toml          # Python project configuration

@@ -3,7 +3,7 @@ requires = ["scikit-build-core >=0.10", "nanobind >=1.3.2"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "nepath_bindings"
+name = "nepath-py"
 description = "Python bindings for NEPath C++ code"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: C++",
-    "License :: OSI Approved :: MIT License"
+    "License :: OSI Approved :: Boost Software License 1.0"
 ]
 dynamic = ["version"]
 
@@ -79,7 +79,7 @@ cmake.build-type = "Release"
 
 [tool.scikit-build.metadata.version]
 provider = "scikit_build_core.metadata.regex"
-input = "src/nepath_bindings/__init__.py"
+input = "NEPath/__init__.py"
 
 [tool.scikit-build.cmake.define]
 CMAKE_POLICY_DEFAULT_CMP0135 = "NEW"
@@ -91,7 +91,7 @@ CMAKE_POLICY_DEFAULT_CMP0135 = "NEW"
 [tool.cibuildwheel]
 build-verbosity = 3
 test-requires = ["numpy", "pytest", "build"]
-test-command = "pip install numpy && pip list && pytest {project}/tests"
+test-command = "pip install numpy && pip list && pytest {project}/examples"
 build-frontend = "pip"
 manylinux-x86_64-image = "manylinux2014"
 skip = ["*_i686", "*-musllinux_*", "*-win32", "pp*"]
@@ -114,7 +114,7 @@ target-version = "py39"
 select = ["E", "F", "I"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["nepath_bindings"]
+known-first-party = ["NEPath"]
 force-single-line = true
 order-by-type = true
 
@@ -143,6 +143,6 @@ commit = true
 tag = true
 
 [[tool.bumpversion.files]]
-filename = "src/nepath_bindings/__init__.py"
+filename = "NEPath/__init__.py"
 search = "{current_version}"
 replace = "{new_version}"
