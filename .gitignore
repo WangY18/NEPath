@@ -148,3 +148,4 @@ myreadme.md
 # Ignore data files
 data_examples/
 plot_outputs/
+logs/
