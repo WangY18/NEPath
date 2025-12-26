@@ -79,6 +79,7 @@ target_include_directories(nepath_py PRIVATE
 
 # target_link_libraries(nepath_py PRIVATE nanobind)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
 # ---------- IPOPT ----------
 if(NEPATH_ENABLE_IPOPT)
@@ -187,6 +188,7 @@ if(NEPATH_ENABLE_GUROBI)
     message(STATUS "Using Gurobi ${GUROBI_VERSION} from ${GUROBI_HOME}")
 endif()
 
+
 # Optional dependencies
 if(NEPATH_ENABLE_IPOPT)
     target_compile_definitions(nepath_py PUBLIC IncludeIpopt=1)
@@ -208,6 +210,8 @@ else()
     target_compile_definitions(nepath_py PUBLIC IncludeGurobi=0)
     set(NEPATH_ENABLE_GUROBI_BOOL False)
 endif()
+
+
 
 # Remove default 'lib' prefix (so Python can import the module)
 set_target_properties(nepath_py PROPERTIES

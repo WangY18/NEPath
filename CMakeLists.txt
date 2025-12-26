@@ -62,6 +62,8 @@ endif()
 # Dependencies (library-level)
 # ============================================================
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # ---------- IPOPT ----------
 if(NEPATH_ENABLE_IPOPT)
     find_package(PkgConfig QUIET)
@@ -169,6 +171,8 @@ if(NEPATH_ENABLE_GUROBI)
     message(STATUS "Using Gurobi ${GUROBI_VERSION} from ${GUROBI_HOME}")
 endif()
 
+
+
 # ============================================================
 # NEPath library
 # ============================================================
@@ -217,6 +221,8 @@ if(NEPATH_ENABLE_GUROBI)
 else()
     target_compile_definitions(NEPath PUBLIC IncludeGurobi=0)
 endif()
+
+
 
 message(STATUS "=======================================")
 
@@ -269,6 +275,8 @@ if(NEPATH_ENABLE_GUROBI)
 endif()
 
 # 4. Package version file
+
+
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfigVersion.cmake"

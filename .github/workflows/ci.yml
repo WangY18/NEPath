@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches: [ "pr-ipopt-python" ]
+  pull_request:
+    branches: [ "pr-ipopt-python" ]
+
+jobs:
+  build-cpp:
+    name: C++ ${{ matrix.os }} (Ipopt=${{ matrix.ipopt }}, Gurobi=${{ matrix.gurobi }})
+    runs-on: ${{ matrix.os }}
+    # 使用 bash shell，这样可以方便地使用 Conda 环境 (即使在 Windows 上)
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 添加 macos-latest
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        ipopt: [ON, OFF]
+        gurobi: [ON, OFF]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # --- Conda Setup ---
+    # 使用 Conda 安装依赖，这是跨平台安装 Ipopt 最简单的方法
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: "3.10" # C++ 构建只需要一个基础 Python 环境
+        channels: conda-forge
+        activate-environment: nepath-env
+
+    # --- Dependency Setup ---
+
+    - name: Install Ipopt (Conda)
+      if: matrix.ipopt == 'ON'
+      run: |
+        conda install -y ipopt pkg-config
+        
+        # 设置 IPOPT_ROOT 环境变量，帮助 CMake 找到 Conda 安装的 Ipopt
+        if [ "${{ runner.os }}" == "Windows" ]; then
+           # Windows Conda 的库文件在 Library 目录下
+           echo "IPOPT_ROOT=$CONDA_PREFIX/Library" >> $GITHUB_ENV
+        else
+           # Linux / macOS 直接在 prefix 下
+           echo "IPOPT_ROOT=$CONDA_PREFIX" >> $GITHUB_ENV
+        fi
+
+    # Gurobi 依然需要 Mock，因为 CI 环境没有商业 License，无法安装可用版本
+    - name: Mock Gurobi
+      if: matrix.gurobi == 'ON'
+      run: |
+        mkdir -p fake_gurobi/include
+        mkdir -p fake_gurobi/lib
+        
+        # 创建假文件骗过 CMake 检查
+        touch fake_gurobi/include/gurobi_c++.h
+        touch fake_gurobi/lib/libgurobi100.so
+        touch fake_gurobi/lib/libgurobi_c++.a
+        touch fake_gurobi/lib/gurobi100.lib
+        touch fake_gurobi/lib/gurobi_c++md.lib
+        
+        # 设置环境变量
+        echo "GUROBI_HOME=$(pwd)/fake_gurobi" >> $GITHUB_ENV
+        echo "GUROBI_VERSION=100" >> $GITHUB_ENV
+
+    # --- Configure & Build ---
+
+    - name: Configure CMake
+      run: |
+        # Windows 下 Conda 环境通常配合 Ninja 生成器使用效果最好
+        # 如果没有 Ninja，CMake 可能会尝试找 Visual Studio，但在 bash shell 下可能需要额外配置
+        # 这里我们先尝试默认配置，如果 Windows 失败可能需要安装 ninja
+        if [ "${{ runner.os }}" == "Windows" ]; then
+           conda install -y ninja
+           CMAKE_GENERATOR="-GNinja"
+        fi
+        
+        cmake -S . -B build $CMAKE_GENERATOR \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DNEPATH_ENABLE_IPOPT=${{ matrix.ipopt }} \
+          -DNEPATH_ENABLE_GUROBI=${{ matrix.gurobi }}
+
+    - name: Build
+      # 允许 Mock Gurobi 导致的链接错误
+      continue-on-error: ${{ matrix.gurobi == 'ON' }}
+      run: cmake --build build --config Release
+
+    - name: Install (Test)
+      continue-on-error: ${{ matrix.gurobi == 'ON' }}
+      run: cmake --install build --config Release --prefix install_test
+
+  build-python:
+    name: Py ${{ matrix.python-version }} ${{ matrix.os }} (Ipopt=${{ matrix.ipopt }}, Gurobi=${{ matrix.gurobi }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.12"]
+        ipopt: [ON, OFF]
+        gurobi: [ON, OFF]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: ${{ matrix.python-version }}
+        channels: conda-forge
+        activate-environment: nepath-env
+
+    # --- Dependency Setup ---
+
+    - name: Install Ipopt (Conda)
+      if: matrix.ipopt == 'ON'
+      run: |
+        conda install -y ipopt pkg-config
+        if [ "${{ runner.os }}" == "Windows" ]; then
+           echo "IPOPT_ROOT=$CONDA_PREFIX/Library" >> $GITHUB_ENV
+        else
+           echo "IPOPT_ROOT=$CONDA_PREFIX" >> $GITHUB_ENV
+        fi
+
+    - name: Mock Gurobi
+      if: matrix.gurobi == 'ON'
+      run: |
+        mkdir -p fake_gurobi/include
+        mkdir -p fake_gurobi/lib
+        touch fake_gurobi/include/gurobi_c++.h
+        touch fake_gurobi/lib/libgurobi100.so
+        touch fake_gurobi/lib/libgurobi_c++.a
+        touch fake_gurobi/lib/gurobi100.lib
+        touch fake_gurobi/lib/gurobi_c++md.lib
+        echo "GUROBI_HOME=$(pwd)/fake_gurobi" >> $GITHUB_ENV
+        echo "GUROBI_VERSION=100" >> $GITHUB_ENV
+
+    # --- Build & Install ---
+
+    - name: Build and Install Python Package
+      env:
+        NEPATH_ENABLE_IPOPT: ${{ matrix.ipopt }}
+        NEPATH_ENABLE_GUROBI: ${{ matrix.gurobi }}
+        # 告诉 scikit-build-core 使用多少并行核心
+        CMAKE_BUILD_PARALLEL_LEVEL: 2
+      # 允许 Mock Gurobi 导致的失败
+      continue-on-error: ${{ matrix.gurobi == 'ON' }}
+      run: |
+        # 注意：pyproject.toml 会自动处理 nanobind 的下载和安装
+        # 只要 requires = ["nanobind"] 存在，pip 就会在一个隔离环境中构建它
+        # 不需要手动 git clone 和 cmake install nanobind
+        
+        cd bindings/python
+        pip install . -v
+
+    - name: Test Import
+      if: success()
+      run: |
+        python -c "import NEPath; print(f'Successfully imported NEPath from {NEPath.__file__}')"
