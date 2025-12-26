@@ -1,6 +1,6 @@
 # NEPath
 
-## A Classical Toolpath and Optimization-Based Non-Equidistant Toolpath Planning Library (In C++)
+## A Classical Toolpath and Optimization-Based Non-Equidistant Toolpath Planning Library (C++ / Python)
 
 [![License](https://img.shields.io/badge/License-Boost_1.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
@@ -57,7 +57,6 @@ The source of `NEPath` is achieved in C++. Based on some bindings, the supported
 
 + **C++**. Please refer to [C++ tutorial document](tutorial/C++.md).
 + **Python**. Please refer to [Python tutorial document](tutorial/Python.md).
-+ **Matlab**. Coming very soon.
 
 ## Introduction to IQOP
 

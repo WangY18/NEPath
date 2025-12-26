@@ -1,5 +1,7 @@
 # NEPath: Other Notes
 
+These are notes for the authors ourselves...
+
 ## Install Ipopt in Conda
 
 ```shell
