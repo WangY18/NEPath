@@ -94,11 +94,11 @@ if(NEPATH_ENABLE_IPOPT)
 
         add_library(IPOPT INTERFACE)
         target_include_directories(IPOPT INTERFACE
-            ${IPOPT_ROOT}/include
-            ${IPOPT_ROOT}/include/coin
+            $<BUILD_INTERFACE:${IPOPT_ROOT}/include>
+            $<BUILD_INTERFACE:${IPOPT_ROOT}/include/coin>
         )
         target_link_directories(IPOPT INTERFACE
-            ${IPOPT_ROOT}/lib
+            $<BUILD_INTERFACE:${IPOPT_ROOT}/lib>
         )
         target_link_libraries(IPOPT INTERFACE
             ipopt
@@ -126,10 +126,10 @@ if(NEPATH_ENABLE_GUROBI)
 
     add_library(GUROBI INTERFACE)
     target_include_directories(GUROBI INTERFACE
-        ${GUROBI_HOME}/include
+        $<BUILD_INTERFACE:${GUROBI_HOME}/include>
     )
     target_link_directories(GUROBI INTERFACE
-        ${GUROBI_HOME}/lib
+        $<BUILD_INTERFACE:${GUROBI_HOME}/lib>
     )
     if(MSVC)
         # Windows MSVC

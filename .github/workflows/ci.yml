@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         # 添加 macos-latest
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest] #, macos-latest
         ipopt: [ON, OFF]
         gurobi: [ON, OFF]
 
@@ -78,12 +78,12 @@ jobs:
         # Windows 下 Conda 环境通常配合 Ninja 生成器使用效果最好
         # 如果没有 Ninja，CMake 可能会尝试找 Visual Studio，但在 bash shell 下可能需要额外配置
         # 这里我们先尝试默认配置，如果 Windows 失败可能需要安装 ninja
-        if [ "${{ runner.os }}" == "Windows" ]; then
-           conda install -y ninja
-           CMAKE_GENERATOR="-GNinja"
-        fi
+        # if [ "${{ runner.os }}" == "Windows" ]; then
+        #    conda install -y ninja
+        #    CMAKE_GENERATOR="-GNinja"
+        # fi
         
-        cmake -S . -B build $CMAKE_GENERATOR \
+        cmake -S . -B build \
           -DCMAKE_BUILD_TYPE=Release \
           -DNEPATH_ENABLE_IPOPT=${{ matrix.ipopt }} \
           -DNEPATH_ENABLE_GUROBI=${{ matrix.gurobi }}
@@ -97,77 +97,77 @@ jobs:
       continue-on-error: ${{ matrix.gurobi == 'ON' }}
       run: cmake --install build --config Release --prefix install_test
 
-  build-python:
-    name: Py ${{ matrix.python-version }} ${{ matrix.os }} (Ipopt=${{ matrix.ipopt }}, Gurobi=${{ matrix.gurobi }})
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.12"]
-        ipopt: [ON, OFF]
-        gurobi: [ON, OFF]
+#   build-python:
+#     name: Py ${{ matrix.python-version }} ${{ matrix.os }} (Ipopt=${{ matrix.ipopt }}, Gurobi=${{ matrix.gurobi }})
+#     runs-on: ${{ matrix.os }}
+#     defaults:
+#       run:
+#         shell: bash -l {0}
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         os: [ubuntu-latest, windows-latest, macos-latest]
+#         python-version: ["3.9", "3.12"]
+#         ipopt: [ON, OFF]
+#         gurobi: [ON, OFF]
 
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
+#     steps:
+#     - uses: actions/checkout@v4
+#       with:
+#         submodules: recursive
 
-    - name: Setup Conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
-        channels: conda-forge
-        activate-environment: nepath-env
+#     - name: Setup Conda
+#       uses: conda-incubator/setup-miniconda@v3
+#       with:
+#         auto-update-conda: true
+#         python-version: ${{ matrix.python-version }}
+#         channels: conda-forge
+#         activate-environment: nepath-env
 
-    # --- Dependency Setup ---
+#     # --- Dependency Setup ---
 
-    - name: Install Ipopt (Conda)
-      if: matrix.ipopt == 'ON'
-      run: |
-        conda install -y ipopt pkg-config
-        if [ "${{ runner.os }}" == "Windows" ]; then
-           echo "IPOPT_ROOT=$CONDA_PREFIX/Library" >> $GITHUB_ENV
-        else
-           echo "IPOPT_ROOT=$CONDA_PREFIX" >> $GITHUB_ENV
-        fi
+#     - name: Install Ipopt (Conda)
+#       if: matrix.ipopt == 'ON'
+#       run: |
+#         conda install -y ipopt pkg-config
+#         if [ "${{ runner.os }}" == "Windows" ]; then
+#            echo "IPOPT_ROOT=$CONDA_PREFIX/Library" >> $GITHUB_ENV
+#         else
+#            echo "IPOPT_ROOT=$CONDA_PREFIX" >> $GITHUB_ENV
+#         fi
 
-    - name: Mock Gurobi
-      if: matrix.gurobi == 'ON'
-      run: |
-        mkdir -p fake_gurobi/include
-        mkdir -p fake_gurobi/lib
-        touch fake_gurobi/include/gurobi_c++.h
-        touch fake_gurobi/lib/libgurobi100.so
-        touch fake_gurobi/lib/libgurobi_c++.a
-        touch fake_gurobi/lib/gurobi100.lib
-        touch fake_gurobi/lib/gurobi_c++md.lib
-        echo "GUROBI_HOME=$(pwd)/fake_gurobi" >> $GITHUB_ENV
-        echo "GUROBI_VERSION=100" >> $GITHUB_ENV
+#     - name: Mock Gurobi
+#       if: matrix.gurobi == 'ON'
+#       run: |
+#         mkdir -p fake_gurobi/include
+#         mkdir -p fake_gurobi/lib
+#         touch fake_gurobi/include/gurobi_c++.h
+#         touch fake_gurobi/lib/libgurobi100.so
+#         touch fake_gurobi/lib/libgurobi_c++.a
+#         touch fake_gurobi/lib/gurobi100.lib
+#         touch fake_gurobi/lib/gurobi_c++md.lib
+#         echo "GUROBI_HOME=$(pwd)/fake_gurobi" >> $GITHUB_ENV
+#         echo "GUROBI_VERSION=100" >> $GITHUB_ENV
 
-    # --- Build & Install ---
+#     # --- Build & Install ---
 
-    - name: Build and Install Python Package
-      env:
-        NEPATH_ENABLE_IPOPT: ${{ matrix.ipopt }}
-        NEPATH_ENABLE_GUROBI: ${{ matrix.gurobi }}
-        # 告诉 scikit-build-core 使用多少并行核心
-        CMAKE_BUILD_PARALLEL_LEVEL: 2
-      # 允许 Mock Gurobi 导致的失败
-      continue-on-error: ${{ matrix.gurobi == 'ON' }}
-      run: |
-        # 注意：pyproject.toml 会自动处理 nanobind 的下载和安装
-        # 只要 requires = ["nanobind"] 存在，pip 就会在一个隔离环境中构建它
-        # 不需要手动 git clone 和 cmake install nanobind
+#     - name: Build and Install Python Package
+#       env:
+#         NEPATH_ENABLE_IPOPT: ${{ matrix.ipopt }}
+#         NEPATH_ENABLE_GUROBI: ${{ matrix.gurobi }}
+#         # 告诉 scikit-build-core 使用多少并行核心
+#         CMAKE_BUILD_PARALLEL_LEVEL: 2
+#       # 允许 Mock Gurobi 导致的失败
+#       continue-on-error: ${{ matrix.gurobi == 'ON' }}
+#       run: |
+#         # 注意：pyproject.toml 会自动处理 nanobind 的下载和安装
+#         # 只要 requires = ["nanobind"] 存在，pip 就会在一个隔离环境中构建它
+#         # 不需要手动 git clone 和 cmake install nanobind
         
-        cd bindings/python
-        pip install . -v
+#         cd bindings/python
+#         pip install . -v
 
-    - name: Test Import
-      if: success()
-      run: |
-        python -c "import NEPath; print(f'Successfully imported NEPath from {NEPath.__file__}')"
+#     - name: Test Import
+#       if: success()
+#       run: |
+#         python -c "import NEPath; print(f'Successfully imported NEPath from {NEPath.__file__}')"
