@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         # 添加 macos-latest
-        os: [ubuntu-latest, windows-latest] #, macos-latest
+        os: [windows-latest, macos-latest] #ubuntu-latest, 
         ipopt: [ON, OFF]
         gurobi: [ON, OFF]
 
@@ -65,7 +65,7 @@ jobs:
         touch fake_gurobi/lib/libgurobi100.so
         touch fake_gurobi/lib/libgurobi_c++.a
         touch fake_gurobi/lib/gurobi100.lib
-        touch fake_gurobi/lib/gurobi_c++md.lib
+        touch fake_gurobi/lib/gurobi_c++md2017.lib
         
         # 设置环境变量
         echo "GUROBI_HOME=$(pwd)/fake_gurobi" >> $GITHUB_ENV
