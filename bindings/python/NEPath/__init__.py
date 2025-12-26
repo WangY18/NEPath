@@ -6,7 +6,7 @@ NEPath Python package.
 Expose C++ NEPath library functionalities via pybind11.
 """
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 # Import core extension module
 from .NEPathConfig import IncludeIpopt, IncludeGurobi
