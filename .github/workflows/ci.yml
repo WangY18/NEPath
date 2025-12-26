@@ -1,10 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [ "pr-ipopt-python" ]
-  pull_request:
-    branches: [ "pr-ipopt-python" ]
+  # push:
+  #   branches: [ "pr-ipopt-python" ]
+  # pull_request:
+  #   branches: [ "pr-ipopt-python" ]
+  workflow_dispatch:
 
 jobs:
   build-cpp:
