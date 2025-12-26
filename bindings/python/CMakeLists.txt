@@ -85,44 +85,42 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 if(NEPATH_ENABLE_IPOPT)
     find_package(PkgConfig QUIET)
     if(PkgConfig_FOUND)
-        pkg_check_modules(IPOPT QUIET ipopt)
+        pkg_check_modules(IPOPT_PKG QUIET ipopt)
     endif()
 
-    if(IPOPT_FOUND)
+    # Determine search paths
+    set(IPOPT_SEARCH_LIB_DIRS "")
+    set(IPOPT_SEARCH_INC_DIRS "")
+    
+    if(IPOPT_PKG_FOUND)
+        list(APPEND IPOPT_SEARCH_LIB_DIRS ${IPOPT_PKG_LIBRARY_DIRS})
+        list(APPEND IPOPT_SEARCH_INC_DIRS ${IPOPT_PKG_INCLUDE_DIRS})
+    endif()
+    
+    if(DEFINED ENV{IPOPT_ROOT})
+        list(APPEND IPOPT_SEARCH_LIB_DIRS "$ENV{IPOPT_ROOT}/lib")
+        list(APPEND IPOPT_SEARCH_INC_DIRS "$ENV{IPOPT_ROOT}/include" "$ENV{IPOPT_ROOT}/include/coin")
+    endif()
+
+    # Find Library
+    find_library(IPOPT_LIBRARY
+        NAMES ipopt libipopt
+        HINTS ${IPOPT_SEARCH_LIB_DIRS}
+    )
+    
+    # Find Include
+    find_path(IPOPT_INCLUDE_DIR
+        NAMES IpIpoptApplication.hpp
+        HINTS ${IPOPT_SEARCH_INC_DIRS}
+    )
+
+    if(IPOPT_LIBRARY AND IPOPT_INCLUDE_DIR)
         add_library(IPOPT INTERFACE)
-        target_include_directories(IPOPT INTERFACE
-            ${IPOPT_INCLUDE_DIRS}
-        )
-        target_link_libraries(IPOPT INTERFACE
-            ${IPOPT_LIBRARIES}
-            ${CMAKE_DL_LIBS}
-        )
-        message(STATUS "Found IPOPT via pkg-config")
+        target_include_directories(IPOPT INTERFACE ${IPOPT_INCLUDE_DIR})
+        target_link_libraries(IPOPT INTERFACE ${IPOPT_LIBRARY} ${CMAKE_DL_LIBS})
+        message(STATUS "Found IPOPT: ${IPOPT_LIBRARY}")
     else()
-        if(NOT DEFINED IPOPT_ROOT AND DEFINED ENV{IPOPT_ROOT})
-            set(IPOPT_ROOT "$ENV{IPOPT_ROOT}")
-        endif()
-
-        if(NOT IPOPT_ROOT)
-            message(FATAL_ERROR
-                "NEPATH_ENABLE_IPOPT=ON but IPOPT not found. "
-                "Set IPOPT_ROOT or disable IPOPT.")
-        endif()
-
-        add_library(IPOPT INTERFACE)
-        target_include_directories(IPOPT INTERFACE
-            ${IPOPT_ROOT}/include
-            ${IPOPT_ROOT}/include/coin
-        )
-        target_link_directories(IPOPT INTERFACE
-            ${IPOPT_ROOT}/lib
-        )
-        target_link_libraries(IPOPT INTERFACE
-            ipopt
-            ${CMAKE_DL_LIBS}
-        )
-
-        message(STATUS "Using IPOPT from ${IPOPT_ROOT}")
+        message(FATAL_ERROR "Could NOT find IPOPT. Please set IPOPT_ROOT environment variable.")
     endif()
 endif()
 
