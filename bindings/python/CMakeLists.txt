@@ -220,18 +220,19 @@ set_target_properties(nepath_py PROPERTIES
 # ============================================================
 # Install Python module
 # ============================================================
-# Install the compiled module into Python site-packages
+# Install the compiled module into the wheel's NEPath package (relative dest for scikit-build-core;
+# absolute ${Python_SITEARCH} escaped the wheel staging prefix -> empty wheel).
 install(TARGETS nepath_py
-    LIBRARY DESTINATION ${Python_SITEARCH}
+    LIBRARY DESTINATION NEPath
 )
 
 # Install __init__.py to allow 'import NEPath'
-install(TARGETS nepath_py LIBRARY DESTINATION ${Python_SITEARCH}/NEPath)
+install(TARGETS nepath_py LIBRARY DESTINATION NEPath)
 install(FILES 
     ${CMAKE_CURRENT_SOURCE_DIR}/NEPath/__init__.py
     ${CMAKE_CURRENT_SOURCE_DIR}/NEPath/_nepath.pyi
     DESTINATION
-    ${Python_SITEARCH}/NEPath)
+    NEPath)
 
 # Add config file for IncludeIpopt and IncludeGurobi
 configure_file(
@@ -241,4 +242,4 @@ configure_file(
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/NEPathConfig.py"
         DESTINATION 
-        ${Python_SITEARCH}/NEPath)
+        NEPath)
