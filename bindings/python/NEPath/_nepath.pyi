@@ -98,7 +98,7 @@ class ContourParallelOptions:
     num_least: int
     """Minimum number of waypoints."""
 
-    connect: ConnectAlgorithm
+    connector: ConnectAlgorithm
     """Connection algorithm."""
 
     def __init__(self) -> None: ...
