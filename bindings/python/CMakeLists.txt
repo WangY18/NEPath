@@ -31,6 +31,16 @@ message(STATUS "Gurobi support    : ${NEPATH_ENABLE_GUROBI}")
 # ============================================================
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 message(STATUS "Found Python ${Python_VERSION_STRING} at ${Python_INCLUDE_DIRS}")
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+    OUTPUT_VARIABLE nanobind_CMAKE_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE nanobind_CMAKE_DIR_STATUS
+)
+if(NOT nanobind_CMAKE_DIR_STATUS EQUAL 0)
+    message(FATAL_ERROR "Python interpreter cannot locate nanobind's CMake package")
+endif()
+list(APPEND CMAKE_PREFIX_PATH "${nanobind_CMAKE_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 if(NOT nanobind_FOUND)
     message(FATAL_ERROR "Nanobind not found via CMake, please set nanobind_DIR or use system install.")
@@ -62,6 +72,11 @@ nanobind_add_module(nepath_py
     ../../src/NEPath/Curve.cpp
     ../../src/NEPath/DirectionParallel.cpp
     ../../src/NEPath/FileAgent.cpp
+    ../../src/NEPath/IqopBuildIdentity.cpp
+    ../../src/NEPath/IqopGeometry.cpp
+    ../../src/NEPath/IqopIfopt.cpp
+    ../../src/NEPath/IqopScp.cpp
+    ../../src/NEPath/IqopSubproblem.cpp
     ../../src/NEPath/NEPathPlanner.cpp
     ../../src/NEPath/path.cpp
     ../../src/NEPath/NonEquidistant.cpp
@@ -189,6 +204,8 @@ endif()
 
 # Optional dependencies
 if(NEPATH_ENABLE_IPOPT)
+    include(NEPathIfopt)
+    nepath_add_ifopt_sources(nepath_py)
     target_compile_definitions(nepath_py PUBLIC IncludeIpopt=1)
     # target_link_libraries(nepath_py PUBLIC IPOPT)
     target_link_libraries(nepath_py PRIVATE $<$<BOOL:${NEPATH_ENABLE_IPOPT}>:IPOPT>)

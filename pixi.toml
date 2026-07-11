@@ -1,0 +1,38 @@
+[workspace]
+name = "nepath"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[dependencies]
+catch2 = ">=3.8,<4"
+cmake = ">=3.15"
+cxx-compiler = "*"
+eigen = ">=3.4,<4"
+ipopt = ">=3.14,<4"
+ninja = ">=1.11"
+pkg-config = "*"
+python = "3.12.*"
+pytest = ">=9.1.1,<10"
+pytest-xdist = ">=3.8.0,<4"
+nanobind = ">=2.13.0,<3"
+numpy = ">=2.5.1,<3"
+matplotlib = ">=3.11.0,<4"
+ruff = ">=0.15.21,<0.16"
+
+[tasks]
+configure-iqop = { cmd = "cmake -S . -B build/pixi -G Ninja -DNEPATH_ENABLE_IPOPT=ON -DNEPATH_ENABLE_GUROBI=OFF -DNEPATH_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug" }
+build-iqop = { cmd = "cmake --build build/pixi --parallel", depends-on = ["configure-iqop"] }
+test-iqop = { cmd = "ctest --test-dir build/pixi --output-on-failure --parallel 0", depends-on = ["build-iqop"] }
+test-parity = { cmd = "pytest tests/test_iqop_gurobi_parity.py -n auto --testmon --testmon-noselect -q", depends-on = ["build-iqop"] }
+install-iqop = { cmd = "cmake --install build/pixi --prefix build/install-contract", depends-on = ["build-iqop"] }
+configure-install-consumer = { cmd = "cmake -S tests/install_consumer -B build/install-consumer -G Ninja -DNEPath_DIR=$PIXI_PROJECT_ROOT/build/install-contract/lib/cmake/NEPath", depends-on = ["install-iqop"] }
+_build-install-consumer = { cmd = "cmake --build build/install-consumer --parallel", depends-on = ["configure-install-consumer"] }
+_test-install-pkgconfig = { cmd = "build/install-consumer/nepath_install_consumer", depends-on = ["_build-install-consumer"] }
+configure-install-consumer-root = { cmd = "cmake -S tests/install_consumer -B build/install-consumer-root -G Ninja -DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=TRUE -DIPOPT_ROOT=$CONDA_PREFIX -DNEPath_DIR=$PIXI_PROJECT_ROOT/build/install-contract/lib/cmake/NEPath", depends-on = ["install-iqop"] }
+_build-install-consumer-root = { cmd = "cmake --build build/install-consumer-root --parallel", depends-on = ["configure-install-consumer-root"] }
+_test-install-root = { cmd = "build/install-consumer-root/nepath_install_consumer", depends-on = ["_build-install-consumer-root"] }
+test-install = { depends-on = ["_test-install-pkgconfig", "_test-install-root"], description = "Test installed package with pkg-config and IPOPT_ROOT discovery" }
+
+[pypi-dependencies]
+gurobipy = ">=13, <14"
+pytest-testmon = ">=2.1, <3"
