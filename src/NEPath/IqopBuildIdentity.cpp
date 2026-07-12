@@ -128,7 +128,6 @@ IqopBuildIdentity build_iqop_identity(const IqopSubproblem &subproblem)
     append_double(input, IQOP_ACCEPTABLE_TOLERANCE_MULTIPLIER);
     append_double(input, IQOP_ACCEPTABLE_CONSTRAINT_MULTIPLIER);
     input << IQOP_ACCEPTABLE_ITERATION_COUNT << ';';
-    append_double(input, IQOP_ACCEPTABLE_OBJECTIVE_CHANGE_TOLERANCE);
     append_double(input, IQOP_INITIAL_INTERIOR_SLACK);
     append_double(input, IQOP_INTERIOR_PUSH);
     append_double(input, IQOP_INTERIOR_FRACTION);

@@ -133,6 +133,8 @@ venv/
 .testmondata*
 .ruff_cache/
 .mypy_cache/
+.cache/
+/math_ipopt.md
 
 # =========================
 # Archives / IDE projects

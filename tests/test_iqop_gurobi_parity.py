@@ -14,8 +14,12 @@ from gurobipy import GRB
 SOLVER_TOLERANCE = 1.0e-8
 FEASIBILITY_GATE = 10.0 * SOLVER_TOLERANCE
 OBJECTIVE_RELATIVE_GATE = 2.0e-5  # L-BFGS Ipopt versus conic barrier optimum.
-GEOMETRY_RELATIVE_GATE = 2.0e-5
-OFFSET_INFINITY_GATE = 2.0e-4
+GEOMETRY_RELATIVE_GATE = (
+    2.0e-5  # Propagates the objective gate through normalized geometry.
+)
+OFFSET_INFINITY_GATE = (
+    2.0e-4  # Allows non-unique epigraph optima while preserving geometry.
+)
 
 GEOMETRY_FIXTURES: dict[str, tuple[tuple[float, ...], tuple[float, ...]]] = {
     "irregular": (

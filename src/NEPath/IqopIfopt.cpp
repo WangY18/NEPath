@@ -454,7 +454,6 @@ struct IpoptRunSummary final
     application->Options()->SetNumericValue("acceptable_constr_viol_tol",
                                             nepath::IQOP_ACCEPTABLE_CONSTRAINT_MULTIPLIER * settings.tolerance);
     application->Options()->SetIntegerValue("acceptable_iter", nepath::IQOP_ACCEPTABLE_ITERATION_COUNT);
-    application->Options()->SetNumericValue("acceptable_obj_change_tol", nepath::IQOP_ACCEPTABLE_OBJECTIVE_CHANGE_TOLERANCE);
     application->Options()->SetNumericValue("constr_viol_tol", settings.tolerance);
     application->Options()->SetIntegerValue("max_iter", settings.maximum_iterations);
     application->Options()->SetNumericValue("max_wall_time", settings.wall_time_limit.count());
@@ -554,8 +553,8 @@ IqopSolveResult solve_iqop_subproblem(const IqopSubproblem &subproblem, const Iq
         const IqopDecision failed_decision = read_decision(problem.GetOptVariables(), subproblem, layout);
         std::ostringstream message;
         message << "Ipopt failed to solve IQOP subproblem, status " << status << ", iterations " << problem.GetIterationCount()
-                << ", maximum constraint violation " << maximum_violation(subproblem, failed_decision) << ", input "
-                << build_iqop_identity(subproblem).input_sha256;
+                << ", maximum constraint violation " << maximum_violation(subproblem, failed_decision) << ", vertices "
+                << subproblem.geometry().vertex_count() << ", input " << build_iqop_identity(subproblem).input_sha256;
         if (status == Ipopt::Maximum_WallTime_Exceeded || status == Ipopt::Maximum_CpuTime_Exceeded)
         {
             throw IqopSolveTimeLimitError(message.str());

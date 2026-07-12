@@ -41,6 +41,6 @@ TEST_CASE("IQOP build identity is deterministic and content addressed")
     REQUIRE(std::all_of(first_identity.input_sha256.begin(), first_identity.input_sha256.end(),
                         [](unsigned char value) { return std::isdigit(value) != 0 || (value >= 'a' && value <= 'f'); }));
     REQUIRE(first_identity.formulation_version == "iqop-scp-v1");
-    REQUIRE(first_identity.solver_configuration_version == "ipopt-lbfgs-v5");
+    REQUIRE(first_identity.solver_configuration_version == "ipopt-lbfgs-v8");
     REQUIRE(first_identity.ifopt_revision != "unavailable");
 }

@@ -9,6 +9,8 @@
 
 namespace
 {
+constexpr double ACCEPTABLE_PRIMAL_FEASIBILITY_GATE = 10.0 * nepath::IQOP_DESIRED_SOLVER_TOLERANCE;
+
 nepath::path make_irregular_path()
 {
     constexpr std::array<double, 6> x{0.0, 3.0, 3.5, 1.8, 1.0, -0.4};
@@ -56,7 +58,7 @@ TEST_CASE("quotient SCP rebuilds area models to a fixed point")
     REQUIRE(result.iterations.size() >= 3);
     REQUIRE(result.iterations.size() <= static_cast<std::size_t>(options.step_max));
     REQUIRE(result.iterations.back().physical_offset_change <= options.epsilon);
-    REQUIRE(result.iterations.back().maximum_constraint_violation <= 1.0e-7);
+    REQUIRE(result.iterations.back().maximum_constraint_violation <= ACCEPTABLE_PRIMAL_FEASIBILITY_GATE);
     for (const nepath::IqopScpIteration &iteration : result.iterations)
     {
         REQUIRE(iteration.ipopt_iterations <= nepath::IQOP_INNER_ITERATIONS_PER_SCP_STEP);
