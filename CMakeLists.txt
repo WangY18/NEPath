@@ -23,6 +23,7 @@ endif()
 # ============================================================
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
 option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
+option(NEPATH_BUILD_TESTS "Build NEPath contract tests" OFF)
 
 if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
     set(NEPATH_ENABLE_IPOPT ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable")
@@ -220,6 +221,19 @@ if(NEPATH_ENABLE_GUROBI)
     target_link_libraries(NEPath PUBLIC GUROBI)
 else()
     target_compile_definitions(NEPath PUBLIC IncludeGurobi=0)
+endif()
+
+# ============================================================
+# Tests
+# ============================================================
+
+if(NEPATH_BUILD_TESTS)
+    enable_testing()
+    add_executable(test_curve_ring
+        tests/test_curve_ring.cpp
+    )
+    target_link_libraries(test_curve_ring PRIVATE NEPath::NEPath)
+    add_test(NAME curve_ring COMMAND test_curve_ring)
 endif()
 
 

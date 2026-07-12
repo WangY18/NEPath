@@ -3,6 +3,7 @@
 #include <nanobind/ndarray.h>
 // #include <nanobind/eigen/dense.h>
 #include <NEPath/NEPath.h>
+#include "cfs_binding.h"
 // Include NEPath headers
 
 // The authors would like to sincerely thank Jelle Feringa for his significant contribution to python wrappers of NEPath.
@@ -76,7 +77,7 @@ NB_MODULE(_nepath, m)
     nb::class_<path>(m, "Path")
         .def(nb::init<>())
         .def(nb::init<const path &>())
-        .def_rw("length", &path::length, "Number of waypoints")
+        .def_ro("length", &path::length, "Number of waypoints")
         .def("xmax", &path::xmax, "Find the max x-coordinate")
         .def("xmin", &path::xmin, "Find the min x-coordinate")
         .def("ymax", &path::ymax, "Find the max y-coordinate")
@@ -116,6 +117,8 @@ NB_MODULE(_nepath, m)
             } }, "x"_a, "y"_a, "Set x and y coordinates from numpy arrays")
         .def_static("from_arrays", [](nb::ndarray<double, nb::shape<-1>, nb::c_contig> x_array, nb::ndarray<double, nb::shape<-1>, nb::c_contig> y_array)
                     { return numpy_to_path(x_array, y_array); }, "x"_a, "y"_a, "Create a Path from numpy arrays");
+
+    nepath::python::register_cfs_binding(m);
 
     // Bind DirectParallelOptions
     nb::class_<DirectParallelOptions>(m, "DirectParallelOptions")

@@ -55,6 +55,7 @@ include_directories(
 nanobind_add_module(nepath_py
     STABLE_ABI 
     NB_STATIC
+    NEPath/cfs_binding.cpp
     NEPath/nepath_py.cpp
     ../../src/NEPath/Basic.cpp
     ../../src/NEPath/Connector.cpp
