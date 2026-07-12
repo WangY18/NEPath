@@ -2,6 +2,9 @@
 #include <NEPath/Basic.h>
 #include <NEPath/ContourParallel.h>
 #include <NEPath/Connector.h>
+#include <NEPath/IqopScp.h>
+#include <NEPath/IqopSolverDefaults.h>
+#include <chrono>
 #include <cmath>
 #include <iostream>
 
@@ -13,7 +16,10 @@ namespace nepath
     // NonEquidistant Class Implementation
     // ============================================================================
 
-    NonEquidistant::NonEquidistant(bool debug) : debug_(debug)
+    NonEquidistant::NonEquidistant(bool debug)
+        : debug_(debug),
+          solver_deadline_(std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                                                                     IqopSolverWallTime(IQOP_SCP_WALL_TIME_SECONDS)))
     {
     }
 
@@ -154,6 +160,28 @@ namespace nepath
     }
 
     double *NonEquidistant::optimize_by_ipopt(const path &p, const NonEquidistantOptions &opts)
+    {
+#if defined(IncludeIpopt) && (IncludeIpopt != 0)
+        const IqopSolverWallTime remaining = solver_deadline_ - std::chrono::steady_clock::now();
+        if (remaining <= IqopSolverWallTime::zero())
+        {
+            throw IqopSolveTimeLimitError("IQOP planner exceeded its total solver wall-time limit");
+        }
+        const IqopScpResult result = solve_iqop_with_ipopt_bounded(p, opts, debug_, remaining);
+        double *solution = new double[p.length];
+        for (int i = 0; i < p.length; ++i)
+        {
+            solution[i] = result.physical_offsets.at(static_cast<std::size_t>(i)).value();
+        }
+        return solution;
+#else
+        (void)p;
+        (void)opts;
+        throw IqopSolveError("IQOP Ipopt solve requested without Ipopt support");
+#endif
+    }
+
+    double *NonEquidistant::optimize_by_ipopt_legacy(const path &p, const NonEquidistantOptions &opts)
     {
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
         // Create IPOPT application

@@ -128,6 +128,13 @@ venv/
 *.egg-info/
 *.conda
 *.ipynb_checkpoints/
+.pixi/
+.pytest_cache/
+.testmondata*
+.ruff_cache/
+.mypy_cache/
+.cache/
+/math_ipopt.md
 
 # =========================
 # Archives / IDE projects
@@ -137,15 +144,24 @@ venv/
 *.rar
 *.7z
 *.idea/
-*.vscode/
+.vscode/
 
 
 # Ignore local environment setup scripts
 # Local env file with paths, do not commit
 set_env.sh
 myreadme.md
+.env
+.env.*
+!.env.example
+
+# Ignore generated dependency mirrors and root demo binaries
+/bindings/external/
+/test_demos
 
 # Ignore data files
 data_examples/
 plot_outputs/
 logs/
+# Malformed Windows-style output paths materialized as root filenames on POSIX.
+/.?data_examples?*

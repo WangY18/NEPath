@@ -23,6 +23,7 @@ endif()
 # ============================================================
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
 option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
+option(NEPATH_BUILD_TESTS "Build NEPath tests" OFF)
 
 if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
     set(NEPATH_ENABLE_IPOPT ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable")
@@ -36,6 +37,7 @@ message(STATUS "========== NEPath Configuration ==========")
 message(STATUS "Build type        : ${CMAKE_BUILD_TYPE}")
 message(STATUS "IPOPT support     : ${NEPATH_ENABLE_IPOPT}")
 message(STATUS "Gurobi support    : ${NEPATH_ENABLE_GUROBI}")
+message(STATUS "Tests             : ${NEPATH_BUILD_TESTS}")
 
 # ============================================================
 # Compiler settings
@@ -74,7 +76,7 @@ if(NEPATH_ENABLE_IPOPT)
     if(IPOPT_FOUND)
         add_library(IPOPT INTERFACE)
         target_include_directories(IPOPT INTERFACE
-            ${IPOPT_INCLUDE_DIRS}
+            $<BUILD_INTERFACE:${IPOPT_INCLUDE_DIRS}>
         )
         target_link_libraries(IPOPT INTERFACE
             ${IPOPT_LIBRARIES}
@@ -184,6 +186,11 @@ add_library(NEPath
     src/NEPath/Curve.cpp
     src/NEPath/DirectionParallel.cpp
     src/NEPath/FileAgent.cpp
+    src/NEPath/IqopBuildIdentity.cpp
+    src/NEPath/IqopGeometry.cpp
+    src/NEPath/IqopIfopt.cpp
+    src/NEPath/IqopScp.cpp
+    src/NEPath/IqopSubproblem.cpp
     src/NEPath/NEPathPlanner.cpp
     src/NEPath/path.cpp
     src/NEPath/NonEquidistant.cpp
@@ -196,9 +203,8 @@ add_library(NEPath::NEPath ALIAS NEPath)
 target_include_directories(NEPath
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external>
         $<INSTALL_INTERFACE:include>
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/external
 )
 
 # Suppress warnings from Clipper
@@ -209,8 +215,13 @@ set_source_files_properties(
 
 # Optional dependencies
 if(NEPATH_ENABLE_IPOPT)
+    include(NEPathIfopt)
+    nepath_add_ifopt_sources(NEPath)
     target_compile_definitions(NEPath PUBLIC IncludeIpopt=1)
-    target_link_libraries(NEPath PUBLIC IPOPT)
+    target_link_libraries(NEPath PUBLIC
+        $<BUILD_INTERFACE:IPOPT>
+        $<INSTALL_INTERFACE:NEPath::Ipopt>
+    )
 else()
     target_compile_definitions(NEPath PUBLIC IncludeIpopt=0)
 endif()
@@ -225,6 +236,11 @@ endif()
 
 
 message(STATUS "=======================================")
+
+if(NEPATH_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # ============================================================
 # Install NEPath library and headers
@@ -252,6 +268,7 @@ install(TARGETS NEPath
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/NEPath
     INCLUDES DESTINATION include
 )
 
@@ -261,12 +278,6 @@ install(EXPORT NEPathTargets
     NAMESPACE NEPath::
     DESTINATION lib/cmake/NEPath
 )
-
-if(NEPATH_ENABLE_IPOPT)
-    install(TARGETS IPOPT
-        EXPORT NEPathTargets
-    )
-endif()
 
 if(NEPATH_ENABLE_GUROBI)
     install(TARGETS GUROBI

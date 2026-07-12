@@ -2,6 +2,7 @@
 #include <NEPath/setup_NEPath.h>
 #include <NEPath/Curve.h>
 #include <NEPath/PlanningOptions.h>
+#include <chrono>
 #if defined(IncludeIpopt) && (IncludeIpopt != 0)
 #include "IpTNLP.hpp"
 #include "IpIpoptApplication.hpp"
@@ -29,10 +30,12 @@ namespace nepath
         paths do1offset(const path &contour, const NonEquidistantOptions &opts);
         pathnode *root_offset(const path &contour, const paths &holes, const NonEquidistantOptions &opts);
         double *optimize_by_ipopt(const path &p, const NonEquidistantOptions &opts);
+        double *optimize_by_ipopt_legacy(const path &p, const NonEquidistantOptions &opts);
         double *optimize_by_gurobi(const path &p, const NonEquidistantOptions &opts);
 
     private:
         bool debug_;
+        std::chrono::steady_clock::time_point solver_deadline_;
 #if defined(IncludeGurobi) && (IncludeGurobi != 0)
         GRBEnv *gurobi_ = nullptr;
 #endif

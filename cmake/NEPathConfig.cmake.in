@@ -1,4 +1,42 @@
 @PACKAGE_INIT@
 
-include("${CMAKE_CURRENT_LIST_DIR}/NEPathTargets.cmake")
+if(@NEPATH_ENABLE_IPOPT@)
+    if(NOT TARGET NEPath::Ipopt)
+        find_package(PkgConfig QUIET)
+        if(PkgConfig_FOUND)
+            pkg_check_modules(NEPath_IPOPT QUIET IMPORTED_TARGET ipopt)
+        endif()
 
+        if(TARGET PkgConfig::NEPath_IPOPT)
+            add_library(NEPath::Ipopt INTERFACE IMPORTED)
+            set_property(TARGET NEPath::Ipopt PROPERTY
+                INTERFACE_LINK_LIBRARIES PkgConfig::NEPath_IPOPT)
+        else()
+            if(NOT IPOPT_ROOT AND DEFINED ENV{IPOPT_ROOT})
+                set(IPOPT_ROOT "$ENV{IPOPT_ROOT}")
+            endif()
+            find_path(NEPath_IPOPT_INCLUDE_DIR
+                NAMES IpIpoptApplication.hpp
+                HINTS "${IPOPT_ROOT}/include" "${IPOPT_ROOT}/include/coin")
+            find_library(NEPath_IPOPT_LIBRARY
+                NAMES ipopt libipopt
+                HINTS "${IPOPT_ROOT}/lib")
+            if(NOT NEPath_IPOPT_INCLUDE_DIR OR NOT NEPath_IPOPT_LIBRARY)
+                set(NEPath_FOUND FALSE)
+                set(NEPath_NOT_FOUND_MESSAGE
+                    "NEPath was built with Ipopt; install its pkg-config module or set IPOPT_ROOT")
+                return()
+            endif()
+            add_library(NEPath::Ipopt UNKNOWN IMPORTED)
+            set_target_properties(NEPath::Ipopt PROPERTIES
+                IMPORTED_LOCATION "${NEPath_IPOPT_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${NEPath_IPOPT_INCLUDE_DIR}")
+            if(CMAKE_DL_LIBS)
+                set_property(TARGET NEPath::Ipopt PROPERTY
+                    INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS}")
+            endif()
+        endif()
+    endif()
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/NEPathTargets.cmake")

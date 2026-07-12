@@ -4,14 +4,16 @@ Test suite for NEPath demo functions.
 Tests verify that all demo methods can be invoked successfully.
 """
 
-import pytest
-import numpy as np
-import tempfile
-import shutil
 from pathlib import Path
 
 import demos
-from plot_utils import plot_paths, save_plot, plot_comparison
+import numpy as np
+import pytest
+from plot_utils import IqopPathCountMismatchError
+from plot_utils import plot_comparison
+from plot_utils import plot_iqop_solver_overlay
+from plot_utils import plot_paths
+from plot_utils import save_plot
 
 
 @pytest.fixture
@@ -100,9 +102,9 @@ class TestDemoInvocation:
         assert 0.0 <= underfill_solution.underfillrate <= 1.0, "Underfill rate should be between 0 and 1"
 
         # Visualize results with underfill information
-        fig, ax = plot_paths(paths, title=f"Underfill Analysis (rate: {underfill_solution.underfillrate*100:.2f}%)")
+        fig, ax = plot_paths(paths, title=f"Underfill Analysis (rate: {underfill_solution.underfillrate * 100:.2f}%)")
         save_plot(fig, plot_output_dir, "demo_underfill.png")
-        print(f"✓ demo_underfill: {len(paths)} paths, underfill rate: {underfill_solution.underfillrate*100:.2f}%")
+        print(f"✓ demo_underfill: {len(paths)} paths, underfill rate: {underfill_solution.underfillrate * 100:.2f}%")
 
     def test_demo_sharpcorner(self, data_output_dir, plot_output_dir):
         """Test sharp corner detection demo."""
@@ -141,7 +143,7 @@ class TestDemoInvocation:
         assert len(paths) > 0
 
         # Visualize results
-        fig, ax = plot_paths(paths, title=f"Raster Toolpaths (angle={np.degrees(-np.pi/3.0):.1f}°)")
+        fig, ax = plot_paths(paths, title=f"Raster Toolpaths (angle={np.degrees(-np.pi / 3.0):.1f}°)")
         save_plot(fig, plot_output_dir, "demo_Raster.png")
         print(f"✓ demo_Raster generated {len(paths)} paths")
 
@@ -154,7 +156,7 @@ class TestDemoInvocation:
         assert len(paths) > 0
 
         # Visualize results
-        fig, ax = plot_paths(paths, title=f"Zigzag Toolpaths (angle={np.degrees(np.pi/3.0):.1f}°)")
+        fig, ax = plot_paths(paths, title=f"Zigzag Toolpaths (angle={np.degrees(np.pi / 3.0):.1f}°)")
         save_plot(fig, plot_output_dir, "demo_Zigzag.png")
         print(f"✓ demo_Zigzag generated {len(paths)} paths")
 
@@ -242,6 +244,71 @@ class TestDemoInvocation:
         save_plot(fig, plot_output_dir, "demo_IQOP_gurobi_DFS.png")
         print(f"✓ demo_IQOP_gurobi_DFS generated {len(paths)} paths")
 
+    def test_demo_IQOP_solver_overlay(self, data_output_dir, plot_output_dir):
+        """Superimpose registered Gurobi and Ipopt IQOP toolpaths."""
+        assert hasattr(demos, "demo_IQOP_Ipopt"), "Overlay requires an Ipopt-enabled build"
+        assert hasattr(demos, "demo_IQOP_gurobi"), "Overlay requires a Gurobi-enabled build"
+
+        output_dir = Path(data_output_dir) / "demo_IQOP_solver_overlay"
+        ipopt_paths = demos.demo_IQOP_Ipopt(
+            delta=1.0,
+            alpha=0.5,
+            washdis=0.2,
+            output_dir=output_dir / "ipopt",
+        )
+        gurobi_paths = demos.demo_IQOP_gurobi(
+            delta=1.0,
+            alpha=0.5,
+            washdis=0.2,
+            output_dir=output_dir / "gurobi",
+        )
+
+        figure, _, metrics = plot_iqop_solver_overlay(
+            ipopt_paths,
+            gurobi_paths,
+            title="IQOP Gurobi vs ifopt / Ipopt",
+        )
+        assert np.isfinite(metrics.global_max)
+        assert np.isfinite(metrics.global_rms)
+        save_plot(figure, plot_output_dir, "demo_IQOP_solver_overlay.png")
+        print(f"✓ IQOP solver overlay: max delta={metrics.global_max:.6g}, RMS delta={metrics.global_rms:.6g}")
+
+    def test_IQOP_solver_overlay_registration(self, plot_output_dir):
+        """Verify delta metrics after arc-length registration."""
+        from NEPath import Path as NEPathPath
+
+        known_translation = 0.25
+        x = np.array([0.0, 1.0, 2.0])
+        ipopt_path = NEPathPath.from_arrays(x, np.full_like(x, known_translation))
+        gurobi_path = NEPathPath.from_arrays(x, np.zeros_like(x))
+
+        figure, _, metrics = plot_iqop_solver_overlay([ipopt_path], [gurobi_path])
+
+        assert metrics.global_max == pytest.approx(known_translation)
+        assert metrics.global_rms == pytest.approx(known_translation)
+        save_plot(figure, plot_output_dir, "test_IQOP_solver_overlay_registration.png")
+
+    def test_IQOP_solver_overlay_closed_path_contracts(self, plot_output_dir):
+        """Register cyclic paths and reject unmatched solver outputs."""
+        from NEPath import Path as NEPathPath
+
+        ipopt_path = NEPathPath.from_arrays(
+            np.array([0.0, 1.0, 1.0, 0.0, 0.0]),
+            np.array([0.0, 0.0, 1.0, 1.0, 0.0]),
+        )
+        gurobi_path = NEPathPath.from_arrays(
+            np.array([1.0, 1.0, 0.0, 0.0, 1.0]),
+            np.array([1.0, 0.0, 0.0, 1.0, 1.0]),
+        )
+
+        figure, _, metrics = plot_iqop_solver_overlay([ipopt_path], [gurobi_path])
+
+        registration_roundoff = np.finfo(np.float64).eps
+        assert metrics.global_max == pytest.approx(0.0, abs=registration_roundoff)
+        save_plot(figure, plot_output_dir, "test_IQOP_solver_overlay_closed_registration.png")
+        with pytest.raises(IqopPathCountMismatchError, match="equal non-zero path counts"):
+            plot_iqop_solver_overlay([ipopt_path], [gurobi_path, gurobi_path])
+
 
 class TestCoreClasses:
     """Test core NEPath classes and functionality."""
@@ -267,7 +334,9 @@ class TestCoreClasses:
 
     def test_nepath_planner_basic(self, plot_output_dir):
         """Test basic NEPathPlanner operations."""
-        from NEPath import NEPathPlanner, ContourParallelOptions, Path
+        from NEPath import ContourParallelOptions
+        from NEPath import NEPathPlanner
+        from NEPath import Path
 
         # Create simple contour
         theta = np.linspace(0, 2 * np.pi, 50)
@@ -296,7 +365,8 @@ class TestCoreClasses:
 
     def test_connect_algorithms(self):
         """Test different connection algorithms."""
-        from NEPath import ConnectAlgorithm, ContourParallelOptions
+        from NEPath import ConnectAlgorithm
+        from NEPath import ContourParallelOptions
 
         # Verify enum values are accessible
         assert ConnectAlgorithm.none is not None
@@ -314,13 +384,14 @@ class TestCoreClasses:
 
     def test_contour_parallel_options(self):
         """Test ContourParallelOptions configuration."""
-        from NEPath import ContourParallelOptions, ConnectAlgorithm
+        from NEPath import ConnectAlgorithm
+        from NEPath import ContourParallelOptions
 
         opts = ContourParallelOptions()
 
         # Test default values
         assert opts.delta == 1.0
-        assert opts.wash == True
+        assert opts.wash
         assert opts.washdis == 0.2
         assert opts.num_least == 50
 
@@ -332,7 +403,7 @@ class TestCoreClasses:
         opts.connector = ConnectAlgorithm.cfs
 
         assert opts.delta == 2.0
-        assert opts.wash == False
+        assert not opts.wash
         assert opts.washdis == 0.5
         assert opts.num_least == 100
         assert opts.connector == ConnectAlgorithm.cfs
@@ -340,7 +411,9 @@ class TestCoreClasses:
 
     def test_tool_compensate(self, plot_output_dir):
         """Test tool compensation functionality."""
-        from NEPath import NEPathPlanner, ContourParallelOptions, Path
+        from NEPath import ContourParallelOptions
+        from NEPath import NEPathPlanner
+        from NEPath import Path
 
         # Create contour
         theta = np.linspace(0, 2 * np.pi, 100)
@@ -368,7 +441,9 @@ class TestCoreClasses:
 
     def test_add_holes(self, plot_output_dir):
         """Test adding holes to a planner."""
-        from NEPath import NEPathPlanner, Path, ContourParallelOptions
+        from NEPath import ContourParallelOptions
+        from NEPath import NEPathPlanner
+        from NEPath import Path
 
         # Create outer contour
         theta = np.linspace(0, 2 * np.pi, 100)
@@ -404,7 +479,10 @@ class TestCurveOperations:
 
     def test_underfill_calculation(self, plot_output_dir):
         """Test UnderFill calculation."""
-        from NEPath import Curve, Path, NEPathPlanner, ContourParallelOptions
+        from NEPath import ContourParallelOptions
+        from NEPath import Curve
+        from NEPath import NEPathPlanner
+        from NEPath import Path
 
         # Create contour and generate paths
         theta = np.linspace(0, 2 * np.pi, 100)
@@ -435,13 +513,16 @@ class TestCurveOperations:
         assert ufs.underfillrate <= 1.0
 
         # Visualize paths with underfill rate
-        fig, ax = plot_paths(paths, title=f"Underfill Calculation (rate: {ufs.underfillrate*100:.2f}%)", contour=contour)
+        fig, ax = plot_paths(paths, title=f"Underfill Calculation (rate: {ufs.underfillrate * 100:.2f}%)", contour=contour)
         save_plot(fig, plot_output_dir, "test_underfill_calculation.png")
-        print(f"✓ UnderFill calculation: {ufs.underfillrate*100:.2f}%")
+        print(f"✓ UnderFill calculation: {ufs.underfillrate * 100:.2f}%")
 
     def test_sharp_turn_detection(self, plot_output_dir):
         """Test SharpTurn detection."""
-        from NEPath import Curve, NEPathPlanner, ContourParallelOptions, Path
+        from NEPath import ContourParallelOptions
+        from NEPath import Curve
+        from NEPath import NEPathPlanner
+        from NEPath import Path
 
         # Create contour with sharp corners
         theta = np.linspace(0, 2 * np.pi, 100)
@@ -493,7 +574,8 @@ class TestCurveOperations:
 
     def test_wash_dis_resampling(self, plot_output_dir):
         """Test path resampling with wash_dis."""
-        from NEPath import Curve, Path
+        from NEPath import Curve
+        from NEPath import Path
 
         # Create a simple path
         x = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
