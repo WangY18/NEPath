@@ -21,8 +21,12 @@ endif()
 # ============================================================
 # Options
 # ============================================================
+# Ipopt is open source and packaged on conda-forge, so enabling it by default is
+# satisfiable. Gurobi is commercial, is not on conda-forge, and its block below
+# hard-errors when GUROBI_HOME is unset — defaulting it ON makes a plain
+# `pip install .` fail for anyone without a Gurobi licence. Opt in explicitly.
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
-option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
+option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" OFF)
 option(NEPATH_BUILD_TESTS "Build NEPath contract tests" OFF)
 
 if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
