@@ -26,11 +26,19 @@ class OptimizationAlgorithm(Enum):
     ipopt = 1  # IPOPT solver
     gurobi = 2  # Gurobi solver
 
+class CfsBindingError(RuntimeError): ...
+class EmptyCfsContoursError(CfsBindingError): ...
+class InvalidCfsSpacingError(CfsBindingError): ...
+class InvalidCfsContourError(CfsBindingError): ...
+class InvalidCfsTopologyError(CfsBindingError): ...
+
 class Path:
     """A 2D toolpath represented as arrays of x and y coordinates."""
 
-    length: int
-    """Number of waypoints in the path."""
+    @property
+    def length(self) -> int:
+        """Number of waypoints in the path."""
+        ...
 
     @overload
     def __init__(self) -> None: ...
@@ -71,6 +79,10 @@ class Path:
     ) -> Path:
         """Create a Path from numpy arrays."""
         ...
+
+def connect_fermat_spiral(contours: list[Path], spacing: float) -> Path:
+    """Connect one containment tree of contours into a Fermat spiral."""
+    ...
 
 class DirectParallelOptions:
     """Options for direction-parallel (Raster/Zigzag) toolpath generation."""

@@ -9,7 +9,8 @@ Expose C++ NEPath library functionalities via pybind11.
 __version__ = "0.1.0"
 
 # Import core extension module
-from .NEPathConfig import IncludeIpopt, IncludeGurobi
+from .NEPathConfig import IncludeGurobi as IncludeGurobi
+from .NEPathConfig import IncludeIpopt as IncludeIpopt
 
 
 if IncludeGurobi:
@@ -24,20 +25,4 @@ if IncludeGurobi:
             if os.path.isdir(gurobi_dll_path):
                 os.add_dll_directory(gurobi_dll_path)
 
-from ._nepath import *
-
-# Optionally list public API symbols here
-__all__ = [
-    "ConnectAlgorithm",
-    "OptimizationAlgorithm",
-    "DirectParallelOptions",
-    "ContourParallelOptions",
-    "NonEquidistantOptions",
-    "SharpTurnSolution",
-    "UnderFillSolution",
-    "Path",
-    "Curve",
-    "NEPathPlanner",
-    "IncludeIpopt",
-    "IncludeGurobi",
-]
+from ._nepath import *  # noqa: F403

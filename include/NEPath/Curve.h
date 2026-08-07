@@ -3,6 +3,8 @@
 #include <fstream>
 #include <stack>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 #include <NEPath/Basic.h>
 #include <NEPath/path.h>
 // UnderFillSolution is a struct to store information of underfill.
@@ -12,6 +14,24 @@
 
 namespace nepath
 {
+    class InvalidCurveDistanceError final : public std::runtime_error
+    {
+    public:
+        explicit InvalidCurveDistanceError(const std::string &message) : std::runtime_error(message) {}
+    };
+
+    class DegenerateCurveError final : public std::runtime_error
+    {
+    public:
+        explicit DegenerateCurveError(const std::string &message) : std::runtime_error(message) {}
+    };
+
+    class CurveTraversalError final : public std::runtime_error
+    {
+    public:
+        explicit CurveTraversalError(const std::string &message) : std::runtime_error(message) {}
+    };
+
     struct UnderFillSolution
     {
         bool **map_slice = NULL;     // map_slice[i][j]==true iff point (xs[i],ys[j]) is in the slice

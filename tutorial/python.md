@@ -518,6 +518,42 @@ if __name__ == "__main__":
 
 ### Toolpath Connection
 
+#### Connect existing contours directly
+
+`connect_fermat_spiral` accepts a nested contour family in any order. This example uses the same wavy circular geometry as the IQOP examples, but does not require an optimizer.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+import NEPath as nepath
+
+
+def wavy_contour(radius: float) -> nepath.Path:
+    theta = np.linspace(0.0, 2.0 * np.pi, 1000, endpoint=False)
+    modulated_radius = radius * (1.0 + 0.1 * np.cos(10.0 * theta))
+    return nepath.Path.from_arrays(
+        modulated_radius * np.cos(theta),
+        modulated_radius * np.sin(theta),
+    )
+
+
+if __name__ == "__main__":
+    contours_arbitrary_order = [
+        wavy_contour(10.0),
+        wavy_contour(15.0),
+        wavy_contour(5.0),
+    ]
+    connected_path = nepath.connect_fermat_spiral(
+        contours_arbitrary_order,
+        spacing=1.0,
+    )
+
+    x, y = connected_path.get_arrays()
+    plt.plot(x, y, linewidth=0.8)
+    plt.axis("equal")
+    plt.show()
+```
+
 #### IQOP connected by CFS
 
 CP can be connected by CFS in the same way.
@@ -816,4 +852,3 @@ if __name__ == "__main__":
     print(f"IncludeIpopt: {IncludeIpopt}")
     print(f"IncludeGurobi: {IncludeGurobi}")
 ```
-

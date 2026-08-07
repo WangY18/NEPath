@@ -1,5 +1,24 @@
 #include <NEPath/Curve.h>
 
+namespace
+{
+double normalize_ring_id(double id, int length)
+{
+    double normalized = std::fmod(id, static_cast<double>(length));
+    if (normalized < 0.0)
+    {
+        normalized += length;
+    }
+    return normalized;
+}
+
+int normalize_ring_index(int index, int length)
+{
+    const int remainder = index % length;
+    return remainder < 0 ? remainder + length : remainder;
+}
+} // namespace
+
 namespace nepath
 {
     // find the point where path a and b interset each other
@@ -152,6 +171,8 @@ namespace nepath
     // length along path(x,y,length) between point (x[from],y[from]) to point (x[to],y[to])
     double Curve::LengthBetween(const double *x, const double *y, int length, int from, int to)
     {
+        from = normalize_ring_index(from, length);
+        to = normalize_ring_index(to, length);
         if (from == to)
         {
             return 0;
@@ -167,6 +188,8 @@ namespace nepath
     // length along path(x,y,length) between point (x[from],y[from]) to point (x[to],y[to])
     double Curve::LengthBetween(const double *x, const double *y, int length, double from, double to)
     {
+        from = normalize_ring_id(from, length);
+        to = normalize_ring_id(to, length);
         int id_floor_from = floor(from);
         int id_floor_to = floor(to);
         if ((id_floor_from == id_floor_to) && (to > from))
@@ -280,9 +303,28 @@ namespace nepath
     // the point on path(x,y,length) back (x[id],y[id]) with a length of dis along the path
     double Curve::BackDis(const double *x, const double *y, int length, double id, double dis)
     {
+        if (!std::isfinite(dis))
+        {
+            throw InvalidCurveDistanceError("Backward curve distance must be finite");
+        }
         if (dis < 0)
         {
             return ForDis(x, y, length, id, -dis);
+        }
+        id = normalize_ring_id(id, length);
+        if (dis == 0.0)
+        {
+            return id;
+        }
+        const double perimeter = TotalLength(x, y, length, true);
+        if (!std::isfinite(perimeter) || perimeter <= 0.0)
+        {
+            throw DegenerateCurveError("Cannot traverse a closed path with non-positive perimeter");
+        }
+        dis = std::fmod(dis, perimeter);
+        if (dis == 0.0)
+        {
+            return id;
         }
         double xid = interp_id(x, length, id);
         double yid = interp_id(y, length, id);
@@ -291,30 +333,50 @@ namespace nepath
         if (sumL >= dis)
         {
             double alpha = dis / sumL;
-            return id_floor * alpha + id * (1.0 - alpha);
+            return normalize_ring_id(id_floor * alpha + id * (1.0 - alpha), length);
         }
-        for (int i = (id_floor + length - 1) % length;;)
+        for (int i = (id_floor + length - 1) % length, visited = 0; visited < length;
+             i = (i + length - 1) % length, ++visited)
         {
             double dl = dis(x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
             if (sumL + dl <= dis)
             {
                 sumL += dl;
-                i = (i + length - 1) % length;
             }
             else
             {
                 double alpha = (dis - sumL) / dl; // alphaԽС��Խ����i+1
-                return i + 1.0 - alpha;           // i * alpha + (i + 1) * (1.0 - alpha)
+                return normalize_ring_id(i + 1.0 - alpha, length); // i * alpha + (i + 1) * (1.0 - alpha)
             }
         }
+        throw CurveTraversalError("Backward curve traversal exceeded one closed-path revolution");
     }
 
     // the point on path(x,y,length) forward (x[id],y[id]) with a length of dis along the path
     double Curve::ForDis(const double *x, const double *y, int length, double id, double dis)
     {
+        if (!std::isfinite(dis))
+        {
+            throw InvalidCurveDistanceError("Forward curve distance must be finite");
+        }
         if (dis < 0)
         {
             return BackDis(x, y, length, id, -dis);
+        }
+        id = normalize_ring_id(id, length);
+        if (dis == 0.0)
+        {
+            return id;
+        }
+        const double perimeter = TotalLength(x, y, length, true);
+        if (!std::isfinite(perimeter) || perimeter <= 0.0)
+        {
+            throw DegenerateCurveError("Cannot traverse a closed path with non-positive perimeter");
+        }
+        dis = std::fmod(dis, perimeter);
+        if (dis == 0.0)
+        {
+            return id;
         }
         double xid = interp_id(x, length, id);
         double yid = interp_id(y, length, id);
@@ -323,27 +385,28 @@ namespace nepath
         if (sumL >= dis)
         {
             double alpha = dis / sumL;
-            return int(ceil(id)) * alpha + id * (1.0 - alpha);
+            return normalize_ring_id(int(ceil(id)) * alpha + id * (1.0 - alpha), length);
         }
-        for (int i = id_ceil;;)
+        for (int i = id_ceil, visited = 0; visited < length; i = (i + 1) % length, ++visited)
         {
             double dl = dis(x[i], y[i], x[(i + 1) % length], y[(i + 1) % length]);
             if (sumL + dl <= dis)
             {
                 sumL += dl;
-                i = (i + 1) % length;
             }
             else
             {
                 double alpha = (dis - sumL) / dl;
-                return i + alpha; // i * (1.0 - alpha) + (i + 1) * alpha
+                return normalize_ring_id(i + alpha, length); // i * (1.0 - alpha) + (i + 1) * alpha
             }
         }
+        throw CurveTraversalError("Forward curve traversal exceeded one closed-path revolution");
     }
 
     // interp of the index id in x
     double Curve::interp_id(const double *x, int length, double id)
     {
+        id = normalize_ring_id(id, length);
         int id_floor = floor(id);
         double alpha = id - id_floor;
         return x[id_floor] * (1.0 - alpha) + x[(id_floor + 1) % length] * alpha;

@@ -21,15 +21,24 @@ endif()
 # ============================================================
 # Options
 # ============================================================
+# Ipopt is open source and packaged on conda-forge, so enabling it by default is
+# satisfiable. Gurobi is commercial, is not on conda-forge, and its block below
+# hard-errors when GUROBI_HOME is unset — defaulting it ON makes a plain
+# `pip install .` fail for anyone without a Gurobi licence. Opt in explicitly.
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
-option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
+option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" OFF)
+option(NEPATH_BUILD_TESTS "Build NEPath contract tests" OFF)
 
+# `$ENV{X}` reads the environment; a bare `ENV{X}` assigns that literal string,
+# which CMake evaluates as true — so the override used to force the option ON no
+# matter what the caller asked for. FORCE is required too: option() has already
+# created the cache entry, and a plain `set(... CACHE ...)` will not replace one.
 if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
-    set(NEPATH_ENABLE_IPOPT ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable")
+    set(NEPATH_ENABLE_IPOPT $ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable" FORCE)
 endif()
 
 if(DEFINED ENV{NEPATH_ENABLE_GUROBI})
-    set(NEPATH_ENABLE_GUROBI ENV{NEPATH_ENABLE_GUROBI} CACHE BOOL "Enable Gurobi support from environment variable")
+    set(NEPATH_ENABLE_GUROBI $ENV{NEPATH_ENABLE_GUROBI} CACHE BOOL "Enable Gurobi support from environment variable" FORCE)
 endif()
 
 message(STATUS "========== NEPath Configuration ==========")
@@ -220,6 +229,19 @@ if(NEPATH_ENABLE_GUROBI)
     target_link_libraries(NEPath PUBLIC GUROBI)
 else()
     target_compile_definitions(NEPath PUBLIC IncludeGurobi=0)
+endif()
+
+# ============================================================
+# Tests
+# ============================================================
+
+if(NEPATH_BUILD_TESTS)
+    enable_testing()
+    add_executable(test_curve_ring
+        tests/test_curve_ring.cpp
+    )
+    target_link_libraries(test_curve_ring PRIVATE NEPath::NEPath)
+    add_test(NAME curve_ring COMMAND test_curve_ring)
 endif()
 
 

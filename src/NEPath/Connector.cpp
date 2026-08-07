@@ -2,11 +2,82 @@
 #include <NEPath/Basic.h>
 #include <NEPath/Curve.h>
 
+#include <memory>
+
+namespace
+{
+int normalize_ring_index(int index, int length)
+{
+    const int remainder = index % length;
+    return remainder < 0 ? remainder + length : remainder;
+}
+
+struct BorrowedPathNodeDeleter final
+{
+    void operator()(nepath::pathnode *node) const
+    {
+        node->data.clear_without_delete();
+        delete node;
+    }
+};
+
+class ParentLinkGuard final
+{
+public:
+    ParentLinkGuard(nepath::pathnode *child, nepath::pathnode *original_parent, nepath::pathnode *temporary_parent)
+        : child_(child), original_parent_(original_parent), temporary_parent_(temporary_parent)
+    {
+    }
+
+    ParentLinkGuard(const ParentLinkGuard &) = delete;
+    ParentLinkGuard &operator=(const ParentLinkGuard &) = delete;
+
+    ~ParentLinkGuard()
+    {
+        if (active_ && child_->parent == temporary_parent_)
+        {
+            child_->parent = original_parent_;
+        }
+    }
+
+    void release()
+    {
+        active_ = false;
+    }
+
+private:
+    nepath::pathnode *child_;
+    nepath::pathnode *original_parent_;
+    nepath::pathnode *temporary_parent_;
+    bool active_ = true;
+};
+
+void append_forward_vertices(const nepath::path &contour, double from, double to,
+                             std::vector<double> &x, std::vector<double> &y)
+{
+    int current = normalize_ring_index(static_cast<int>(std::ceil(from)), contour.length);
+    const int end = normalize_ring_index(static_cast<int>(std::floor(to)), contour.length);
+    for (int visited = 0; current != end && visited < contour.length; ++visited)
+    {
+        x.push_back(contour.x[current]);
+        y.push_back(contour.y[current]);
+        current = (current + 1) % contour.length;
+    }
+}
+} // namespace
+
 namespace nepath
 {
     // Connected Fermat Spiral (CFS)
     // Zhao, H., Gu, F., Huang, Q. X., Garcia, J., Chen, Y., Tu, C., ... & Chen, B. (2016). Connected fermat spirals for layered fabrication. ACM Transactions on Graphics, 35(4), 1-10.
     path Connector::ConnectedFermatSpiral_MultMinimum(pathnode *root, double dis, double in /*=-1.0*/)
+    {
+        const NodeDeletionObserver ignore_node_deletion = [](pathnode *) {};
+        return ConnectedFermatSpiral_MultMinimum(root, dis, ignore_node_deletion, in);
+    }
+
+    path Connector::ConnectedFermatSpiral_MultMinimum(pathnode *root, double dis, const NodeDeletionObserver &before_node_delete,
+                                                       double in /*=-1.0*/)
     {
         pathnode *real_parent = root->parent;
         root->parent = NULL;
@@ -81,7 +152,9 @@ namespace nepath
                     {
                         del_node->data.clear_with_delete();
                         del_node = del_node->parent;
-                        delete del_node->children[del_node->children.size() - 1];
+                        pathnode *removed_child = del_node->children[del_node->children.size() - 1];
+                        before_node_delete(removed_child);
+                        delete removed_child;
                         del_node->children[del_node->children.size() - 1] = NULL;
                         del_node->children.pop_back();
                     }
@@ -95,30 +168,35 @@ namespace nepath
                 }
                 else
                 {
-                    pathnode *grandparent = new pathnode();
                     pathnode *grandparent_old = parent->parent;
-                    parent->parent = grandparent;
+                    std::unique_ptr<pathnode, BorrowedPathNodeDeleter> grandparent_owner(new pathnode());
+                    pathnode *grandparent = grandparent_owner.get();
                     grandparent->children.push_back(parent);
                     grandparent->data.length = grandparent_old->data.length;
                     grandparent->data.x = grandparent_old->data.x;
                     grandparent->data.y = grandparent_old->data.y;
+                    parent->parent = grandparent;
+                    ParentLinkGuard parent_link(parent, grandparent_old, grandparent);
 
                     double in_now = Curve::nearest_id(grandparent->data.x, grandparent->data.y, grandparent->data.length, x_in.top(), y_in.top());
                     x_in.pop();
                     y_in.pop();
 
                     path p = FermatSpiral_SingleMinimum(grandparent, dis, in_now);
+                    parent_link.release();
                     pathnode *del_node = child;
                     while (del_node != grandparent)
                     {
                         del_node->data.clear_with_delete();
                         del_node = del_node->parent;
-                        delete del_node->children[del_node->children.size() - 1];
+                        pathnode *removed_child = del_node->children[del_node->children.size() - 1];
+                        before_node_delete(removed_child);
+                        delete removed_child;
                         del_node->children[del_node->children.size() - 1] = NULL;
                         del_node->children.pop_back();
                     }
-                    grandparent->data.clear_without_delete();
-                    delete grandparent;
+                    before_node_delete(grandparent);
+                    grandparent_owner.reset();
                     grandparent_old->data.clear_with_delete();
                     grandparent_old->data.length = p.length;
                     grandparent_old->data.x = p.x;
@@ -171,10 +249,12 @@ namespace nepath
                 double far_id = Curve::furthest_id(root->data.x, root->data.y, root->data.length, x_near, y_near);
                 double x_far = Curve::interp_id(root->data.x, root->data.length, far_id);
                 double y_far = Curve::interp_id(root->data.y, root->data.length, far_id);
-                in = ceil(near_id);
+                in = normalize_ring_index(static_cast<int>(ceil(near_id)), root->data.length);
                 double dism = dis(x_near, y_near, root->data.x[int(in)], root->data.y[int(in)]);
                 dism = std::min(dism, dis(x_far, y_far, root->data.x[int(in)], root->data.y[int(in)]));
-                for (int i = (int(in) + 1) % root->data.length; subset_cycle(near_id, far_id, i); i = (i + 1) % root->data.length)
+                for (int i = (int(in) + 1) % root->data.length, visited = 0;
+                     subset_cycle(near_id, far_id, i) && visited < root->data.length;
+                     i = (i + 1) % root->data.length, ++visited)
                 {
                     double disnow = dis(x_near, y_near, root->data.x[i], root->data.y[i]);
                     disnow = std::min(dism, dis(x_far, y_far, root->data.x[i], root->data.y[i]));
@@ -184,10 +264,12 @@ namespace nepath
                         in = i;
                     }
                 }
-                out = ceil(far_id);
+                out = normalize_ring_index(static_cast<int>(ceil(far_id)), root->data.length);
                 dism = dis(x_near, y_near, root->data.x[int(out)], root->data.y[int(out)]);
                 dism = std::min(dism, dis(x_far, y_far, root->data.x[int(out)], root->data.y[int(out)]));
-                for (int i = (int(out) + 1) % root->data.length; subset_cycle(far_id, near_id, i); i = (i + 1) % root->data.length)
+                for (int i = (int(out) + 1) % root->data.length, visited = 0;
+                     subset_cycle(far_id, near_id, i) && visited < root->data.length;
+                     i = (i + 1) % root->data.length, ++visited)
                 {
                     double disnow = dis(x_near, y_near, root->data.x[i], root->data.y[i]);
                     disnow = std::min(dism, dis(x_far, y_far, root->data.x[i], root->data.y[i]));
@@ -370,15 +452,16 @@ namespace nepath
                 if (circle_small)
                 {
                     out_forward_in = !out_forward_in;
-                    continue;
                 }
-                if (in_run)
+                else if (in_run)
                 { // Vary in-point��fix out-point.
                     if (out_forward_in)
                     { // outf > out > in
                         double outf = Curve::ForDis(root->data.x, root->data.y, root->data.length, out, dis);
-                        int id_in_begin = floor(in);
-                        for (int i = id_in_begin; subset_cycle(out, i, outf, false, false); i = (i + root->data.length - 1) % root->data.length)
+                        int id_in_begin = normalize_ring_index(static_cast<int>(floor(in)), root->data.length);
+                        for (int i = id_in_begin, visited = 0;
+                             subset_cycle(out, i, outf, false, false) && visited < root->data.length;
+                             i = (i + root->data.length - 1) % root->data.length, ++visited)
                         {
                             xin.push_back(root->data.x[i]);
                             yin.push_back(root->data.y[i]);
@@ -390,7 +473,9 @@ namespace nepath
                     { // in > out > outb
                         double outb = Curve::BackDis(root->data.x, root->data.y, root->data.length, out, dis);
                         int id_in_begin = int(ceil(in)) % root->data.length;
-                        for (int i = id_in_begin; subset_cycle(i, out, outb, false, false); i = (i + 1) % root->data.length)
+                        for (int i = id_in_begin, visited = 0;
+                             subset_cycle(i, out, outb, false, false) && visited < root->data.length;
+                             i = (i + 1) % root->data.length, ++visited)
                         {
                             xin.push_back(root->data.x[i]);
                             yin.push_back(root->data.y[i]);
@@ -405,7 +490,9 @@ namespace nepath
                     { // out > in > inb
                         double inb = Curve::BackDis(root->data.x, root->data.y, root->data.length, in, dis);
                         int id_out_begin = int(ceil(out)) % root->data.length;
-                        for (int i = id_out_begin; subset_cycle(i, in, inb, false, false); i = (i + 1) % root->data.length)
+                        for (int i = id_out_begin, visited = 0;
+                             subset_cycle(i, in, inb, false, false) && visited < root->data.length;
+                             i = (i + 1) % root->data.length, ++visited)
                         {
                             xout.push_back(root->data.x[i]);
                             yout.push_back(root->data.y[i]);
@@ -416,8 +503,10 @@ namespace nepath
                     else
                     { // inf > in > out
                         double inf = Curve::ForDis(root->data.x, root->data.y, root->data.length, in, dis);
-                        int id_out_begin = floor(out);
-                        for (int i = id_out_begin; subset_cycle(in, i, inf, false, false); i = (i + root->data.length - 1) % root->data.length)
+                        int id_out_begin = normalize_ring_index(static_cast<int>(floor(out)), root->data.length);
+                        for (int i = id_out_begin, visited = 0;
+                             subset_cycle(in, i, inf, false, false) && visited < root->data.length;
+                             i = (i + root->data.length - 1) % root->data.length, ++visited)
                         {
                             xout.push_back(root->data.x[i]);
                             yout.push_back(root->data.y[i]);
@@ -449,19 +538,11 @@ namespace nepath
                 }
                 if (subset_cycle(in, out, idm, true, false))
                 { // Counter clockwise, idm between in-point and out-point
-                    for (int i = ceil(in); i != floor(out); i = (i + 1) % root->data.length)
-                    {
-                        xin.push_back(root->data.x[i]);
-                        yin.push_back(root->data.y[i]);
-                    }
+                    append_forward_vertices(root->data, in, out, xin, yin);
                 }
                 else
                 { // Clockwise, idm between out-point and in-point
-                    for (int i = ceil(out); i != floor(in); i = (i + 1) % root->data.length)
-                    {
-                        xout.push_back(root->data.x[i]);
-                        yout.push_back(root->data.y[i]);
-                    }
+                    append_forward_vertices(root->data, out, in, xout, yout);
                 }
                 break;
             }
