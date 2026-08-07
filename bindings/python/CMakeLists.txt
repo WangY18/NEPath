@@ -10,8 +10,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ============================================================
 # Options
 # ============================================================
+# Keep these defaults in step with the root CMakeLists.txt: this file is the
+# entry point for the Python wheel, so its defaults are what `pip install .`
+# gets. Ipopt is open source and on conda-forge, so ON is satisfiable. Gurobi is
+# commercial, absent from conda-forge, and the block below hard-errors when
+# GUROBI_HOME is unset — ON by default breaks any install without a licence.
 option(NEPATH_ENABLE_IPOPT  "Enable IPOPT support"  ON)
-option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" ON)
+option(NEPATH_ENABLE_GUROBI "Enable Gurobi support" OFF)
 
 if(DEFINED ENV{NEPATH_ENABLE_IPOPT})
     set(NEPATH_ENABLE_IPOPT $ENV{NEPATH_ENABLE_IPOPT} CACHE BOOL "Enable IPOPT support from environment variable" FORCE)
